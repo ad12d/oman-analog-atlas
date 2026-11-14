@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "note": "max_relief_m = allowed unevenness after removing the ground slope. Team design rules for the Space Apps 2026 demo. They are planning thresholds chosen by the team, not NASA requirements; replace with sourced values when available. Units: metres, degrees, seconds, m/s^2.",
+  "version": 2,
+  "note": "Team design rules for the Space Apps 2026 demo: planning thresholds chosen by the team from published lunar / Mars surface-operations practice, not NASA requirements. max_relief_m = allowed unevenness after removing the ground slope. Units: metres, degrees, seconds, m/s^2.",
   "worlds": {
     "oman": { "label": "Oman (Earth)", "gravity": 9.81 },
     "moon": { "label": "Moon", "gravity": 1.62 },
@@ -16,14 +16,43 @@
     "touchdown_speed_mps": 1.5
   },
   "camp": {
-    "plume_keepout_m": 35,
+    "plume_keepout_m": { "oman": 40, "moon": 90, "mars": 60 },
+    "keepout_why": {
+      "oman": "Landing engines blast gravel outward. Keeping the camp clear of the pad protects it during every later landing and take-off.",
+      "moon": "With no air to slow it, dust thrown by a landing engine flies for hundreds of metres at very high speed. Apollo 12 landed about 160 m from the Surveyor 3 probe and still pitted its surface. Camps on the Moon must sit well away from the pad, or behind a berm.",
+      "mars": "Mars' thin air slows ejecta more than on the Moon, but a landing plume still throws gravel tens of metres. The camp stays outside that zone."
+    },
     "modules": [
-      { "id": "habitat", "name": "Habitat dome", "radius_m": 4.5, "max_slope_deg": 5,  "max_relief_m": 0.5, "keepout": true },
-      { "id": "solar",   "name": "Solar array",  "radius_m": 3.2, "max_slope_deg": 12, "max_relief_m": 1.0, "keepout": true },
-      { "id": "comms",   "name": "Comms mast",   "radius_m": 1.5, "max_slope_deg": 15, "max_relief_m": 1.0, "keepout": true },
-      { "id": "rover",   "name": "Rover",        "radius_m": 2.2, "max_slope_deg": 20, "max_relief_m": 1.2, "keepout": false },
-      { "id": "path",    "name": "Path marker",  "radius_m": 0.6, "max_slope_deg": 25, "max_relief_m": 2.0, "keepout": false }
+      { "id": "habitat", "name": "Habitat", "radius_m": 4.5, "max_slope_deg": 5, "max_relief_m": 0.5, "keepout": true,
+        "role": "Pressurised home for four crew, covered by a regolith berm that shields them from radiation.",
+        "why": {
+          "slope": "A habitat needs level ground: the floor, the airlock seal and the crew's bunks all assume a flat base, and an inflatable shell carries uneven loads on a slope.",
+          "relief": "Bumps under the footprint must be graded flat before inflation; more than half a metre is too much regolith to move with the construction robot." } },
+      { "id": "solar", "name": "Solar array", "radius_m": 3.2, "max_slope_deg": 12, "max_relief_m": 1.0, "keepout": true, "needs_sun": true, "max_from": { "habitat": 160 },
+        "role": "Power for the base. A tall mast lifts the panels above the terrain's shadows.",
+        "why": {
+          "sun": "The panels must see the Sun. Near the lunar south pole the Sun skims only a few degrees above the horizon, so a small hill can shade a site for days; high ground is worth more than flat ground here.",
+          "distance": "Power cables longer than about 160 m waste energy and are slow to lay across rough ground; keep the array close to the habitat." } },
+      { "id": "comms", "name": "Comms mast", "radius_m": 1.5, "max_slope_deg": 15, "max_relief_m": 1.0, "keepout": true, "needs_home": true, "max_from": { "habitat": 200 },
+        "role": "Radio link to Earth (direct from the Moon, through an orbiting relay on Mars).",
+        "why": {
+          "home": "The dish needs a clear line of sight to Earth. From the lunar south pole Earth hangs low over the horizon, so any ridge in that direction cuts the link.",
+          "distance": "The mast is wired to the habitat; within 200 m keeps the cable short and the mast inside the walking zone." } },
+      { "id": "drill", "name": "Drill rig", "names": { "moon": "Ice drill", "mars": "Science drill", "oman": "Core drill" }, "radius_m": 2.0, "max_slope_deg": 10, "max_relief_m": 0.8, "keepout": true, "needs_shadow": { "moon": true }, "max_from": { "habitat": 220 },
+        "role": "Moon: drills for water ice. Mars: cores layered sediments for signs of past life. Oman: cores the ophiolite, the project's analog rock.",
+        "why": {
+          "shadow": "Water ice survives only where the Sun never reaches: cold traps in permanent shadow, below about minus 160 °C. On the Moon the ice drill must stand in shadow.",
+          "distance": "Crews and rovers service the drill from the habitat; within about 220 m keeps it a short drive away." } },
+      { "id": "rover", "name": "Rover", "radius_m": 2.4, "max_slope_deg": 15, "max_relief_m": 1.2, "keepout": false, "max_from": { "habitat": 60 },
+        "role": "Pressurised rover parked by the habitat, ready for excursions.",
+        "why": {
+          "slope": "A parked rover needs gentle ground so it does not roll and can dock to the habitat's suit-ports.",
+          "distance": "The rover garage must be a short walk from the airlock: within 60 m." } },
+      { "id": "path", "name": "Path marker", "radius_m": 0.6, "max_slope_deg": 25, "max_relief_m": 2.0, "keepout": false,
+        "role": "Beacons that mark the safe walking route.",
+        "why": { "slope": "Crews in suits should not walk on slopes steeper than about 25°." } }
     ],
-    "needs": ["habitat", "solar", "comms"]
+    "needs": ["habitat", "solar", "comms", "rover"],
+    "build_order": ["habitat", "solar", "comms", "rover", "drill", "path"]
   }
 }

@@ -387,3 +387,18 @@
 .vr-row .btn:disabled{opacity:.4;cursor:not-allowed}
 .vr-skins .eyebrow{padding:0 6px}
 .vr-enter{position:absolute;right:max(16px, env(safe-area-inset-right,0px));bottom:calc(62px + env(safe-area-inset-bottom,0px))}
+.vr-fade{position:fixed;inset:0;background:#f4f1ea;opacity:0;pointer-events:none;z-index:4}
+.vr-caption{position:absolute;left:max(16px, env(safe-area-inset-left,0px));bottom:calc(150px + env(safe-area-inset-bottom,0px));width:min(520px, calc(100vw - 32px));padding:16px 18px 14px;z-index:3;
+  border-left:3px solid var(--moho);display:grid;gap:6px}
+.vr-caption h3{font-family:var(--f-display);font-size:19px;letter-spacing:.02em;line-height:1.2}
+.vr-caption p{font-size:13.5px;color:var(--fg);opacity:.92}
+.vr-caption .why-lead{color:var(--muted);font-size:12.5px;border-top:1px solid var(--hair);padding-top:6px}
+.vr-caption .btn{justify-self:end;padding:6px 12px;font-size:10.5px}
+.vr-why{margin:6px 0;padding-left:18px;display:grid;gap:5px;font-size:12.5px;line-height:1.45}
+.vr-card .vr-why{padding:0 16px 0 34px}
+.vr-card .note.role{color:var(--fg);opacity:.85;padding-top:10px}
+.vr-card .note.tip{color:#7fe0a8}
+.vr-card-acts{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px 14px}
+.vr-card-acts .btn{padding:8px 12px;font-size:11px}
+.vr-table.report td:nth-child(2){font-size:12px}
+.vr-table.report .lim{white-space:normal;font-family:var(--f-body)}

@@ -87,10 +87,18 @@ On a screen: drag to look, click/tap to act, WASD to walk.
 Rebuild them with `pip install rasterio` and `python pipeline/make_vr_worlds.py` (put the LOLA Site01 GeoTIFF in `raw/` first).
 
 1. **Choose a pad**: the three best 6 m pads (lowest slope + roughness) are suggested; point anywhere to test another.
-2. **Watch the landing**: powered descent under the chosen world's gravity (Oman 9.81, Moon 1.62, Mars 3.71 m/s²). At touchdown the
-   terrain under the four footpads gives lander tilt, ground slope and roughness → SAFE / MARGINAL / HAZARD.
-3. **Build the camp**: habitat, solar array, comms mast, rover, path markers. Each is checked for slope, unevenness and the plume keep-out distance.
+2. **Watch the landing**: powered descent under the world's gravity; high-mounted thrusters take over in the last metres. At touchdown the
+   terrain under the four footpads gives lander tilt, ground slope and roughness → SAFE / MARGINAL / HAZARD; the solar wings unfold.
+3. **Build the base**: habitat, solar array, comms mast, drill rig (ice drill on the Moon), rover and path markers. Every module is checked
+   against rules measured on the terrain: slope, unevenness, distance from the landing pad (larger on the airless Moon), sunlight
+   (a line-of-sight test toward the Sun), line of sight to Earth (Moon), permanent shadow for the ice drill (Moon), and distance to the
+   habitat. A refused placement shows **why** (value, limit and the reason) and recommends the nearest spot that passes.
+   **Build the recommended base** plans the best site for each module and builds it step by step (grading robot, inflating habitat,
+   rising masts, unfolding panels, the rover driving out, astronauts at work) with narration, then shows a base report that links each
+   placement to the project's criteria.
 
+Switching worlds flies the spectator through space to the next landing site (screen); in the headset the view fades instead.
+In the headset the console sits at waist height below your line of sight: squeeze the grip to show or hide it.
 Thresholds live in `web/data/vr/rules.json` and are **team design
 rules**, not NASA requirements. The tile and rules are plain PNG + JSON so a later Unity version can read them unchanged.
 

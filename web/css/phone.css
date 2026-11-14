@@ -145,3 +145,7 @@
   .vr-row .btn{flex:none}
   .vr-enter{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px));right:8px;padding:8px 12px}
 }
+@media (max-width:760px){
+  .vr-caption{left:8px;right:8px;width:auto;bottom:calc(170px + env(safe-area-inset-bottom,0px));max-height:38vh;overflow:auto;padding:12px 14px}
+  .vr-caption h3{font-size:16px}
+}
