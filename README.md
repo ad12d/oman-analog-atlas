@@ -31,7 +31,8 @@ web/
   js/space/scene.js     three.js scene: Earth day/night shader, Moon/Mars relief + target markers,
                         nebula sky, orbit arcs, gold transfer route, camera shots incl. the dive to Oman, bloom
   js/space/stack3d.js   three.js ASI Stack on the Method page (six layers press into the ASI)
-  js/views/             orbit, director, atlas (Oman map), passport, twin, method, sources, vr
+  js/views/             orbit, director, atlas (Oman map + live tuning), passport, twin, method, sources, vr
+  js/core/live.js       live ASI on the 1 km grids (team GIS hand-off); js/core/grid.js loads the grids once
   js/vr/                VR landing + camp: terrain (tile loader, slope/roughness queries, baked detail),
                         skins (Oman/Moon/Mars sky + light), lander (descent, plume, dust, touchdown check),
                         camp (modules + rule checks), controls (Quest controllers, screen fallback)
@@ -56,11 +57,11 @@ pipeline/
 | `#orbit` | Opening shot, Earth with Oman turned to camera |
 | `#director` | Earth, Moon, Mars on orbit arcs; hover cards; target dossiers |
 | `#director-moon`, `#director-mars` | Director opened straight on the Moon or Mars target dossier (handy when presenting) |
-| `#oman` | Destination map: ASI overlay, Strata layers, ranked sites |
+| `#oman` | Destination map: live ASI on the 1 km grid, criterion layers, Tune (weights, keep-away, filters), validation meter, official ranks and live picks, click-to-explain |
 | `#site-<ID>` | Oman map with that site's Analog Passport open |
-| `#twin-<ID>` | Twin Lens: Oman vs Moon/Mars terrain at one scale |
+| `#twin-<ID>` | Twin Lens: real Oman vs Moon/Mars terrain clips at one scale, terrain-twin statistics |
 | `#vr`, `#vr-<ID>` | VR: pick a pad, watch the lander touch down, check it, build the camp (Quest: **Enter VR**) |
-| `#method` | ASI Stack, similarity rules, AHP matrix, benchmark check |
+| `#method` | ASI Stack on the real 1 km grids, similarity rules, AHP matrix, validation |
 | `#sources` | Every dataset cited |
 
 Keys: `M` cycles the mission, `Enter` travels, `Esc` goes back, `G` switches graphics between High and Light.
@@ -103,22 +104,27 @@ python pipeline/make_vr_terrain.py --dtm dtm_10cm.tif --name S19      # or: --la
 `--name` is the site ID, so `#vr-S19` picks it up; other sites keep the placeholder. The script writes heights relative to the
 tile centre only (no CRS, coordinates or EXIF). Check the output before committing.
 
-## Data contract (what the GIS work must deliver)
+## Data contract (team GIS hand-off, in `web/data/`)
 
-Drop the real files into `web/data/` with these names; the "Mock data" flag disappears when all three are real.
+The real files are in place, so the "Mock data" flag is off. `web/data/mock/` (old six-criterion mock) is only a fallback.
 
-**`sites.geojson`**: one feature per site *per mission profile* (Point or Polygon). Properties:
-`id, name, aoi, profile (moon_base|mars_landing|mars_science), asi, rank, benchmark (calibration|test|null), tier,`
-`s_terrain, s_dryness, s_minerals, s_thermal, s_radar, s_access` (0–1 similarity),
-`raw_terrain` (° slope), `raw_dryness` (NDVI), `raw_minerals` (index 0–1), `raw_thermal` (K), `raw_radar` (dB), `raw_access` (km),
-`matches[], gaps[], best_use`.
+| File | Contents |
+|---|---|
+| `sites.geojson` | 55 sites × 4 profiles = 220 points (`"mock": false`). Properties: `id, name, aoi, profile, asi, rank, benchmark (calibrate\|test\|null), tier, group[] (benchmark, drone_range, national_top), lat, lon, km_from_hackathon, emit_covered, s_<crit>, raw_<crit>, matches[], gaps[], best_use, validation_percentile` |
+| `weights.json` | `weights[profile][crit]` = AHP tier-2 weights (sum 1), plus `weights_tier1`, `groups`, `cr`, `method` |
+| `targets.csv` | `criterion, profile, body, site, value, tolerance, unit, source, rule` — `rule` is gaussian (slope, TRI, relief), one-sided (the others) or the EMIT class score |
+| `target_sites.json` | Moon / Mars terrain targets with their best Oman terrain twins (slope, TRI, relief, similarity) |
+| `grid/grid.json` + `pack_00…12.png` | 1 km Web-Mercator grids, 3 layers per RGB PNG: similarity `v/254`, distance `v/10` km, `255` = no data |
+| `twin/index.json` + `*.png` | 24 × 13.5 km height clips (Oman 90 m, LOLA 80 m, MOLA 463 m), RGB-packed 16-bit (`R·256 + G`) for the browser |
 
-**`weights.json`**: `{ "weights": { "<profile>": { "<criterion>": w, ... } }, "cr": { "<profile>": value } }`. Each profile's weights sum to 1.
+Profiles: `moon_base, mars_landing, mars_science, mars_sedimentary`. Criteria (fixed order):
+`slope, tri, relief, dT_diurnal, dT_annual, wind, ndvi, channels, minerals, access`. Radar was not computed and is not used.
+The `s_*` values in `sites.geojson` are official (90 m analysis); the app never recomputes them. `data.sim()` only draws the rule curve.
 
-**`targets.csv`**: `criterion, profile, body, site, value, tolerance, unit, source`. Similarity is the linear ramp
-`s = max(0, 1 − |earth − value| / tolerance)`.
-
-Later (Lightsail): ASI and criterion rasters as Cloud-Optimized GeoTIFFs served by TiTiler replace the mock overlays in `js/views/atlas.js` (`layerImage`).
+**Live criteria** (`js/core/live.js`, from the GIS hand-off): the Oman map recomputes the ASI on the 1 km grid in the browser
+when you change weights, keep-away distances (towns, villages, hamlets, major roads, farms, oil & gas), the protected-areas and
+EMIT-only filters, or the top-% shown. The validation meter and "Your picks" update with it; click any place for its breakdown.
+The 1 km grid is for interaction; ranked sites and percentiles come from the 90 m analysis.
 
 ## Rules
 

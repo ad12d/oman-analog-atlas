@@ -81,8 +81,8 @@ export default {
       const tt = (k) => data.target(k, m);
       return `<div class="band" style="--wc:${WORLD_INFO[w].color}"><h3>${esc(MISSIONS[m].target)}</h3><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)} target</p></div>
         <div class="body">
-          <div class="kv"><span>Target slope</span><span>${fmt(tt("terrain").value, 1)}°</span></div>
-          <div class="kv"><span>Temperature range</span><span>${fmt(tt("thermal").value, 0)} K</span></div>
+          <div class="kv"><span>Target slope</span><span>${fmt(tt("slope").value, 1)}°</span></div>
+          <div class="kv"><span>Local relief</span><span>${fmt(tt("relief").value, 0)} m</span></div>
           <div class="kv"><span>Surface minerals</span><span>${esc(tt("minerals").source)}</span></div>
         </div><div class="foot">Click to open target dossier ▸</div>`;
     }

@@ -1,0 +1,721 @@
+{
+ "window_km": 20.0,
+ "method": "Median slope, TRI and 1 km relief in a 20 × 20 km window at the target's native resolution; Oman sites compared at matched scale (90 m for LOLA, 450 m for MOLA) with the Gaussian similarity used in the ASI.",
+ "targets": [
+  {
+   "id": "moon_shackleton",
+   "name": "Shackleton crater (Connecting-ridge region)",
+   "body": "Moon",
+   "lat": -89.67,
+   "lon": 129.78,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre",
+   "native_res_m": 80.0,
+   "slope_deg": 28.68,
+   "tri_m": 33.88,
+   "relief_m": 651.5,
+   "oman_twins": [
+    {
+     "id": "S11",
+     "name": "Al Mudairib site",
+     "lat": 22.74801,
+     "lon": 58.84494,
+     "terrain_similarity": 0.319,
+     "oman_slope_deg": 5.79,
+     "oman_tri_m": 32.36,
+     "oman_relief_m": 120.1
+    },
+    {
+     "id": "S03",
+     "name": "Wadi Laywani – OmanDP BA1 active serpentinization",
+     "lat": 22.88,
+     "lon": 58.7,
+     "terrain_similarity": 0.227,
+     "oman_slope_deg": 7.28,
+     "oman_tri_m": 38.3,
+     "oman_relief_m": 140.2
+    },
+    {
+     "id": "S48",
+     "name": "Shuwayi site",
+     "lat": 23.28044,
+     "lon": 58.13677,
+     "terrain_similarity": 0.08,
+     "oman_slope_deg": 7.73,
+     "oman_tri_m": 42.4,
+     "oman_relief_m": 138.2
+    },
+    {
+     "id": "S02",
+     "name": "OmanDP surface sample IGSN IEBTB000O",
+     "lat": 23.366,
+     "lon": 58.18389,
+     "terrain_similarity": 0.039,
+     "oman_slope_deg": 8.57,
+     "oman_tri_m": 44.37,
+     "oman_relief_m": 154.1
+    },
+    {
+     "id": "S01",
+     "name": "Wadi Mansah – OmanDP BT1B",
+     "lat": 23.36435,
+     "lon": 58.33582,
+     "terrain_similarity": 0.033,
+     "oman_slope_deg": 18.45,
+     "oman_tri_m": 89.46,
+     "oman_relief_m": 309.2
+    }
+   ]
+  },
+  {
+   "id": "moon_malapert",
+   "name": "Malapert Massif (Artemis III region)",
+   "body": "Moon",
+   "lat": -85.988,
+   "lon": 2.053,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre → summit located on LOLA",
+   "native_res_m": 80.0,
+   "slope_deg": 18.61,
+   "tri_m": 20.81,
+   "relief_m": 396.0,
+   "oman_twins": [
+    {
+     "id": "S01",
+     "name": "Wadi Mansah – OmanDP BT1B",
+     "lat": 23.36435,
+     "lon": 58.33582,
+     "terrain_similarity": 0.513,
+     "oman_slope_deg": 18.45,
+     "oman_tri_m": 89.46,
+     "oman_relief_m": 309.2
+    },
+    {
+     "id": "S50",
+     "name": "صهبان site",
+     "lat": 24.28331,
+     "lon": 56.42997,
+     "terrain_similarity": 0.332,
+     "oman_slope_deg": 4.09,
+     "oman_tri_m": 21.64,
+     "oman_relief_m": 63.9
+    },
+    {
+     "id": "S17",
+     "name": "Al Mudairib site 2",
+     "lat": 22.69113,
+     "lon": 58.84418,
+     "terrain_similarity": 0.257,
+     "oman_slope_deg": 2.9,
+     "oman_tri_m": 17.14,
+     "oman_relief_m": 79.3
+    },
+    {
+     "id": "S30",
+     "name": "Al Mintarib site 5",
+     "lat": 22.30982,
+     "lon": 58.70723,
+     "terrain_similarity": 0.212,
+     "oman_slope_deg": 3.68,
+     "oman_tri_m": 15.94,
+     "oman_relief_m": 59.3
+    },
+    {
+     "id": "S22",
+     "name": "Ibra site 7",
+     "lat": 22.82342,
+     "lon": 58.63816,
+     "terrain_similarity": 0.196,
+     "oman_slope_deg": 2.71,
+     "oman_tri_m": 15.56,
+     "oman_relief_m": 72.2
+    }
+   ]
+  },
+  {
+   "id": "moon_mouton",
+   "name": "Mons Mouton (Artemis III region)",
+   "body": "Moon",
+   "lat": -84.673,
+   "lon": 39.397,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre → summit located on LOLA",
+   "native_res_m": 80.0,
+   "slope_deg": 11.87,
+   "tri_m": 13.06,
+   "relief_m": 236.5,
+   "oman_twins": [
+    {
+     "id": "S07",
+     "name": "Mahalih site",
+     "lat": 22.93919,
+     "lon": 58.68167,
+     "terrain_similarity": 0.566,
+     "oman_slope_deg": 11.03,
+     "oman_tri_m": 58.3,
+     "oman_relief_m": 172.5
+    },
+    {
+     "id": "S02",
+     "name": "OmanDP surface sample IGSN IEBTB000O",
+     "lat": 23.366,
+     "lon": 58.18389,
+     "terrain_similarity": 0.453,
+     "oman_slope_deg": 8.57,
+     "oman_tri_m": 44.37,
+     "oman_relief_m": 154.1
+    },
+    {
+     "id": "S51",
+     "name": "Haima site",
+     "lat": 21.35257,
+     "lon": 55.46877,
+     "terrain_similarity": 0.428,
+     "oman_slope_deg": 2.77,
+     "oman_tri_m": 14.21,
+     "oman_relief_m": 85.0
+    },
+    {
+     "id": "S42",
+     "name": "Mahyul site",
+     "lat": 23.49482,
+     "lon": 57.57981,
+     "terrain_similarity": 0.396,
+     "oman_slope_deg": 2.37,
+     "oman_tri_m": 13.06,
+     "oman_relief_m": 48.4
+    },
+    {
+     "id": "S10",
+     "name": "Al Qabil site 2",
+     "lat": 22.65823,
+     "lon": 58.87789,
+     "terrain_similarity": 0.388,
+     "oman_slope_deg": 2.63,
+     "oman_tri_m": 14.94,
+     "oman_relief_m": 61.4
+    }
+   ]
+  },
+  {
+   "id": "moon_haworth",
+   "name": "Haworth crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -87.45,
+   "lon": 355.0,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre",
+   "native_res_m": 80.0,
+   "slope_deg": 4.3,
+   "tri_m": 4.75,
+   "relief_m": 79.5,
+   "oman_twins": [
+    {
+     "id": "S46",
+     "name": "ردة صاع site",
+     "lat": 24.11124,
+     "lon": 56.04369,
+     "terrain_similarity": 0.883,
+     "oman_slope_deg": 1.69,
+     "oman_tri_m": 8.19,
+     "oman_relief_m": 72.7
+    },
+    {
+     "id": "S21",
+     "name": "Al Mudairib site 4",
+     "lat": 22.66445,
+     "lon": 58.68356,
+     "terrain_similarity": 0.881,
+     "oman_slope_deg": 0.93,
+     "oman_tri_m": 4.7,
+     "oman_relief_m": 37.8
+    },
+    {
+     "id": "S25",
+     "name": "Al Mintarib site 2",
+     "lat": 22.39026,
+     "lon": 58.63129,
+     "terrain_similarity": 0.875,
+     "oman_slope_deg": 1.11,
+     "oman_tri_m": 6.04,
+     "oman_relief_m": 36.7
+    },
+    {
+     "id": "S15",
+     "name": "Ibra site 5",
+     "lat": 22.72776,
+     "lon": 58.44337,
+     "terrain_similarity": 0.874,
+     "oman_slope_deg": 1.23,
+     "oman_tri_m": 6.54,
+     "oman_relief_m": 38.7
+    },
+    {
+     "id": "S06",
+     "name": "Ibra site 2",
+     "lat": 22.72342,
+     "lon": 58.47399,
+     "terrain_similarity": 0.87,
+     "oman_slope_deg": 0.97,
+     "oman_tri_m": 4.84,
+     "oman_relief_m": 31.9
+    }
+   ]
+  },
+  {
+   "id": "moon_nobile",
+   "name": "Nobile crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -85.2,
+   "lon": 53.5,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre",
+   "native_res_m": 80.0,
+   "slope_deg": 8.88,
+   "tri_m": 9.69,
+   "relief_m": 177.8,
+   "oman_twins": [
+    {
+     "id": "S02",
+     "name": "OmanDP surface sample IGSN IEBTB000O",
+     "lat": 23.366,
+     "lon": 58.18389,
+     "terrain_similarity": 0.651,
+     "oman_slope_deg": 8.57,
+     "oman_tri_m": 44.37,
+     "oman_relief_m": 154.1
+    },
+    {
+     "id": "S07",
+     "name": "Mahalih site",
+     "lat": 22.93919,
+     "lon": 58.68167,
+     "terrain_similarity": 0.633,
+     "oman_slope_deg": 11.03,
+     "oman_tri_m": 58.3,
+     "oman_relief_m": 172.5
+    },
+    {
+     "id": "S48",
+     "name": "Shuwayi site",
+     "lat": 23.28044,
+     "lon": 58.13677,
+     "terrain_similarity": 0.617,
+     "oman_slope_deg": 7.73,
+     "oman_tri_m": 42.4,
+     "oman_relief_m": 138.2
+    },
+    {
+     "id": "S03",
+     "name": "Wadi Laywani – OmanDP BA1 active serpentinization",
+     "lat": 22.88,
+     "lon": 58.7,
+     "terrain_similarity": 0.612,
+     "oman_slope_deg": 7.28,
+     "oman_tri_m": 38.3,
+     "oman_relief_m": 140.2
+    },
+    {
+     "id": "S46",
+     "name": "ردة صاع site",
+     "lat": 24.11124,
+     "lon": 56.04369,
+     "terrain_similarity": 0.559,
+     "oman_slope_deg": 1.69,
+     "oman_tri_m": 8.19,
+     "oman_relief_m": 72.7
+    }
+   ]
+  },
+  {
+   "id": "moon_degerlache",
+   "name": "de Gerlache crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -88.5,
+   "lon": 272.9,
+   "source": "LRO LOLA LDEM 80 m",
+   "coords": "approx. IAU feature centre",
+   "native_res_m": 80.0,
+   "slope_deg": 9.59,
+   "tri_m": 10.31,
+   "relief_m": 187.0,
+   "oman_twins": [
+    {
+     "id": "S07",
+     "name": "Mahalih site",
+     "lat": 22.93919,
+     "lon": 58.68167,
+     "terrain_similarity": 0.646,
+     "oman_slope_deg": 11.03,
+     "oman_tri_m": 58.3,
+     "oman_relief_m": 172.5
+    },
+    {
+     "id": "S02",
+     "name": "OmanDP surface sample IGSN IEBTB000O",
+     "lat": 23.366,
+     "lon": 58.18389,
+     "terrain_similarity": 0.631,
+     "oman_slope_deg": 8.57,
+     "oman_tri_m": 44.37,
+     "oman_relief_m": 154.1
+    },
+    {
+     "id": "S48",
+     "name": "Shuwayi site",
+     "lat": 23.28044,
+     "lon": 58.13677,
+     "terrain_similarity": 0.583,
+     "oman_slope_deg": 7.73,
+     "oman_tri_m": 42.4,
+     "oman_relief_m": 138.2
+    },
+    {
+     "id": "S03",
+     "name": "Wadi Laywani – OmanDP BA1 active serpentinization",
+     "lat": 22.88,
+     "lon": 58.7,
+     "terrain_similarity": 0.575,
+     "oman_slope_deg": 7.28,
+     "oman_tri_m": 38.3,
+     "oman_relief_m": 140.2
+    },
+    {
+     "id": "S16",
+     "name": "Ibra site 6",
+     "lat": 22.80752,
+     "lon": 58.68181,
+     "terrain_similarity": 0.511,
+     "oman_slope_deg": 1.81,
+     "oman_tri_m": 9.79,
+     "oman_relief_m": 62.1
+    }
+   ]
+  },
+  {
+   "id": "mars_jezero_floor",
+   "name": "Jezero crater floor – Perseverance landing site",
+   "body": "Mars",
+   "lat": 18.4447,
+   "lon": 77.4508,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "coords": "published landing / candidate site centre",
+   "native_res_m": 463.0,
+   "slope_deg": 1.5,
+   "tri_m": 10.25,
+   "relief_m": 33.0,
+   "oman_twins": [
+    {
+     "id": "S34",
+     "name": "Mizayra site",
+     "lat": 22.4823,
+     "lon": 58.97696,
+     "terrain_similarity": 0.898,
+     "oman_slope_deg": 0.67,
+     "oman_tri_m": 14.65,
+     "oman_relief_m": 14.8
+    },
+    {
+     "id": "S43",
+     "name": "Manah site",
+     "lat": 22.82583,
+     "lon": 57.49896,
+     "terrain_similarity": 0.897,
+     "oman_slope_deg": 0.54,
+     "oman_tri_m": 10.87,
+     "oman_relief_m": 11.4
+    },
+    {
+     "id": "S29",
+     "name": "Al Qabil site 5",
+     "lat": 22.57662,
+     "lon": 58.76389,
+     "terrain_similarity": 0.891,
+     "oman_slope_deg": 0.5,
+     "oman_tri_m": 10.78,
+     "oman_relief_m": 11.0
+    },
+    {
+     "id": "S41",
+     "name": "Ibra site 10",
+     "lat": 22.61775,
+     "lon": 58.47374,
+     "terrain_similarity": 0.89,
+     "oman_slope_deg": 0.49,
+     "oman_tri_m": 12.32,
+     "oman_relief_m": 12.1
+    },
+    {
+     "id": "S52",
+     "name": "Sinaw site",
+     "lat": 22.61868,
+     "lon": 57.92117,
+     "terrain_similarity": 0.888,
+     "oman_slope_deg": 0.49,
+     "oman_tri_m": 12.05,
+     "oman_relief_m": 11.3
+    }
+   ]
+  },
+  {
+   "id": "mars_jezero_delta",
+   "name": "Jezero western delta",
+   "body": "Mars",
+   "lat": 18.5,
+   "lon": 77.4,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "coords": "published landing / candidate site centre",
+   "native_res_m": 463.0,
+   "slope_deg": 1.98,
+   "tri_m": 13.62,
+   "relief_m": 44.0,
+   "oman_twins": [
+    {
+     "id": "S45",
+     "name": "Mabrah site",
+     "lat": 23.70062,
+     "lon": 57.17557,
+     "terrain_similarity": 0.828,
+     "oman_slope_deg": 0.78,
+     "oman_tri_m": 17.94,
+     "oman_relief_m": 18.2
+    },
+    {
+     "id": "S34",
+     "name": "Mizayra site",
+     "lat": 22.4823,
+     "lon": 58.97696,
+     "terrain_similarity": 0.822,
+     "oman_slope_deg": 0.67,
+     "oman_tri_m": 14.65,
+     "oman_relief_m": 14.8
+    },
+    {
+     "id": "S06",
+     "name": "Ibra site 2",
+     "lat": 22.72342,
+     "lon": 58.47399,
+     "terrain_similarity": 0.809,
+     "oman_slope_deg": 0.71,
+     "oman_tri_m": 18.85,
+     "oman_relief_m": 18.0
+    },
+    {
+     "id": "S33",
+     "name": "Ibra site 8",
+     "lat": 22.57261,
+     "lon": 58.43125,
+     "terrain_similarity": 0.803,
+     "oman_slope_deg": 0.55,
+     "oman_tri_m": 14.17,
+     "oman_relief_m": 13.5
+    },
+    {
+     "id": "S19",
+     "name": "Al Mintarib site",
+     "lat": 22.5293,
+     "lon": 58.92164,
+     "terrain_similarity": 0.794,
+     "oman_slope_deg": 0.72,
+     "oman_tri_m": 20.23,
+     "oman_relief_m": 18.5
+    }
+   ]
+  },
+  {
+   "id": "mars_ne_syrtis",
+   "name": "NE Syrtis (Mars 2020 finalist)",
+   "body": "Mars",
+   "lat": 17.86,
+   "lon": 77.15,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "coords": "published landing / candidate site centre",
+   "native_res_m": 463.0,
+   "slope_deg": 1.24,
+   "tri_m": 8.25,
+   "relief_m": 26.0,
+   "oman_twins": [
+    {
+     "id": "S43",
+     "name": "Manah site",
+     "lat": 22.82583,
+     "lon": 57.49896,
+     "terrain_similarity": 0.938,
+     "oman_slope_deg": 0.54,
+     "oman_tri_m": 10.87,
+     "oman_relief_m": 11.4
+    },
+    {
+     "id": "S29",
+     "name": "Al Qabil site 5",
+     "lat": 22.57662,
+     "lon": 58.76389,
+     "terrain_similarity": 0.934,
+     "oman_slope_deg": 0.5,
+     "oman_tri_m": 10.78,
+     "oman_relief_m": 11.0
+    },
+    {
+     "id": "S32",
+     "name": "Al Mintarib site 7",
+     "lat": 22.49452,
+     "lon": 58.90716,
+     "terrain_similarity": 0.934,
+     "oman_slope_deg": 0.45,
+     "oman_tri_m": 9.3,
+     "oman_relief_m": 9.9
+    },
+    {
+     "id": "S54",
+     "name": "Adam site",
+     "lat": 22.49424,
+     "lon": 57.01387,
+     "terrain_similarity": 0.933,
+     "oman_slope_deg": 0.45,
+     "oman_tri_m": 9.39,
+     "oman_relief_m": 9.7
+    },
+    {
+     "id": "S31",
+     "name": "Al Mintarib site 6",
+     "lat": 22.4337,
+     "lon": 58.96403,
+     "terrain_similarity": 0.933,
+     "oman_slope_deg": 0.44,
+     "oman_tri_m": 9.24,
+     "oman_relief_m": 9.7
+    }
+   ]
+  },
+  {
+   "id": "mars_nili_fossae",
+   "name": "Nili Fossae carbonate plains",
+   "body": "Mars",
+   "lat": 21.0,
+   "lon": 74.5,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "coords": "published landing / candidate site centre",
+   "native_res_m": 463.0,
+   "slope_deg": 1.24,
+   "tri_m": 8.12,
+   "relief_m": 26.0,
+   "oman_twins": [
+    {
+     "id": "S43",
+     "name": "Manah site",
+     "lat": 22.82583,
+     "lon": 57.49896,
+     "terrain_similarity": 0.937,
+     "oman_slope_deg": 0.54,
+     "oman_tri_m": 10.87,
+     "oman_relief_m": 11.4
+    },
+    {
+     "id": "S29",
+     "name": "Al Qabil site 5",
+     "lat": 22.57662,
+     "lon": 58.76389,
+     "terrain_similarity": 0.933,
+     "oman_slope_deg": 0.5,
+     "oman_tri_m": 10.78,
+     "oman_relief_m": 11.0
+    },
+    {
+     "id": "S32",
+     "name": "Al Mintarib site 7",
+     "lat": 22.49452,
+     "lon": 58.90716,
+     "terrain_similarity": 0.933,
+     "oman_slope_deg": 0.45,
+     "oman_tri_m": 9.3,
+     "oman_relief_m": 9.9
+    },
+    {
+     "id": "S31",
+     "name": "Al Mintarib site 6",
+     "lat": 22.4337,
+     "lon": 58.96403,
+     "terrain_similarity": 0.933,
+     "oman_slope_deg": 0.44,
+     "oman_tri_m": 9.24,
+     "oman_relief_m": 9.7
+    },
+    {
+     "id": "S54",
+     "name": "Adam site",
+     "lat": 22.49424,
+     "lon": 57.01387,
+     "terrain_similarity": 0.932,
+     "oman_slope_deg": 0.45,
+     "oman_tri_m": 9.39,
+     "oman_relief_m": 9.7
+    }
+   ]
+  },
+  {
+   "id": "mars_isidis",
+   "name": "Isidis Planitia plains",
+   "body": "Mars",
+   "lat": 13.0,
+   "lon": 87.0,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "coords": "published landing / candidate site centre",
+   "native_res_m": 463.0,
+   "slope_deg": 0.45,
+   "tri_m": 3.25,
+   "relief_m": 11.0,
+   "oman_twins": [
+    {
+     "id": "S53",
+     "name": "AS SAFA WA AL MANARAH site",
+     "lat": 23.20616,
+     "lon": 55.54064,
+     "terrain_similarity": 0.987,
+     "oman_slope_deg": 0.13,
+     "oman_tri_m": 3.7,
+     "oman_relief_m": 3.8
+    },
+    {
+     "id": "S04",
+     "name": "AMADEE-18 Kepler base station",
+     "lat": 18.4232,
+     "lon": 55.0433,
+     "terrain_similarity": 0.986,
+     "oman_slope_deg": 0.24,
+     "oman_tri_m": 5.7,
+     "oman_relief_m": 5.5
+    },
+    {
+     "id": "S36",
+     "name": "Al Mintarib site 9",
+     "lat": 22.46791,
+     "lon": 58.81848,
+     "terrain_similarity": 0.975,
+     "oman_slope_deg": 0.37,
+     "oman_tri_m": 7.44,
+     "oman_relief_m": 7.8
+    },
+    {
+     "id": "S12",
+     "name": "Al Qabil site 3",
+     "lat": 22.52301,
+     "lon": 58.68534,
+     "terrain_similarity": 0.961,
+     "oman_slope_deg": 0.34,
+     "oman_tri_m": 8.59,
+     "oman_relief_m": 8.5
+    },
+    {
+     "id": "S39",
+     "name": "al Kamil wal Wafi site",
+     "lat": 22.32596,
+     "lon": 59.06647,
+     "terrain_similarity": 0.961,
+     "oman_slope_deg": 0.43,
+     "oman_tri_m": 8.74,
+     "oman_relief_m": 9.4
+    }
+   ]
+  }
+ ]
+}

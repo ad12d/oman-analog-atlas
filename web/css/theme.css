@@ -1,6 +1,6 @@
 /* Oman Analog Atlas · theme tokens
-   Concept: "Crossing the Moho". Rock-sourced palette; criterion colours validated for
-   colour-blind separation on the dark surface (adjacent ΔE ≥ 8.6, OKLab×100).
+   Concept: "Crossing the Moho". Rock-sourced palette; criterion colours checked for
+   colour-blind separation on the dark surface (OKLab x100, see below).
    The app is deliberately single-theme (space is dark). */
 :root{
   /* ground */
@@ -20,9 +20,11 @@
   --ochre:#D9A441;         /* wadi gravel */
   --moon:#CBD5E1; --ice:#7DB7FF;
   --mars:#E07250; --mars-deep:#8E2F1C;
-  /* criteria (fixed order) */
-  --c-terrain:#5188CD; --c-dryness:#BD871C; --c-minerals:#2CA470;
-  --c-thermal:#C44229; --c-radar:#9763CC; --c-access:#21A3BC;
+  /* criteria (fixed order, grouped by family: terrain blues, climate reds, dryness, water history, geology, access).
+     Adjacent OKLab dE >= 16.8 (normal) and >= 16.9 (deutan/protan sim); every chart also labels criteria in text. */
+  --c-slope:#2F5BA6; --c-tri:#6A9BDB; --c-relief:#B7D3F5;
+  --c-dT_diurnal:#A63823; --c-dT_annual:#DF6E45; --c-wind:#F6C0A2;
+  --c-ndvi:#C08A1E; --c-channels:#9A6BD6; --c-minerals:#2CA470; --c-access:#62CDEB;
   /* mission accent */
   --accent:var(--mars);
   /* type */
@@ -34,3 +36,4 @@
   color-scheme:dark;
 }
 :root[data-mission="moon_base"]{ --accent:var(--ice); }
+:root[data-mission="mars_sedimentary"]{ --accent:var(--ochre); }

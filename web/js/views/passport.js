@@ -8,12 +8,16 @@ export function renderPassport(el, { data, mission, id }) {
   const s = data.site(id, mission);
   if (!s) { el.innerHTML = `<div class="pp-sec"><p class="note">No site with id ${esc(id)} for this mission.</p></div>`; return; }
   const W = data.weights[mission];
-  let selected = el.dataset.sel || "terrain";
+  let selected = CRITERIA.some(c => c.k === el.dataset.sel) ? el.dataset.sel : "slope";
 
   const stamps = MISSION_KEYS.map(m => { const x = data.site(id, m);
     return `<div class="stamp ${m === "moon_base" ? "moon" : ""} ${m === mission ? "on" : ""}">${MISSIONS[m].label}<b>${x ? x.asi.toFixed(2) : "—"}</b></div>`; }).join("");
-  const denied = (s.gaps || []).map(g => `<div class="stamp denied">Not granted<b>${esc(g)}</b></div>`).join("");
-  const benchTag = s.benchmark ? `<span class="tag bench">Benchmark · ${esc(s.benchmark)} set</span>` : "";
+  // physical gaps the index cannot close (gravity, atmosphere, radiation) become "not granted" stamps; weak matches stay in the list below
+  const denied = (s.gaps || []).filter(g => !/^weak/i.test(g)).map(g => `<div class="stamp denied">Not granted<b>${esc(g)}</b></div>`).join("");
+  const GROUP = { benchmark: "Benchmark site", drone_range: "Within drone range (80 km of Al Bidiyah)", national_top: "National top site" };
+  const benchTag = s.benchmark ? `<span class="tag bench">Benchmark · ${s.benchmark === "calibrate" ? "calibration" : esc(s.benchmark)} set${Number.isFinite(+s.validation_percentile) && s.validation_percentile !== null ? ` · ${Math.round(s.validation_percentile)}th percentile` : ""}</span>` : "";
+  const groupTags = (s.group || []).filter(g => g !== "benchmark").map(g => `<span class="tag">${esc(GROUP[g] || g)}</span>`).join("");
+  const emitTag = s.emit_covered === false ? `<span class="tag">EMIT gap: minerals filled with the Oman median</span>` : s.emit_covered ? `<span class="tag">EMIT minerals measured</span>` : "";
 
   el.innerHTML = `
     <div class="pp">
@@ -21,8 +25,8 @@ export function renderPassport(el, { data, mission, id }) {
         <div>
           <p class="eyebrow">Analog passport · rank ${s.rank} of ${data.sites[mission].length}</p>
           <h2>${esc(s.name)}</h2>
-          <div class="pp-meta"><span>${esc(s.aoi)}</span><span class="mono">≈ ${fmt(s.lonlat[1], 2)}° N, ${fmt(s.lonlat[0], 2)}° E</span><span>Tier ${s.tier ?? 2}</span></div>
-          <div class="pp-tags">${benchTag}</div>
+          <div class="pp-meta"><span>${esc(s.aoi)}</span><span class="mono">≈ ${fmt(s.lonlat[1], 2)}° N, ${fmt(s.lonlat[0], 2)}° E</span>${s.km_from_hackathon != null ? `<span>${fmt(s.km_from_hackathon, 0)} km from Al Bidiyah</span>` : ""}</div>
+          <div class="pp-tags">${benchTag}${groupTags}${emitTag}</div>
         </div>
         <div class="asi-big"><div class="num">${s.asi.toFixed(2)}</div><div class="lab">ASI · ${MISSIONS[mission].label}</div></div>
       </div>
@@ -32,14 +36,15 @@ export function renderPassport(el, { data, mission, id }) {
         <div class="cbar" role="img" aria-label="${esc(CRITERIA.map(c => `${c.name} weight ${W[c.k]} similarity ${s["s_" + c.k]}`).join("; "))}">
           ${CRITERIA.map(c => `<div class="seg" tabindex="0" data-k="${c.k}" style="--segc:var(--c-${c.k});flex-grow:${W[c.k]}"><div class="fill"></div></div>`).join("")}
         </div>
-        <div class="cbar-labels" aria-hidden="true">${CRITERIA.map(c => `<div style="flex-grow:${W[c.k]}"><span class="k">${c.name}</span><br><span class="mono">w ${W[c.k].toFixed(2)} · s ${(+s["s_" + c.k]).toFixed(2)}</span></div>`).join("")}</div>
+        <div class="cbar-labels" aria-hidden="true">${CRITERIA.map(c => `<div style="flex-grow:${W[c.k]}">${W[c.k] >= .06 ? `<span class="k">${c.name}</span><br><span class="mono">w ${W[c.k].toFixed(2)} · s ${(+s["s_" + c.k]).toFixed(2)}</span>` : ""}</div>`).join("")}</div>
+        <p class="note">Criteria under 6 % weight are unlabelled; hover a segment for its values.</p>
       </div>
       <div class="pp-sec">
         <h3>Oman vs ${esc(MISSIONS[mission].target)}</h3>
         <div class="rows-key"><span><i class="k-dot"></i>Oman value</span><span><i class="k-dia"></i>Target</span><span><i class="k-band"></i>Range that scores above 0</span></div>
         <div class="crows">${CRITERIA.map(c => {
           const t = data.target(c.k, mission), raw = +s["raw_" + c.k], sv = +s["s_" + c.k];
-          const lo = Math.max(c.min, t.value - t.tol), hi = Math.min(c.max, t.value + t.tol);
+          const [b0, b1] = data.band(c.k, mission), lo = Math.max(c.min, b0), hi = Math.min(c.max, b1);
           return `<button type="button" class="crow" data-k="${c.k}" style="--rc:var(--c-${c.k})" aria-pressed="${c.k === selected}"
               aria-label="${esc(`${c.name}: Oman ${fmt(raw, c.dp)}${c.unit}, target ${fmt(t.value, c.dp)}${c.unit}, similarity ${sv.toFixed(2)}`)}">
             <span class="name"><span class="chip"></span><span><b>${c.name}</b><small>${c.word}</small></span></span>
@@ -74,24 +79,25 @@ export function renderPassport(el, { data, mission, id }) {
   el.querySelectorAll(".crow").forEach(b => b.addEventListener("click", () => {
     selected = el.dataset.sel = b.dataset.k;
     el.querySelectorAll(".crow").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    drawCurve(el.querySelector(".curve-box"), data, mission, selected, +s["raw_" + selected]);
+    drawCurve(el.querySelector(".curve-box"), data, mission, selected, +s["raw_" + selected], +s["s_" + selected]);
   }));
-  drawCurve(el.querySelector(".curve-box"), data, mission, selected, +s["raw_" + selected]);
+  drawCurve(el.querySelector(".curve-box"), data, mission, selected, +s["raw_" + selected], +s["s_" + selected]);
 }
 
-// Membership curve for one criterion: linear ramp around the target. Exported for the Method page.
-export function drawCurve(box, data, mission, k, earth) {
+// Similarity rule for one criterion (gaussian, one-sided or mineral score, from targets.csv). Exported for the Method page.
+// sOfficial: the site's computed similarity (90 m analysis); the dot sits there rather than on a recomputed value.
+export function drawCurve(box, data, mission, k, earth, sOfficial) {
   const c = CRITERIA.find(x => x.k === k), t = data.target(k, mission);
   const svg = box.querySelector("svg"), W = 420, H = 210, L = 40, R = 14, T = 16, B = 34;
   const x = v => L + (v - c.min) / (c.max - c.min) * (W - L - R), y = v => T + (1 - v) * (H - T - B);
-  const sAt = v => Math.max(0, 1 - Math.abs(v - t.value) / t.tol);
+  const sAt = v => data.sim(k, mission, v);
   const pts = []; for (let i = 0; i <= 160; i++) { const v = c.min + (c.max - c.min) * i / 160; pts.push(`${x(v).toFixed(1)},${y(sAt(v)).toFixed(1)}`); }
   const dp = (c.max - c.min) < 2 ? 2 : 0;
   let g = "";
   for (let i = 0; i <= 5; i++) { const v = c.min + (c.max - c.min) * i / 5;
     g += `<line x1="${x(v)}" x2="${x(v)}" y1="${T}" y2="${H - B}" stroke="var(--hair)"/><text x="${x(v)}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${fmt(v, dp)}</text>`; }
   for (const v of [0, .5, 1]) g += `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${v}</text>`;
-  const hasEarth = Number.isFinite(earth), s = hasEarth ? sAt(earth) : 0;
+  const hasEarth = Number.isFinite(earth), s = hasEarth ? (Number.isFinite(sOfficial) ? sOfficial : sAt(earth)) : 0;
   svg.innerHTML = `${g}
     <line x1="${L}" x2="${W - R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--faint)"/>
     <polygon points="${x(c.min)},${y(0)} ${pts.join(" ")} ${x(c.max)},${y(0)}" fill="color-mix(in oklab, var(--accent) 16%, transparent)"/>
@@ -106,7 +112,8 @@ export function drawCurve(box, data, mission, k, earth) {
     <line class="cx" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--fg)" stroke-opacity=".35" visibility="hidden"/>
     <rect class="chit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>`;
   box.querySelector("[data-ctitle]").textContent = `Similarity rule · ${c.name}`;
-  box.querySelector("[data-csrc]").textContent = `Oman: ${c.src}. Target: ${t.source}. Linear ramp: 1 at the target, 0 beyond ±${fmt(t.tol, c.dp)}${c.unit}.`;
+  const ruleTxt = t.rule ? `Rule: ${t.rule}` : `Linear ramp: 1 at the target, 0 beyond ±${fmt(t.tol, c.dp)}${c.unit}`;
+  box.querySelector("[data-csrc]").textContent = `Oman: ${c.src}. Target (${t.site || t.body}): ${t.source}. ${ruleTxt}. Target ${fmt(t.value, c.dp)}${c.unit}, tolerance ${fmt(t.tol, c.dp)}${c.unit}.`;
   const hit = svg.querySelector(".chit"), cx = svg.querySelector(".cx");
   hit.addEventListener("pointermove", e => {
     const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, v = c.min + (px - L) / (W - L - R) * (c.max - c.min);

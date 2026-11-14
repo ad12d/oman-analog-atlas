@@ -22,6 +22,11 @@
   .rail.left .strat b{font-size:12.5px;white-space:nowrap}
   .rail.left .strat[aria-pressed="true"]{border-color:var(--moho);background:rgba(36,30,18,.9)}
   .rail.left .strat .long{display:none}
+  .rail.left .strat.chip-tune{display:grid}
+  .rail.left .panel-head.tabs{display:none}
+  .tune{top:auto;bottom:calc(54px + env(safe-area-inset-bottom,0px));left:8px;right:8px;width:auto;height:min(62vh, 560px);z-index:4}
+  .live-status{top:calc(108px + env(safe-area-inset-top,0px))}
+  .explain{bottom:calc(54px + env(safe-area-inset-bottom,0px));z-index:5}
   .rail.left .strat .short{display:inline}
 
   .rail.right{top:auto;bottom:calc(54px + env(safe-area-inset-bottom,0px));left:8px;right:8px;width:auto;max-height:34vh}

@@ -1,0 +1,455 @@
+{
+ "note": "RGB PNG, 16-bit value packed as v = R·256 + G (converted from the 16-bit grey originals for browser decoding): height_m = min_m + v/65535·(max_m − min_m). Same 24 × 13.5 km footprint for every world. MOLA (463 m) is smooth at this scale – it shows landforms, not boulders.",
+ "maps": [
+  {
+   "id": "moon_shackleton",
+   "name": "Shackleton crater (Connecting-ridge region)",
+   "body": "Moon",
+   "lat": -89.67,
+   "lon": 129.78,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_shackleton.png",
+   "min_m": -2866.2,
+   "max_m": 1735.4,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "moon_malapert",
+   "name": "Malapert Massif (Artemis III region)",
+   "body": "Moon",
+   "lat": -85.988,
+   "lon": 2.053,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_malapert.png",
+   "min_m": 973.8,
+   "max_m": 5171.8,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "moon_mouton",
+   "name": "Mons Mouton (Artemis III region)",
+   "body": "Moon",
+   "lat": -84.673,
+   "lon": 39.397,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_mouton.png",
+   "min_m": 4003.5,
+   "max_m": 7025.3,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "moon_haworth",
+   "name": "Haworth crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -87.45,
+   "lon": 355.0,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_haworth.png",
+   "min_m": -4020.7,
+   "max_m": -1913.1,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "moon_nobile",
+   "name": "Nobile crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -85.2,
+   "lon": 53.5,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_nobile.png",
+   "min_m": -1010.6,
+   "max_m": 1223.4,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "moon_degerlache",
+   "name": "de Gerlache crater rim (Artemis III region)",
+   "body": "Moon",
+   "lat": -88.5,
+   "lon": 272.9,
+   "source": "LRO LOLA LDEM 80 m",
+   "native_res_m": 80.0,
+   "file": "twin/moon_degerlache.png",
+   "min_m": -2352.0,
+   "max_m": 423.6,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "mars_jezero_floor",
+   "name": "Jezero crater floor – Perseverance landing site",
+   "body": "Mars",
+   "lat": 18.4447,
+   "lon": 77.4508,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "native_res_m": 463.0,
+   "file": "twin/mars_jezero_floor.png",
+   "min_m": -2676.1,
+   "max_m": -1700.3,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "mars_jezero_delta",
+   "name": "Jezero western delta",
+   "body": "Mars",
+   "lat": 18.5,
+   "lon": 77.4,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "native_res_m": 463.0,
+   "file": "twin/mars_jezero_delta.png",
+   "min_m": -2651.1,
+   "max_m": -1699.5,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "mars_ne_syrtis",
+   "name": "NE Syrtis (Mars 2020 finalist)",
+   "body": "Mars",
+   "lat": 17.86,
+   "lon": 77.15,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "native_res_m": 463.0,
+   "file": "twin/mars_ne_syrtis.png",
+   "min_m": -2297.3,
+   "max_m": -1858.1,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "mars_nili_fossae",
+   "name": "Nili Fossae carbonate plains",
+   "body": "Mars",
+   "lat": 21.0,
+   "lon": 74.5,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "native_res_m": 463.0,
+   "file": "twin/mars_nili_fossae.png",
+   "min_m": -689.4,
+   "max_m": -59.7,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "mars_isidis",
+   "name": "Isidis Planitia plains",
+   "body": "Mars",
+   "lat": 13.0,
+   "lon": 87.0,
+   "source": "MGS MOLA MEGDR 128 ppd (463 m)",
+   "native_res_m": 463.0,
+   "file": "twin/mars_isidis.png",
+   "min_m": -3881.2,
+   "max_m": -3748.1,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S11",
+   "name": "Al Mudairib site",
+   "body": "Earth",
+   "lat": 22.74801,
+   "lon": 58.84494,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S11.png",
+   "min_m": 418.8,
+   "max_m": 1074.3,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S03",
+   "name": "Wadi Laywani – OmanDP BA1 active serpentinization",
+   "body": "Earth",
+   "lat": 22.88,
+   "lon": 58.7,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S03.png",
+   "min_m": 453.8,
+   "max_m": 1205.9,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S01",
+   "name": "Wadi Mansah – OmanDP BT1B",
+   "body": "Earth",
+   "lat": 23.36435,
+   "lon": 58.33582,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S01.png",
+   "min_m": 200.7,
+   "max_m": 1580.2,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S50",
+   "name": "صهبان site",
+   "body": "Earth",
+   "lat": 24.28331,
+   "lon": 56.42997,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S50.png",
+   "min_m": 117.3,
+   "max_m": 978.5,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S07",
+   "name": "Mahalih site",
+   "body": "Earth",
+   "lat": 22.93919,
+   "lon": 58.68167,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S07.png",
+   "min_m": 295.9,
+   "max_m": 1202.4,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S02",
+   "name": "OmanDP surface sample IGSN IEBTB000O",
+   "body": "Earth",
+   "lat": 23.366,
+   "lon": 58.18389,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S02.png",
+   "min_m": 197.2,
+   "max_m": 1514.9,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S46",
+   "name": "ردة صاع site",
+   "body": "Earth",
+   "lat": 24.11124,
+   "lon": 56.04369,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S46.png",
+   "min_m": -9999.0,
+   "max_m": 1125.5,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S21",
+   "name": "Al Mudairib site 4",
+   "body": "Earth",
+   "lat": 22.66445,
+   "lon": 58.68356,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S21.png",
+   "min_m": 349.9,
+   "max_m": 850.5,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S34",
+   "name": "Mizayra site",
+   "body": "Earth",
+   "lat": 22.4823,
+   "lon": 58.97696,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S34.png",
+   "min_m": 253.5,
+   "max_m": 1402.0,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S43",
+   "name": "Manah site",
+   "body": "Earth",
+   "lat": 22.82583,
+   "lon": 57.49896,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S43.png",
+   "min_m": 400.6,
+   "max_m": 762.7,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S45",
+   "name": "Mabrah site",
+   "body": "Earth",
+   "lat": 23.70062,
+   "lon": 57.17557,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S45.png",
+   "min_m": 73.9,
+   "max_m": 856.0,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S29",
+   "name": "Al Qabil site 5",
+   "body": "Earth",
+   "lat": 22.57662,
+   "lon": 58.76389,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S29.png",
+   "min_m": 316.6,
+   "max_m": 758.3,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S53",
+   "name": "AS SAFA WA AL MANARAH site",
+   "body": "Earth",
+   "lat": 23.20616,
+   "lon": 55.54064,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S53.png",
+   "min_m": 126.2,
+   "max_m": 221.4,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  },
+  {
+   "id": "oman_S04",
+   "name": "AMADEE-18 Kepler base station",
+   "body": "Earth",
+   "lat": 18.4232,
+   "lon": 55.0433,
+   "source": "Copernicus DEM GLO-90",
+   "native_res_m": 90,
+   "file": "twin/oman_S04.png",
+   "min_m": 217.5,
+   "max_m": 268.0,
+   "width_km": 24.0,
+   "height_km": 13.5,
+   "px": [
+    320,
+    180
+   ]
+  }
+ ]
+}

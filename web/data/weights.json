@@ -1,0 +1,139 @@
+{
+ "weights": {
+  "moon_base": {
+   "slope": 0.2297,
+   "tri": 0.1264,
+   "relief": 0.0696,
+   "dT_diurnal": 0.1248,
+   "dT_annual": 0.0703,
+   "wind": 0.0158,
+   "ndvi": 0.1208,
+   "channels": 0.0436,
+   "minerals": 0.0722,
+   "access": 0.1267
+  },
+  "mars_landing": {
+   "slope": 0.2319,
+   "tri": 0.1327,
+   "relief": 0.0506,
+   "dT_diurnal": 0.0254,
+   "dT_annual": 0.0254,
+   "wind": 0.0508,
+   "ndvi": 0.105,
+   "channels": 0.0612,
+   "minerals": 0.0589,
+   "access": 0.2582
+  },
+  "mars_science": {
+   "slope": 0.0266,
+   "tri": 0.0266,
+   "relief": 0.0533,
+   "dT_diurnal": 0.0298,
+   "dT_annual": 0.0298,
+   "wind": 0.0149,
+   "ndvi": 0.1475,
+   "channels": 0.2389,
+   "minerals": 0.3825,
+   "access": 0.0501
+  },
+  "mars_sedimentary": {
+   "slope": 0.0549,
+   "tri": 0.0549,
+   "relief": 0.1099,
+   "dT_diurnal": 0.0485,
+   "dT_annual": 0.0485,
+   "wind": 0.0242,
+   "ndvi": 0.1266,
+   "channels": 0.0685,
+   "minerals": 0.3955,
+   "access": 0.0685
+  }
+ },
+ "weights_tier1": {
+  "moon_base": {
+   "slope": 0.2476,
+   "tri": 0.1363,
+   "relief": 0.075,
+   "dT_diurnal": 0.1345,
+   "dT_annual": 0.0758,
+   "wind": 0.0171,
+   "ndvi": 0.1302,
+   "channels": 0.047,
+   "access": 0.1365
+  },
+  "mars_landing": {
+   "slope": 0.2464,
+   "tri": 0.141,
+   "relief": 0.0538,
+   "dT_diurnal": 0.027,
+   "dT_annual": 0.027,
+   "wind": 0.0539,
+   "ndvi": 0.1115,
+   "channels": 0.065,
+   "access": 0.2743
+  },
+  "mars_science": {
+   "slope": 0.0431,
+   "tri": 0.0431,
+   "relief": 0.0862,
+   "dT_diurnal": 0.0482,
+   "dT_annual": 0.0482,
+   "wind": 0.0241,
+   "ndvi": 0.2389,
+   "channels": 0.3868,
+   "access": 0.0812
+  },
+  "mars_sedimentary": {
+   "slope": 0.0908,
+   "tri": 0.0908,
+   "relief": 0.1818,
+   "dT_diurnal": 0.0802,
+   "dT_annual": 0.0802,
+   "wind": 0.04,
+   "ndvi": 0.2094,
+   "channels": 0.1133,
+   "access": 0.1133
+  }
+ },
+ "groups": {
+  "moon_base": {
+   "Terrain": 0.4257,
+   "Climate": 0.211,
+   "Dryness": 0.1208,
+   "Water history": 0.0436,
+   "Geology": 0.0722,
+   "Access": 0.1267
+  },
+  "mars_landing": {
+   "Terrain": 0.4153,
+   "Climate": 0.1015,
+   "Dryness": 0.105,
+   "Water history": 0.0612,
+   "Geology": 0.0589,
+   "Access": 0.2582
+  },
+  "mars_science": {
+   "Terrain": 0.1065,
+   "Climate": 0.0745,
+   "Dryness": 0.1475,
+   "Water history": 0.2389,
+   "Geology": 0.3825,
+   "Access": 0.0501
+  },
+  "mars_sedimentary": {
+   "Terrain": 0.2196,
+   "Climate": 0.1212,
+   "Dryness": 0.1266,
+   "Water history": 0.0685,
+   "Geology": 0.3955,
+   "Access": 0.0685
+  }
+ },
+ "cr": {
+  "moon_base": 0.013,
+  "mars_landing": 0.01,
+  "mars_science": 0.024,
+  "mars_sedimentary": 0.005
+ },
+ "method": "Hierarchical AHP (Saaty). Tier 2 (with EMIT minerals) is the default; tier 1 = same judgements without minerals."
+}

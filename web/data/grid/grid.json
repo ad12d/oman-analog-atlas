@@ -1,0 +1,340 @@
+{
+ "crs": "EPSG:3857",
+ "width": 914,
+ "height": 1170,
+ "res_m": 1000.0,
+ "corners_lonlat": [
+  [
+   51.727288,
+   26.390034
+  ],
+  [
+   59.93789,
+   26.390034
+  ],
+  [
+   59.93789,
+   16.627177
+  ],
+  [
+   51.727288,
+   16.627177
+  ]
+ ],
+ "nodata": 255,
+ "encoding": {
+  "sim": "similarity = v/254 (0\u20131)",
+  "km10": "distance km = v/10 (254 = \u226525.4 km)",
+  "flag": "1 = EMIT minerals measured, 0 = gap (filled with Oman median)"
+ },
+ "layers": {
+  "MoonBase.slope": {
+   "pack": "pack_00.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MoonBase.tri": {
+   "pack": "pack_00.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MoonBase.relief": {
+   "pack": "pack_00.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MoonBase.dT_diurnal": {
+   "pack": "pack_01.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MoonBase.dT_annual": {
+   "pack": "pack_01.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MoonBase.wind": {
+   "pack": "pack_01.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MoonBase.ndvi": {
+   "pack": "pack_02.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MoonBase.channels": {
+   "pack": "pack_02.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MoonBase.access": {
+   "pack": "pack_02.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsLanding.slope": {
+   "pack": "pack_03.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsLanding.tri": {
+   "pack": "pack_03.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsLanding.relief": {
+   "pack": "pack_03.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsLanding.dT_diurnal": {
+   "pack": "pack_04.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsLanding.dT_annual": {
+   "pack": "pack_04.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsLanding.wind": {
+   "pack": "pack_04.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsLanding.ndvi": {
+   "pack": "pack_05.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsLanding.channels": {
+   "pack": "pack_05.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsLanding.access": {
+   "pack": "pack_05.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsScience.slope": {
+   "pack": "pack_06.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsScience.tri": {
+   "pack": "pack_06.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsScience.relief": {
+   "pack": "pack_06.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsScience.dT_diurnal": {
+   "pack": "pack_07.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsScience.dT_annual": {
+   "pack": "pack_07.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsScience.wind": {
+   "pack": "pack_07.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "MarsScience.ndvi": {
+   "pack": "pack_08.png",
+   "ch": 0,
+   "enc": "sim"
+  },
+  "MarsScience.channels": {
+   "pack": "pack_08.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "MarsScience.access": {
+   "pack": "pack_08.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "emit_coverage": {
+   "pack": "pack_09.png",
+   "ch": 0,
+   "enc": "flag"
+  },
+  "minerals.jezero": {
+   "pack": "pack_09.png",
+   "ch": 1,
+   "enc": "sim"
+  },
+  "minerals.sedimentary": {
+   "pack": "pack_09.png",
+   "ch": 2,
+   "enc": "sim"
+  },
+  "dist.town": {
+   "pack": "pack_10.png",
+   "ch": 0,
+   "enc": "km10"
+  },
+  "dist.village": {
+   "pack": "pack_10.png",
+   "ch": 1,
+   "enc": "km10"
+  },
+  "dist.hamlet": {
+   "pack": "pack_10.png",
+   "ch": 2,
+   "enc": "km10"
+  },
+  "dist.roads_major": {
+   "pack": "pack_11.png",
+   "ch": 0,
+   "enc": "km10"
+  },
+  "dist.farms": {
+   "pack": "pack_11.png",
+   "ch": 1,
+   "enc": "km10"
+  },
+  "dist.oil": {
+   "pack": "pack_11.png",
+   "ch": 2,
+   "enc": "km10"
+  },
+  "dist.protected": {
+   "pack": "pack_12.png",
+   "ch": 0,
+   "enc": "km10"
+  }
+ },
+ "profiles": {
+  "moon_base": {
+   "label": "Moon base",
+   "criteria_prefix": "MoonBase",
+   "minerals_layer": "minerals.jezero",
+   "body": "Moon"
+  },
+  "mars_landing": {
+   "label": "Mars landing / ops",
+   "criteria_prefix": "MarsLanding",
+   "minerals_layer": "minerals.jezero",
+   "body": "Mars"
+  },
+  "mars_science": {
+   "label": "Mars science",
+   "criteria_prefix": "MarsScience",
+   "minerals_layer": "minerals.jezero",
+   "body": "Mars"
+  },
+  "mars_sedimentary": {
+   "label": "Mars sedimentary",
+   "criteria_prefix": "MarsScience",
+   "minerals_layer": "minerals.sedimentary",
+   "body": "Mars"
+  }
+ },
+ "default_constraints_km": {
+  "town": 2.0,
+  "village": 1.0,
+  "hamlet": 0.5,
+  "roads_major": 0.2,
+  "farms": 0.5,
+  "oil": 2.0,
+  "protected": 0.0
+ },
+ "hotspot_breaks": {
+  "moon_base": {
+   "p80": 0.6647,
+   "p90": 0.6937,
+   "p95": 0.7162,
+   "p99": 0.7543
+  },
+  "mars_landing": {
+   "p80": 0.7457,
+   "p90": 0.7688,
+   "p95": 0.7898,
+   "p99": 0.8328
+  },
+  "mars_science": {
+   "p80": 0.479,
+   "p90": 0.5395,
+   "p95": 0.5921,
+   "p99": 0.7207
+  },
+  "mars_sedimentary": {
+   "p80": 0.5165,
+   "p90": 0.6056,
+   "p95": 0.6702,
+   "p99": 0.8278
+  }
+ },
+ "benchmarks": [
+  {
+   "name": "Wadi Mansah \u2013 OmanDP BT1B (peridotite, basal thrust)",
+   "profile": "mars_science",
+   "use": "calibrate",
+   "radius_km": 2,
+   "lon": 58.33582,
+   "lat": 23.36435,
+   "px": [
+    735.7,
+    371.3
+   ]
+  },
+  {
+   "name": "OmanDP surface sample IGSN IEBTB000O",
+   "profile": "mars_science",
+   "use": "calibrate",
+   "radius_km": 2,
+   "lon": 58.18389,
+   "lat": 23.366,
+   "px": [
+    718.7,
+    371.1
+   ]
+  },
+  {
+   "name": "Wadi Laywani \u2013 OmanDP BA1 active serpentinization (near Batin/Ibra)",
+   "profile": "mars_science",
+   "use": "test",
+   "radius_km": 2,
+   "lon": 58.7,
+   "lat": 22.88,
+   "px": [
+    776.2,
+    430.0
+   ]
+  },
+  {
+   "name": "AMADEE-18 Kepler base station (Groemer et al. 2020, Astrobiology)",
+   "profile": "mars_landing",
+   "use": "test",
+   "radius_km": 5,
+   "lon": 55.0433,
+   "lat": 18.4232,
+   "px": [
+    369.1,
+    960.3
+   ]
+  },
+  {
+   "name": "AMADEE-18 Kepler base station (Groemer et al. 2020, Astrobiology)",
+   "profile": "mars_sedimentary",
+   "use": "test",
+   "radius_km": 5,
+   "lon": 55.0433,
+   "lat": 18.4232,
+   "px": [
+    369.1,
+    960.3
+   ]
+  }
+ ]
+}

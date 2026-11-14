@@ -50,6 +50,7 @@ body.map-on #space{pointer-events:none}
   font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500}
 .mission button i{width:7px;height:7px;transform:rotate(45deg);background:var(--mars);display:block}
 .mission button[data-m="moon_base"] i{background:var(--ice)}
+.mission button[data-m="mars_sedimentary"] i{background:var(--ochre)}
 .mission button[aria-checked="true"]{background:rgba(233,230,223,.1);color:var(--fg);box-shadow:inset 0 -2px 0 var(--accent)}
 .mission button:hover{color:var(--fg)}
 .mock-flag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--moho);

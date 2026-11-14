@@ -60,7 +60,7 @@ async function start() {
   sw.addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) store.setMission(b.dataset.m); });
   sw.addEventListener("keydown", e => {
     if (!["ArrowRight", "ArrowLeft"].includes(e.key)) return;
-    const i = MISSION_KEYS.indexOf(store.mission), m = MISSION_KEYS[(i + (e.key === "ArrowRight" ? 1 : -1) + 3) % 3];
+    const i = MISSION_KEYS.indexOf(store.mission), m = MISSION_KEYS[(i + (e.key === "ArrowRight" ? 1 : -1) + MISSION_KEYS.length) % MISSION_KEYS.length];
     store.setMission(m); sw.querySelector(`[data-m="${m}"]`).focus(); e.preventDefault();
   });
   store.subscribe(paintSwitch); paintSwitch();
@@ -74,7 +74,7 @@ async function start() {
   // global keys
   addEventListener("keydown", e => {
     if (e.target.closest("input, textarea, select") || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === "m" || e.key === "M") { const i = MISSION_KEYS.indexOf(store.mission); store.setMission(MISSION_KEYS[(i + 1) % 3]); }
+    if (e.key === "m" || e.key === "M") { const i = MISSION_KEYS.indexOf(store.mission); store.setMission(MISSION_KEYS[(i + 1) % MISSION_KEYS.length]); }
     if (e.key === "g" || e.key === "G") { fx.toggle(); toast(`Graphics: ${fx.level === "high" ? "high (bloom on)" : "light (bloom off)"}`); }
   });
 

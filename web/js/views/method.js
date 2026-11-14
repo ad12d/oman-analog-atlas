@@ -1,11 +1,15 @@
-// METHOD: how the score works. ASI Stack, similarity rule explorer, AHP matrix, benchmark check.
+// METHOD: how the score works. ASI Stack (real 1 km similarity grids), similarity rules, AHP matrix, validation.
 import { h, esc, fmt, setKeys, rampColor, hexRgb, cssVar, showTip, hideTip } from "../core/ui.js";
-import { MISSIONS, CRITERIA } from "../core/data.js";
+import { MISSIONS, CRITERIA, VALIDATION } from "../core/data.js";
+import { getGrid } from "../core/grid.js";
+import { normalise } from "../core/live.js";
 import { noise2, fbm, normalize } from "../core/noise.js";
 import { drawCurve } from "./passport.js";
 import { createStack } from "../space/stack3d.js";
 
-const P = 120;
+const P = 96;                                   // 96 x 96 cells of the 1 km grid around Al Bidiyah
+const CENTRE = { lon: 58.80, lat: 22.45, name: "Al Bidiyah" };
+// placeholder fields until the real grids load
 const FIELDS = (() => {
   const out = {};
   CRITERIA.forEach((c, idx) => {
@@ -32,11 +36,11 @@ export default {
     const root = h("div", { class: "page live" });
     root.innerHTML = `<div class="page-inner">
       <div class="page-head"><p class="eyebrow">Method</p><h1>How the Analog Similarity Index works</h1>
-        <p>Each criterion turns an Oman measurement into a 0–1 similarity with the Moon or Mars target. AHP sets how much each one counts for the chosen mission. The weighted sum is the ASI. Known analog wadis are used to check the result.</p></div>
+        <p>Ten criteria turn Oman measurements into a 0–1 similarity with the Moon or Mars target: a bell curve for slope, roughness and relief, one-sided rules for the rest, and an EMIT mineral score. AHP sets how much each one counts for the mission. The weighted sum is the ASI, computed at 90 m and checked against known analog outcrops.</p></div>
       <div class="grid-2">
-        <div class="stage" id="stage"><div class="stage-cap"><span>Placeholder terrain and layers · drag to turn</span><span id="stageState">6 criterion layers</span></div></div>
+        <div class="stage" id="stage"><div class="stage-cap"><span id="stageSrc">Loading the real 1 km grids… · drag to turn</span><span id="stageState">10 criterion layers</span></div></div>
         <div class="panel ticks"><div class="panel-head"><span class="panel-title">ASI Stack</span></div><div class="panel-body" style="display:grid;gap:12px">
-          <p class="note">ASI = Σ wᵢ · sᵢ. Six similarity maps of the same area are weighted and pressed into one.</p>
+          <p class="note">ASI = Σ wᵢ · sᵢ. Ten similarity maps of the same ${P} × ${P} km area around ${CENTRE.name} (the team's 1 km grids) are weighted and pressed into one.</p>
           <div id="stackLegend" style="display:grid;gap:4px"></div>
           <button class="btn" type="button" id="stackBtn" aria-pressed="false">Combine into ASI</button>
         </div></div>
@@ -54,11 +58,11 @@ export default {
             <p class="note">Row criterion compared with column criterion on Saaty's 1–9 scale, derived from the current weights. A consistency ratio under 0.10 is acceptable.</p>
           </div></div>
       </div>
-      <div class="panel ticks"><div class="panel-head"><span class="panel-title">Benchmark check</span><span class="eyebrow" id="benchMission"></span></div>
+      <div class="panel ticks"><div class="panel-head"><span class="panel-title">Validation</span><span class="eyebrow" id="benchMission"></span></div>
         <div class="panel-body" style="display:grid;gap:10px">
-          <div class="legend"><span><i style="background:var(--muted)"></i>Calibration wadis (used to tune)</span><span><i style="background:var(--earth)"></i>Test wadis (held out)</span></div>
-          <svg class="chart" id="bench" viewBox="0 0 760 120" role="img" aria-label="Benchmark ranks"></svg>
-          <p class="note" id="benchNote"></p>
+          <div class="legend"><span><i style="background:var(--muted)"></i>Calibration outcrop (used to tune)</span><span><i style="background:var(--earth)"></i>Independent test site</span><span><i style="background:var(--moho)"></i>80th percentile = pass</span></div>
+          <svg class="chart" id="bench" viewBox="0 0 760 150" role="img" aria-label="Benchmark percentiles"></svg>
+          <ul class="vfacts" id="benchFacts"></ul>
         </div></div>
     </div>`;
     view.appendChild(root);
@@ -73,10 +77,24 @@ export default {
     stack3d?.onHover(k => legend.querySelectorAll("[data-k]").forEach(el => el.classList.toggle("hl", el.dataset.k === k)));
     let combined = false;
 
+    // real fields: the mission's 10 similarity layers cropped around the centre (nodata -> 0)
+    let G = null, real = false;
+    function loadFields() {
+      if (!G) return;
+      const pr = G.meta.profiles[store.mission], [cx, cy] = G.toPx(CENTRE.lon, CENTRE.lat), x0 = Math.round(cx - P / 2), y0 = Math.round(cy - P / 2);
+      for (const c of CRITERIA) {
+        const L = G.layer(c.k === "minerals" ? pr.minerals_layer : `${pr.criteria_prefix}.${c.k}`), f = FIELDS[c.k];
+        for (let j = 0; j < P; j++) for (let i = 0; i < P; i++) { const v = L[(y0 + j) * G.W + x0 + i]; f[j * P + i] = v === 255 || v == null ? 0 : v / 254; }
+      }
+      real = true; stack3d?.setFields(FIELDS);
+      $r("#stageSrc").textContent = `Real 1 km similarity grids · ${P} × ${P} km around ${CENTRE.name} · block relief illustrative · drag to turn`;
+    }
+    getGrid().then(g => { if (!alive) return; G = g; loadFields(); paintStack(); }).catch(() => { $r("#stageSrc").textContent = "Placeholder layers (grids unavailable) · drag to turn"; });
+
     function paintStack() {
-      const w = data.weights[store.mission], acc = new Float32Array(P * P);
+      const w = normalise(data.weights[store.mission]), acc = new Float32Array(P * P);
       for (const c of CRITERIA) { const f = FIELDS[c.k]; for (let p = 0; p < P * P; p++) acc[p] += w[c.k] * f[p]; }
-      normalize(acc);
+      normalize(acc);                              // colour stretched to this window
       if (stack3d) stack3d.update({ weights: w, asi: acc, ramp: MISSIONS[store.mission].ramp, label: MISSIONS[store.mission].label });
       else paintCssStack(cssStack, acc);
       legend.innerHTML = CRITERIA.slice().reverse().map(c => `<div class="strat" style="--rc:var(--c-${c.k});cursor:default" data-k="${c.k}"><span class="band"></span><span><b>${c.name}</b><small>${esc(c.src)}</small><span class="wb" style="width:${w[c.k] * 100}%"></span></span><span class="w">w ${w[c.k].toFixed(2)}</span></div>`).join("");
@@ -84,16 +102,16 @@ export default {
         el.addEventListener("pointerenter", () => { stack3d?.highlight(el.dataset.k); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.add("hl"); });
         el.addEventListener("pointerleave", () => { stack3d?.highlight(null); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.remove("hl"); });
       });
-      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : "6 criterion layers";
+      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
     }
     $r("#stackBtn").addEventListener("click", e => {
       combined = !combined; stage.classList.toggle("combined", combined); stack3d?.setCombined(combined);
-      e.currentTarget.setAttribute("aria-pressed", String(combined)); e.currentTarget.textContent = combined ? "Separate the six layers" : "Combine into ASI";
-      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : "6 criterion layers";
+      e.currentTarget.setAttribute("aria-pressed", String(combined)); e.currentTarget.textContent = combined ? "Separate the layers" : "Combine into ASI";
+      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
     });
 
     /* similarity rule explorer */
-    let rk = "terrain";
+    let rk = "slope";
     const box = root.querySelector(".curve-box"), slider = $r("#ruleVal");
     function paintRule() {
       const c = CRITERIA.find(x => x.k === rk), v = c.min + (c.max - c.min) * (+slider.value / 1000);
@@ -123,31 +141,32 @@ export default {
       $r("#crBadge").innerHTML = cr == null ? "" : `<span class="cr-badge ${cr >= 0.1 ? "bad" : ""}">CR ${cr.toFixed(3)}</span>`;
     }
 
-    /* benchmark check */
+    /* validation: benchmark outcrops' percentile in the 90 m ASI (pass = 80th percentile or better) */
     function paintBench() {
-      const list = data.sites[store.mission], N = list.length, svg = $r("#bench"), W = 760, L = 30, R = 30, y = 56;
-      const x = r => L + (r - 1) / Math.max(1, N - 1) * (W - L - R);
-      let g = `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="2"/>`;
-      for (let r = 1; r <= N; r++) g += `<line x1="${x(r)}" x2="${x(r)}" y1="${y - 4}" y2="${y + 4}" stroke="var(--line)"/><text x="${x(r)}" y="${y + 22}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${r}</text>`;
-      g += `<text x="${L}" y="${y + 44}" font-size="11" fill="var(--muted)">rank 1 = best match</text>`;
-      const bench = list.filter(s => s.benchmark);
-      bench.forEach((s, i) => {
-        const cal = s.benchmark === "calibration", up = i % 2 === 0;
-        g += `<g class="bm" data-id="${s.id}"><line x1="${x(s.rank)}" x2="${x(s.rank)}" y1="${y}" y2="${up ? y - 26 : y - 14}" stroke="var(--faint)"/>
-          <circle cx="${x(s.rank)}" cy="${y}" r="8" fill="${cal ? "var(--bg)" : "var(--earth)"}" stroke="${cal ? "var(--muted)" : "var(--earth)"}" stroke-width="2"/>
-          <text x="${x(s.rank)}" y="${up ? y - 30 : y - 18}" text-anchor="middle" font-size="11.5" fill="var(--fg)">${esc(s.name.replace("Wadi ", ""))}</text>
-          <circle cx="${x(s.rank)}" cy="${y}" r="16" fill="transparent"/></g>`;
+      const m = store.mission, list = data.sites[m].filter(s => s.benchmark && s.validation_percentile != null), svg = $r("#bench");
+      const W = 760, L = 230, R = 40, rowH = 26, top = 20, x = p => L + p / 100 * (W - L - R), n = Math.max(1, list.length);
+      let g = "";
+      for (let p = 0; p <= 100; p += 20) g += `<line x1="${x(p)}" x2="${x(p)}" y1="${top - 4}" y2="${top + n * rowH}" stroke="var(--hair)"/><text x="${x(p)}" y="${top - 8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${p}</text>`;
+      g += `<line x1="${x(80)}" x2="${x(80)}" y1="${top - 4}" y2="${top + n * rowH}" stroke="var(--moho)" stroke-dasharray="4 3"/>`;
+      list.forEach((s, i) => {
+        const y = top + i * rowH + rowH / 2, p = +s.validation_percentile, test = s.benchmark === "test";
+        g += `<g class="bm" data-id="${s.id}"><text x="${L - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="var(--fg)">${esc(s.name.split(" – ")[0])}</text>
+          <line x1="${x(0)}" x2="${x(Math.max(1, p))}" y1="${y}" y2="${y}" stroke="${test ? "var(--earth)" : "var(--muted)"}" stroke-width="6" stroke-linecap="round"/>
+          <text x="${x(p) + 8}" y="${y + 4}" font-size="11.5" fill="var(--fg)" font-family="var(--f-mono)">${Math.round(p)}</text>
+          <rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent"/></g>`;
       });
+      if (!list.length) g += `<text x="${L}" y="${top + 16}" font-size="12" fill="var(--muted)">No Omani benchmark outcrop exists for this profile.</text>`;
+      svg.setAttribute("viewBox", `0 0 ${W} ${top + n * rowH + 10}`);
       svg.innerHTML = g;
       svg.querySelectorAll(".bm").forEach(el => { const s = list.find(p => p.id === el.dataset.id);
-        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${esc(s.benchmark)} set · rank ${s.rank} of ${N} · ASI ${s.asi.toFixed(2)}</span>`, e.clientX, e.clientY));
+        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${s.benchmark === "test" ? "independent test" : "calibration"} · ${Math.round(s.validation_percentile)}th percentile of Oman · ASI ${s.asi.toFixed(2)}</span>`, e.clientX, e.clientY));
         el.addEventListener("pointerleave", hideTip); });
-      const test = bench.filter(s => s.benchmark === "test"), share = test.filter(s => s.rank <= Math.ceil(N / 2)).length;
-      $r("#benchMission").textContent = MISSIONS[store.mission].label;
-      $r("#benchNote").textContent = `${share} of ${test.length} held-out test wadis rank in the top half for ${MISSIONS[store.mission].label}.` + (data.isMock ? " (Mock numbers.)" : "");
+      $r("#benchMission").textContent = MISSIONS[m].label;
+      const facts = m === "mars_science" ? VALIDATION.facts : (m === "mars_landing" || m === "mars_sedimentary") ? [VALIDATION.amadee] : [];
+      $r("#benchFacts").innerHTML = [...facts, VALIDATION.grid].map(f => `<li>${esc(f)}</li>`).join("");
     }
 
-    const paintAll = () => { paintStack(); paintRule(); paintAHP(); paintBench(); };
+    const paintAll = () => { if (G) loadFields(); paintStack(); paintRule(); paintAHP(); paintBench(); };
     paintAll();
     const unsub = store.subscribe(paintAll);
     setKeys([["M", "Mission"]]);

@@ -1,13 +1,13 @@
-// ASI Stack in 3D (Method page). Six criterion layers float over a terrain block and press
-// down into one ASI layer. Every layer is draped on the same relief, so they read as six maps
-// of one place. The block's side shows crust over mantle with the gold Moho line between them.
-// Terrain and fields are placeholders until the Oman DEM and criterion rasters arrive.
+// ASI Stack in 3D (Method page). The criterion layers float over a terrain block and press
+// down into one ASI layer. Every layer is draped on the same block, so they read as maps of one place.
+// The block's side shows crust over mantle with the gold Moho line between them. Layer images are the
+// team's real 1 km similarity grids (setFields); the block's relief is illustrative.
 import * as THREE from "three";
 import { reduceMotion, hexRgb, cssVar, rampColor, esc } from "../core/ui.js";
 import { noise2, fbm, normalize } from "../core/noise.js";
 import { fx } from "../core/fx.js";
 
-const RELIEF = 0.11, GAP = 0.15, BASE = -0.075, MOHO = -0.03;
+const RELIEF = 0.11, GAP0 = 0.15, BASE = -0.075, MOHO = -0.03;
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
@@ -22,6 +22,7 @@ const SCAN_FS = `uniform sampler2D map; uniform float opacity, scan; uniform vec
   }`;
 
 export function createStack(host, { P, fields, criteria }) {
+  const GAP = Math.min(GAP0, .95 / criteria.length);          // ten layers fit the same height as six
   const canvas = document.createElement("canvas"); canvas.className = "stack3d";
   canvas.setAttribute("role", "img");
   const labels = document.createElement("div"); labels.className = "stack-labels"; labels.setAttribute("aria-hidden", "true");
@@ -114,7 +115,7 @@ export function createStack(host, { P, fields, criteria }) {
     g.add(mesh, ticks); g.position.y = y0; scene.add(g);
     const el = document.createElement("div"); el.className = "sl"; el.style.setProperty("--rc", `var(--c-${c.k})`);
     el.innerHTML = `<i></i><b>${esc(c.name.split(" ")[0])}</b><span></span>`; labels.appendChild(el);
-    return { k: c.k, g, mesh, mat, ticks, y0, v: 0, el };
+    return { k: c.k, g, mesh, mat, ticks, y0, v: 0, el, tex, color };
   });
   const asiLabel = document.createElement("div"); asiLabel.className = "sl asi"; asiLabel.innerHTML = `<i></i><b>ASI</b><span></span>`; labels.appendChild(asiLabel);
 
@@ -227,10 +228,17 @@ export function createStack(host, { P, fields, criteria }) {
       asiU.map.value?.dispose(); asiU.map.value = tex;
       layers.forEach(l => { l.el.querySelector("span").textContent = `w ${weights[l.k].toFixed(2)}`; });
       asiLabel.querySelector("span").textContent = label;
-      canvas.setAttribute("aria-label", combined ? `ASI map for ${label}` : "Six criterion layers above a terrain block");
+      canvas.setAttribute("aria-label", combined ? `ASI map for ${label}` : `${criteria.length} criterion layers above a terrain block`);
       if (combined && !reduceMotion) scanT = 0;
     },
     debug() { return { visible, hidden: document.hidden, tc: +tc.toFixed(2), t: +t.toFixed(2), frames, v: layers.map(l => +l.v.toFixed(2)), combined }; },
+    /** replace the criterion layer images (e.g. real similarity grids once they load, or a new mission's) */
+    setFields(next) {
+      layers.forEach(l => { const f = next[l.k]; if (!f) return; const d = l.tex.image.data, c = l.color;
+        for (let j = 0; j < P; j++) for (let i = 0; i < P; i++) { const p = j * P + i, o = ((P - 1 - j) * P + i) * 4, s = .5 + .7 * shade[p];
+          d[o] = clamp255(c[0] * s); d[o + 1] = clamp255(c[1] * s); d[o + 2] = clamp255(c[2] * s); d[o + 3] = clamp255(26 + f[p] * 229); }
+        l.tex.needsUpdate = true; });
+    },
     setCombined(on) { if (on === combined) return; combined = on; tc = 0; scanT = -1; hl = null; },
     highlight(k) { if (!combined) hl = k; },
     onHover(fn) { hoverCb = fn; },

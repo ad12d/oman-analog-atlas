@@ -1,6 +1,6 @@
 // ORBIT: the opening shot. Earth fills the right side with Oman turned to camera.
 import { h, setKeys, fmt } from "../core/ui.js";
-import { MISSIONS } from "../core/data.js";
+import { MISSIONS, MISSION_KEYS, CRITERIA } from "../core/data.js";
 import { OMAN } from "../space/scene.js";
 
 export default {
@@ -18,9 +18,9 @@ export default {
         <hr class="moho">
         <dl class="stats">
           <div><dt>${nSites}</dt><dd>Candidate sites</dd></div>
-          <div><dt>6</dt><dd>Criteria</dd></div>
-          <div><dt>3</dt><dd>Mission profiles</dd></div>
-          <div><dt>${nBench}</dt><dd>Benchmark wadis</dd></div>
+          <div><dt>${CRITERIA.length}</dt><dd>Criteria</dd></div>
+          <div><dt>${MISSION_KEYS.length}</dt><dd>Mission profiles</dd></div>
+          <div><dt>${nBench}</dt><dd>Benchmark sites</dd></div>
         </dl>
         <div class="cta">
           <a class="btn primary" href="#director">Open the Director <kbd>Enter</kbd></a>
