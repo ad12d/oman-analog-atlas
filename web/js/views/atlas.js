@@ -42,11 +42,7 @@ function ensureMap() {
     map.addSource("aoi", { type: "geojson", data: { type: "FeatureCollection", features: AOIS.map(a => {
       const [w, s, e, n] = a.bbox; return { type: "Feature", properties: { id: a.id }, geometry: { type: "Polygon", coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] } }; }) } });
     map.addLayer({ id: "aoi-line", type: "line", source: "aoi", paint: { "line-color": "#F2C46D", "line-opacity": 0.75, "line-width": 1.2, "line-dasharray": [3, 2] } });
-    for (const a of AOIS) {
-      const [w, s, e, n] = a.bbox;
-      map.addSource("lay-" + a.id, { type: "image", url: blankPNG(), coordinates: [[w, n], [e, n], [e, s], [w, s]] });
-      map.addLayer({ id: "lay-" + a.id, type: "raster", source: "lay-" + a.id, paint: { "raster-opacity": 0.82, "raster-fade-duration": 250, "raster-resampling": "linear" } }, "aoi-line");
-    }
+    // the AOI image layers are created by the first paint with their real image (see paintLayers)
     ready = true; queue.splice(0).forEach(fn => fn());
   };
   if (map.isStyleLoaded()) addLayers(); else map.once("style.load", addLayers);
@@ -54,8 +50,12 @@ function ensureMap() {
 }
 let ready = false;
 const queue = [];
-const whenLoaded = (fn) => { if (ready) fn(); else queue.push(fn); };
-function blankPNG() { const c = document.createElement("canvas"); c.width = c.height = 1; return c.toDataURL(); }
+// run fn once the style is ready; a keyed call replaces an earlier queued call with the same key
+const whenLoaded = (fn, key) => {
+  if (ready) { fn(); return; }
+  if (key) { const i = queue.findIndex(f => f.key === key); if (i >= 0) queue.splice(i, 1); fn.key = key; }
+  queue.push(fn);
+};
 
 // MOCK raster: noise field with each site's score stamped in. Replaced by TiTiler tiles of the real COGs.
 function layerImage(aoi, layer, mission, data) {
@@ -153,8 +153,17 @@ export default {
     }
     $r("#strata").addEventListener("click", e => { const b = e.target.closest("[data-l]"); if (!b) return; layer = b.dataset.l; paintStrata(); paintLayers(); });
 
-    function paintLayers() {
-      whenLoaded(() => { for (const a of AOIS) { const [w, s, e, n] = a.bbox; map.getSource("lay-" + a.id)?.updateImage({ url: layerImage(a, layer, store.mission, data), coordinates: [[w, n], [e, n], [e, s], [w, s]] }); } });
+    // debounced: quick layer / mission switches would otherwise cancel each other's image loads (AbortError)
+    let layerTimer = 0;
+    function paintLayers() { clearTimeout(layerTimer); layerTimer = setTimeout(() => whenLoaded(applyLayers, "layers"), 90); }
+    function applyLayers() {
+      for (const a of AOIS) {
+        const [w, s, e, n] = a.bbox, id = "lay-" + a.id, img = { url: layerImage(a, layer, store.mission, data), coordinates: [[w, n], [e, n], [e, s], [w, s]] };
+        const src = map.getSource(id);
+        if (src) { src.updateImage(img); continue; }
+        map.addSource(id, { type: "image", ...img });
+        map.addLayer({ id, type: "raster", source: id, paint: { "raster-opacity": 0.82, "raster-fade-duration": 250, "raster-resampling": "linear" } }, "aoi-line");
+      }
     }
 
     /* ranked list */
@@ -233,7 +242,7 @@ export default {
     return {
       update(r) { if (r.name === "site") openSite(r.id); else if (drawerId) closeSite(); },
       cleanup() {
-        unsub(); removeEventListener("keydown", onKey); markers.forEach(m => m.remove()); timers.forEach(clearTimeout);
+        unsub(); clearTimeout(layerTimer); removeEventListener("keydown", onKey); markers.forEach(m => m.remove()); timers.forEach(clearTimeout);
         document.body.classList.remove("map-on"); scene.setActive(true);
         // climb back out: the map fades while the next view moves the globe camera away from Oman
         mapEl.classList.add("away"); vig.classList.add("away");

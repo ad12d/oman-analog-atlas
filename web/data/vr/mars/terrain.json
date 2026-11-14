@@ -1,0 +1,18 @@
+{
+  "label": "Mars \u00b7 Jezero crater floor and delta",
+  "size_m": 2400,
+  "grid": 1024,
+  "res_m": 2.346,
+  "sun": {
+    "az": 255,
+    "el": 38
+  },
+  "detail_m": 0.08,
+  "albedo": "albedo.jpg",
+  "source": "MRO HiRISE DTM DTEEC_045994_1985_046060_1985 + RED orthoimage",
+  "credit": "NASA/JPL/University of Arizona HiRISE; DTM and orthoimage by USGS Astrogeology (controlled DTMs)",
+  "note": "Real HiRISE terrain of Jezero crater floor near the Perseverance landing site. Colour is the HiRISE red-filter image tinted to Mars colours.",
+  "placeholder": false,
+  "z_min": 0.0,
+  "z_max": 118.491
+}

@@ -2,43 +2,52 @@
 // gravity, engine plume + light, a dust burst near the ground, and the touchdown check that
 // samples the terrain under the four footpads.
 import * as THREE from "three";
+import { vrMaterials, strut } from "./materials.js";
 
 const FOOT_R = 3.2;                         // footpad radius from the centre (m)
 const PADS = [0, 1, 2, 3].map(k => { const a = Math.PI / 4 + k * Math.PI / 2; return new THREE.Vector3(Math.cos(a) * FOOT_R, 0, Math.sin(a) * FOOT_R); });
 
 function buildModel() {
-  const g = new THREE.Group();
-  const foil = new THREE.MeshStandardMaterial({ color: 0xd2a643, metalness: .85, roughness: .32 });
-  const white = new THREE.MeshStandardMaterial({ color: 0xe9e6df, metalness: .05, roughness: .55 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x2b2d31, metalness: .7, roughness: .45 });
-  const steel = new THREE.MeshStandardMaterial({ color: 0x9aa0a8, metalness: .9, roughness: .3 });
-  const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
-
-  add(new THREE.CylinderGeometry(1.65, 1.75, 1.6, 8), foil, 0, 2.55, 0);                    // descent stage (foil octagon)
-  add(new THREE.CylinderGeometry(1.25, 1.55, 1.5, 8), white, 0, 4.1, 0);                     // crew / cargo module
-  const dome = add(new THREE.SphereGeometry(1.25, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), white, 0, 4.85, 0); dome.scale.y = .55;
-  add(new THREE.CylinderGeometry(.06, .06, 1.2, 6), steel, .7, 5.6, .2);                     // mast
-  const dish = add(new THREE.SphereGeometry(.45, 16, 8, 0, Math.PI * 2, 0, Math.PI / 3), white, .7, 6.2, .2); dish.rotation.x = Math.PI * .7;
-  for (let k = 0; k < 4; k++) {                                                              // RCS quads + tanks
-    const a = k * Math.PI / 2;
-    add(new THREE.BoxGeometry(.28, .28, .28), dark, Math.cos(a) * 1.55, 4.5, Math.sin(a) * 1.55);
-    add(new THREE.SphereGeometry(.42, 16, 10), steel, Math.cos(a + Math.PI / 4) * 1.15, 2.5, Math.sin(a + Math.PI / 4) * 1.15);
+  // original lander design: foil-wrapped descent stage with four tanks, crew cabin on top,
+  // tripod legs with shock struts and dish footpads (footpads rest at y = 0)
+  const g = new THREE.Group(), M = vrMaterials();
+  const add = (geo, mat, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+  add(new THREE.CylinderGeometry(2.1, 2.1, 1.7, 8), M.foilGold, 0, 2.75, 0).rotation.y = Math.PI / 8;      // descent stage
+  add(new THREE.CylinderGeometry(2.12, 1.85, .32, 8), M.foilSilver, 0, 1.75, 0).rotation.y = Math.PI / 8;
+  add(new THREE.CylinderGeometry(2.15, 2.15, .12, 8), M.titanium, 0, 3.62, 0).rotation.y = Math.PI / 8;
+  for (let k = 0; k < 4; k++) {                                   // black thermal panels on alternate faces + tanks between the legs
+    const a = k * Math.PI / 2, p = add(new THREE.BoxGeometry(1.2, 1.2, .05), M.black, Math.sin(a) * 1.96, 2.8, Math.cos(a) * 1.96); p.rotation.y = a;
+    add(new THREE.SphereGeometry(.62, 20, 14), M.foilSilver, Math.sin(a) * 1.35, 1.75, Math.cos(a) * 1.35);
   }
-  const bell = new THREE.LatheGeometry([[.28, 0], [.34, -.1], [.5, -.45], [.72, -.95], [.78, -1.0]].map(([r, y]) => new THREE.Vector2(r, y)), 24);
-  add(bell, dark, 0, 1.75, 0).material = new THREE.MeshStandardMaterial({ color: 0x3a3330, metalness: .6, roughness: .5, side: THREE.DoubleSide });
-  for (const p of PADS) {                                                                    // legs, struts, footpads
-    const top = new THREE.Vector3(p.x * .42, 2.0, p.z * .42), foot = new THREE.Vector3(p.x, .55, p.z);
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(.09, .11, 1, 8), steel);
-    leg.position.copy(top).lerp(foot, .5); leg.scale.y = top.distanceTo(foot); leg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), foot.clone().sub(top).normalize());
-    leg.castShadow = true; g.add(leg);
-    const s0 = new THREE.Vector3(p.x * .45, 3.1, p.z * .45), strut = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1, 6), steel);
-    strut.position.copy(s0).lerp(foot, .5); strut.scale.y = s0.distanceTo(foot); strut.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), foot.clone().sub(s0).normalize());
-    strut.castShadow = true; g.add(strut);
-    add(new THREE.CylinderGeometry(.42, .5, .14, 16), steel, p.x, .07, p.z);
-    add(new THREE.CylinderGeometry(.07, .07, .55, 6), steel, p.x, .35, p.z);
+  const bell = new THREE.LatheGeometry([[.3, 0], [.36, -.12], [.52, -.45], [.7, -.88], [.76, -1.0], [.74, -1.02]].map(([r, y]) => new THREE.Vector2(r, y)), 28);
+  add(bell, M.nozzle, 0, 1.75, 0);
+  add(new THREE.CylinderGeometry(1.45, 1.6, 2.2, 12), M.paint, 0, 4.75, 0);                         // crew cabin
+  const top = add(new THREE.SphereGeometry(1.45, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.paint, 0, 5.85, 0); top.scale.y = .38;
+  add(new THREE.CylinderGeometry(1.62, 1.62, .1, 12), M.titanium, 0, 3.7, 0);
+  for (const x of [-.38, .38]) add(new THREE.BoxGeometry(.42, .34, .06), M.glass, x, 5.15, 1.5).rotation.x = -.06;   // windows
+  add(new THREE.BoxGeometry(.9, 1.3, .06), M.paintGrey, 0, 4.45, -1.57);                            // hatch (faces -z)
+  for (const sx of [-1, 1]) { const r = add(new THREE.BoxGeometry(.05, 1.5, 1.1), M.paint, sx * 1.75, 4.8, 0); r.rotation.z = sx * .05; }   // radiators
+  for (let k = 0; k < 4; k++) { const a = Math.PI / 4 + k * Math.PI / 2;                             // RCS quads
+    add(new THREE.BoxGeometry(.3, .3, .3), M.black, Math.sin(a) * 1.45, 5.55, Math.cos(a) * 1.45);
+    add(new THREE.ConeGeometry(.06, .16, 8), M.nozzle, Math.sin(a) * 1.62, 5.55, Math.cos(a) * 1.62).rotation.set(Math.cos(a) * Math.PI / 2, 0, -Math.sin(a) * Math.PI / 2); }
+  add(new THREE.CylinderGeometry(.05, .05, 1.3, 8), M.steel, .55, 6.5, .3);                          // antenna mast + dish
+  const dish = add(new THREE.SphereGeometry(.5, 20, 8, 0, Math.PI * 2, 0, Math.PI / 3.2), M.paint, .55, 7.15, .3); dish.rotation.x = Math.PI * .72;
+  // ladder from the hatch down toward the front-left leg
+  const L0 = new THREE.Vector3(-.3, 3.6, -1.7), L1 = new THREE.Vector3(-.3, .5, -2.6), R0 = new THREE.Vector3(.3, 3.6, -1.7), R1 = new THREE.Vector3(.3, .5, -2.6);
+  g.add(strut(L0, L1, .03, M.steel), strut(R0, R1, .03, M.steel));
+  for (let k = 1; k < 9; k++) { const t = k / 9; g.add(strut(L0.clone().lerp(L1, t), R0.clone().lerp(R1, t), .02, M.steel)); }
+  // legs: primary strut with a shock absorber, two secondary struts, dish footpad
+  const pad = new THREE.LatheGeometry([[0, .02], [.48, .02], [.55, .1], [.5, .16], [.12, .2]].map(([r, y]) => new THREE.Vector2(r, y)), 24);
+  for (const p of PADS) {
+    const dir = p.clone().normalize(), tan = new THREE.Vector3(-dir.z, 0, dir.x);
+    const foot = new THREE.Vector3(p.x, .42, p.z), top = dir.clone().multiplyScalar(1.6).setY(3.3), mid = top.clone().lerp(foot, .45);
+    g.add(strut(top, mid, .13, M.titanium), strut(mid, foot, .08, M.steel));
+    for (const s of [-1, 1]) g.add(strut(dir.clone().multiplyScalar(1.75).addScaledVector(tan, s * .8).setY(1.95), foot, .045, M.steel));
+    add(pad, M.titanium, p.x, 0, p.z);
+    add(new THREE.SphereGeometry(.1, 10, 8), M.steel, foot.x, foot.y, foot.z);
   }
-  const lamp = (c, x, y, z) => { const m = add(new THREE.SphereGeometry(.07, 8, 6), new THREE.MeshBasicMaterial({ color: c }), x, y, z); m.castShadow = false; return m; };
-  const lights = [lamp(0xff4030, 1.27, 4.6, 0), lamp(0x40ff80, -1.27, 4.6, 0)];
+  const lamp = (m, x, y, z) => { const o = add(new THREE.SphereGeometry(.07, 8, 6), m, x, y, z); o.castShadow = false; return o; };
+  const lights = [lamp(M.lampR, 1.47, 5.3, 0), lamp(M.lampG, -1.47, 5.3, 0)];
   return { g, lights };
 }
 
@@ -118,7 +127,9 @@ export function createLander(scene, terrain, rules) {
     const from = side.multiplyScalar(-1).addScaledVector(toViewer, -.35).normalize();
     st.yaw = Math.atan2(-from.x, -from.z);
     const pose = touchdownPose(pad, st.yaw);
-    st.P0.set(pad.x + from.x * L.start_downrange_m, pose.y + L.start_altitude_m, pad.z + from.z * L.start_downrange_m);
+    // start high enough to clear the highest ground in the tile (real mountains can be several hundred metres)
+    const alt = Math.max(L.start_altitude_m, (terrain.maxHeight ?? pose.y) - pose.y + 160);
+    st.P0.set(pad.x + from.x * L.start_downrange_m, pose.y + alt, pad.z + from.z * L.start_downrange_m);
     st.M0.set(-from.x * 14, -9, -from.z * 14).multiplyScalar(st.T);         // entry velocity (m/s) scaled for the Hermite curve
     st.P1.set(pad.x, pose.y, pad.z); st.M1.set(0, -L.touchdown_speed_mps, 0).multiplyScalar(st.T);
     st.settleQ.copy(pose.q);
@@ -185,7 +196,7 @@ export function createLander(scene, terrain, rules) {
 
   function dispose() {
     scene.remove(root, dust); dGeo.dispose(); dMat.dispose(); plumeGeo.dispose(); plumeMat.dispose();
-    root.traverse(o => { o.geometry?.dispose?.(); if (o.material && o.material !== plumeMat) o.material.dispose?.(); });
+    root.traverse(o => o.geometry?.dispose?.());
   }
 
   return {

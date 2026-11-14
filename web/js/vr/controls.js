@@ -1,15 +1,15 @@
 // Input for the VR view.
 //  Quest (WebXR): two controller rays. Trigger = select (teleport / pick / place, or press a wrist-menu
-//  button). Right thumbstick left/right = snap turn 30°. The wrist menu rides on the left controller.
+//  button). Right thumbstick left/right = snap turn 30°. Grip (squeeze) = bring the console in front of you.
 //  Screen (desktop / phone): drag to look, tap or click = select, WASD / arrow keys walk.
 import * as THREE from "three";
 
-export function createControls({ renderer, camera, scene, dom, onSelect }) {
+export function createControls({ renderer, camera, scene, dom, onSelect, onSqueeze = () => {} }) {
   const rig = new THREE.Group(); rig.add(camera); scene.add(rig);
   camera.position.set(0, 1.65, 0);
   const ray = new THREE.Raycaster(); ray.far = 400;
   const hands = [];                                   // { ctrl, grip, line, hand, ray }
-  let yaw = 0, pitch = -0.08, turnLatch = false, menu = null;
+  let yaw = 0, pitch = -0.08, turnLatch = false;
 
   /* ---------- XR controllers ---------- */
   const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]);
@@ -19,9 +19,10 @@ export function createControls({ renderer, camera, scene, dom, onSelect }) {
     line.scale.z = 6; line.visible = false; ctrl.add(line);
     const tip = new THREE.Mesh(new THREE.SphereGeometry(.012, 8, 6), new THREE.MeshBasicMaterial({ color: 0xf2c46d })); ctrl.add(tip);
     const h = { ctrl, grip, line, hand: "", ray: new THREE.Raycaster() };
-    ctrl.addEventListener("connected", e => { h.hand = e.data.handedness; h.gamepad = e.data.gamepad; line.visible = true; if (h.hand === "left" && menu) grip.add(menu); });
+    ctrl.addEventListener("connected", e => { h.hand = e.data.handedness; h.gamepad = e.data.gamepad; line.visible = true; });
     ctrl.addEventListener("disconnected", () => { line.visible = false; h.hand = ""; });
     ctrl.addEventListener("select", () => onSelect(rayFrom(h), h.hand || "right"));
+    ctrl.addEventListener("squeezestart", () => onSqueeze(h.hand));
     rig.add(ctrl, grip); hands.push(h);
   }
   const m4 = new THREE.Matrix4();
@@ -91,11 +92,10 @@ export function createControls({ renderer, camera, scene, dom, onSelect }) {
     } else rig.position.set(x, y, z);
   }
   function face(x, z) { if (!renderer.xr.isPresenting) yaw = Math.atan2(-(x - rig.position.x), -(z - rig.position.z)); else rig.rotation.y = Math.atan2(-(x - rig.position.x), -(z - rig.position.z)); }
-  function attachMenu(mesh) { menu = mesh; const l = hands.find(h => h.hand === "left"); if (l) l.grip.add(mesh); }
 
   function dispose() {
     dom.removeEventListener("pointerdown", pd); dom.removeEventListener("pointermove", pm); dom.removeEventListener("pointerup", pu);
     removeEventListener("keydown", kd); removeEventListener("keyup", ku); lineGeo.dispose();
   }
-  return { rig, update, hoverRay, teleport, face, attachMenu, setPointerLength, dispose, get yaw() { return yaw; } };
+  return { rig, update, hoverRay, teleport, face, setPointerLength, dispose, get yaw() { return yaw; } };
 }

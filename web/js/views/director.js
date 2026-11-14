@@ -114,11 +114,12 @@ export default {
       card.classList.remove("on");
       scene.setMode("focus-earth").then(() => go("#oman"));
     }
-    function travel(w) { if (w === "earth") travelEarth(); else openDossier(w); }
+    // a dossier has its own address (#director-moon / #director-mars), so Back and the Director menu link both close it
+    function travel(w) { if (w === "earth") travelEarth(); else go("#director-" + w); }
 
     root.addEventListener("click", e => {
       if (e.target.closest("[data-travel]")) { e.preventDefault(); travelEarth(); }
-      if (e.target.closest("[data-back]")) closeDossier();
+      if (e.target.closest("[data-back]")) go("#director");
     });
 
     // hover + click on worlds (anywhere outside panels)
@@ -144,7 +145,7 @@ export default {
       const w = scene.pick(e.clientX, e.clientY); if (w) travel(w);
     };
     const onKey = e => {
-      if (e.key === "Escape") { if (focus) closeDossier(); else go("#orbit"); }
+      if (e.key === "Escape") go(focus ? "#director" : "#orbit");
       if (e.key === "Enter" && !e.target.closest("a, button, input")) travelEarth();
     };
     addEventListener("pointermove", onMove); addEventListener("pointerdown", onDown); addEventListener("pointerup", onUp); addEventListener("keydown", onKey);
@@ -165,12 +166,14 @@ export default {
 
     scene.setTarget(missionWorld());
     paintTags(); paintBrief();
-    const unsub = store.subscribe(() => { scene.setTarget(missionWorld()); paintTags(); paintBrief(); if (focus) openDossier(focus === "moon" && store.mission !== "moon_base" ? "mars" : focus === "mars" && store.mission === "moon_base" ? "moon" : focus); if (hover) card.innerHTML = cardHTML(hover); });
+    const unsub = store.subscribe(() => { scene.setTarget(missionWorld()); paintTags(); paintBrief(); if (focus) { const w = focus === "moon" && store.mission !== "moon_base" ? "mars" : focus === "mars" && store.mission === "moon_base" ? "moon" : focus; if (w !== focus) go("#director-" + w); else openDossier(w); } if (hover) card.innerHTML = cardHTML(hover); });
     // deep link (#director-moon / #director-mars): start from the Director shot, then move in
     if (route?.id) { if (first) { scene.setMode("director", true); openDossier(route.id); } else scene.setMode("director").then(() => { if (alive) openDossier(route.id); }); }
     setKeys([["Click", "Travel"], ["Enter", "Oman"], ["M", "Mission"], ["Esc", "Back"]]);
 
-    return { cleanup() {
+    return {
+      update(r) { if (r.id) { if (focus !== r.id) openDossier(r.id); } else if (focus) closeDossier(); },
+      cleanup() {
       alive = false; off(); unsub(); document.body.classList.remove("reticle-hot");
       removeEventListener("pointermove", onMove); removeEventListener("pointerdown", onDown); removeEventListener("pointerup", onUp); removeEventListener("keydown", onKey);
     } };

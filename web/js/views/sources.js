@@ -19,7 +19,11 @@ const ROWS = [
   ["AppEEARS (LP DAAC)", "NASA", "https://appeears.earthdatacloud.nasa.gov/", "MODIS NDVI and LST subsets for Oman", "Dryness · Thermal", false],
   ["Sentinel-2 cloudless by EOX", "EOX / ESA data", "https://s2maps.eu/", "Basemap of Oman", "Basemap", false],
   ["OpenStreetMap", "OSM contributors", "https://www.openstreetmap.org/copyright", "Roads for the access criterion", "Access", false],
-  ["Team drone LiDAR survey", "Sultan Qaboos Air Academy team", "#vr", "Bare-earth terrain of the civilian survey site for the VR landing (placeholder until processed)", "VR terrain", false],
+  ["Copernicus DEM GLO-30", "ESA / Copernicus", "https://registry.opendata.aws/copernicus-dem/", "30 m elevation for the VR Oman terrain (Wadi Tayin, Samail ophiolite)", "VR terrain", false],
+  ["LOLA 5 m/pixel south-pole DEMs (PGDA)", "NASA GSFC", "https://pgda.gsfc.nasa.gov/products/78", "Site01: Shackleton - de Gerlache connecting ridge, the VR Moon terrain", "VR terrain", false],
+  ["HiRISE DTM DTEEC_045994_1985_046060_1985", "NASA/JPL/UArizona · USGS", "https://stac.astrogeology.usgs.gov/browser-dev/", "1 m terrain + orthoimage of Jezero crater floor, the VR Mars terrain", "VR terrain", false],
+  ["Oman Drilling Project (ICDP)", "ICDP / IODP", "https://publications.iodp.org/other/Oman/OmanDP.html", "Location of hole CM1 (crust-mantle transition) used to centre the VR Oman terrain", "VR terrain", false],
+  ["Team drone LiDAR survey", "Sultan Qaboos Air Academy team", "#vr", "Bare-earth terrain of the civilian survey site; replaces the satellite terrain in VR once processed", "VR terrain", false],
   ["three.js", "Open source (MIT licence)", "https://threejs.org/", "3D engine and bloom effect; globe cloud texture from its example files", "Visuals", false],
   ["Rajendran & Nasir (2015), Tectonophysics 657", "Sultan Qaboos University", "https://doi.org/10.1016/j.tecto.2015.06.023", "ASTER band ratios and field-verified benchmark wadis", "Minerals · Benchmarks", false],
 ];

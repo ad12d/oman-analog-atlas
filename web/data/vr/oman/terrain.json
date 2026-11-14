@@ -1,0 +1,18 @@
+{
+  "label": "Oman \u00b7 Samail ophiolite, Wadi Tayin",
+  "size_m": 4000,
+  "grid": 1024,
+  "res_m": 3.91,
+  "sun": {
+    "az": 118,
+    "el": 40
+  },
+  "detail_m": 0.35,
+  "albedo": "albedo.jpg",
+  "source": "Copernicus DEM GLO-30 + Sentinel-2 cloudless 2020",
+  "credit": "Copernicus DEM GLO-30 \u00a9 DLR/Airbus, provided under COPERNICUS by the European Union and ESA; Sentinel-2 cloudless 2020 by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2020)",
+  "note": "Real terrain around the Oman Drilling Project hole CM1 (crust-mantle transition). 30 m elevation; sub-30 m roughness near the landing area is synthetic until the team's drone LiDAR is processed.",
+  "placeholder": false,
+  "z_min": 0.0,
+  "z_max": 482.501
+}

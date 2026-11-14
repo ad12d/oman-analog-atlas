@@ -45,6 +45,7 @@ web/
   vendor/               three.js r160 (+ post-processing add-ons for bloom), MapLibre GL 4.7.1 (stored locally)
 pipeline/
   make_mock_data.py     writes the mock files; documents the exact data contract
+  make_vr_worlds.py     builds the three real VR terrains (Oman: Copernicus DEM + Sentinel-2; Moon: LOLA 5 m Site01; Mars: HiRISE DTM)
   make_vr_terrain.py    makes a VR terrain tile from the LiDAR DTM (.tif) or point cloud (.las/.laz), or the placeholder (--mock)
 ```
 
@@ -71,14 +72,25 @@ with `?fx=high` or `?fx=low` in the URL, e.g. `http://localhost:8000/?fx=high#or
 ## VR (landing + camp)
 
 Open `#vr` (or **Land here in VR** on a site passport). On a **Meta Quest**, open https://ubar.space/#vr in the Quest Browser and press **Enter VR**:
-trigger = select, right stick = snap turn, menu on the left wrist. On a screen: drag to look, click/tap to act, WASD to walk.
+a console floats in front of you; point and pull the trigger to press its buttons, squeeze the grip to bring it back in front of you, right stick = snap turn.
+On a screen: drag to look, click/tap to act, WASD to walk.
+
+**Three real places** (World buttons), each a real elevation model with a 320 m landing area of fine detail:
+
+| World | Place | Data |
+|---|---|---|
+| Oman | Wadi Tayin, Samail ophiolite (Oman Drilling Project hole CM1, crust-mantle transition) | Copernicus DEM GLO-30 + Sentinel-2 cloudless 2020; roughness below 30 m is synthetic until the LiDAR |
+| Moon | Shackleton - de Gerlache connecting ridge | LOLA 5 m/pixel DEM, PGDA Site01; colour synthetic; sun 5° up |
+| Mars | Jezero crater floor near the Perseverance landing site | HiRISE DTM DTEEC_045994_1985_046060_1985 (1 m) + RED orthoimage |
+
+Rebuild them with `pip install rasterio` and `python pipeline/make_vr_worlds.py` (put the LOLA Site01 GeoTIFF in `raw/` first).
 
 1. **Choose a pad**: the three best 6 m pads (lowest slope + roughness) are suggested; point anywhere to test another.
 2. **Watch the landing**: powered descent under the chosen world's gravity (Oman 9.81, Moon 1.62, Mars 3.71 m/s²). At touchdown the
    terrain under the four footpads gives lander tilt, ground slope and roughness → SAFE / MARGINAL / HAZARD.
 3. **Build the camp**: habitat, solar array, comms mast, rover, path markers. Each is checked for slope, unevenness and the plume keep-out distance.
 
-The World buttons show the same ground under Oman, Moon and Mars skies. Thresholds live in `web/data/vr/rules.json` and are **team design
+Thresholds live in `web/data/vr/rules.json` and are **team design
 rules**, not NASA requirements. The tile and rules are plain PNG + JSON so a later Unity version can read them unchanged.
 
 **Plugging in the LiDAR** (when Luqman's survey is processed):

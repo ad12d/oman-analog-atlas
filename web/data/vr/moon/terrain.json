@@ -1,0 +1,18 @@
+{
+  "label": "Moon \u00b7 Shackleton connecting ridge",
+  "size_m": 3000,
+  "grid": 600,
+  "res_m": 5.008,
+  "sun": {
+    "az": 250,
+    "el": 5
+  },
+  "detail_m": 0.12,
+  "albedo": "albedo.jpg",
+  "source": "LRO LOLA 5 m/pixel south-pole DEM (PGDA Site01)",
+  "credit": "NASA GSFC Planetary Geodesy Data Archive, LOLA 5 m/pixel DEM Site01 (Barker et al. 2021)",
+  "note": "Real LOLA terrain of the Shackleton - de Gerlache connecting ridge. Surface colour is synthetic (no imagery); sun 5\u00b0 above the horizon as near the south pole.",
+  "placeholder": false,
+  "z_min": 0.0,
+  "z_max": 547.918
+}
