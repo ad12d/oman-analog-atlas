@@ -2,7 +2,7 @@
 // weights, keep-away distances and filters, see the validation meter and your own top sites, click any place
 // to see why it scores as it does. Official ranked sites (90 m analysis) open the Analog Passport drawer.
 import { h, esc, setKeys, hexRgb, cssVar, reduceMotion, toast } from "../core/ui.js";
-import { MISSIONS, CRITERIA, CRIT, VALIDATION } from "../core/data.js";
+import { MISSIONS, CRITERIA, CRIT, VALIDATION, score100, pctOf, betterThan } from "../core/data.js";
 import { computeASI, render, topSites, benchmarks, defaultWeights, normalise, CONSTRAINTS } from "../core/live.js";
 import { getGrid } from "../core/grid.js";
 import { renderPassport } from "./passport.js";
@@ -101,19 +101,19 @@ export default {
     const root = h("section", { class: "atlas", "aria-label": "Oman destination map" });
     root.innerHTML = `
       <aside class="rail left live"><div class="panel ticks">
-        <div class="panel-head tabs" role="tablist"><button type="button" role="tab" class="tab" data-tab="layers" aria-selected="true">Layers</button><button type="button" role="tab" class="tab" data-tab="tune" aria-selected="false">Tune live</button></div>
+        <div class="panel-head tabs" role="tablist"><button type="button" role="tab" class="tab" data-tab="layers" aria-selected="true">Layers</button><button type="button" role="tab" class="tab" data-tab="tune" aria-selected="false">Your priorities</button></div>
         <div class="scroll" id="strata"></div>
-        <div class="legend-ramp"><span class="eyebrow" id="legName"></span><div class="bar" id="legBar"></div><div class="ends"><span id="legLo">0 · not alike</span><span id="legHi">1 · very alike</span></div></div>
+        <div class="legend-ramp"><span class="eyebrow" id="legName"></span><div class="bar" id="legBar"></div><div class="ends"><span id="legLo">no match</span><span id="legHi">1 · very alike</span></div></div>
       </div></aside>
       <aside class="tune live" id="tune" hidden><div class="panel ticks">
-        <div class="panel-head"><span class="panel-title">Tune the index</span><button type="button" class="vr-x tune-x" id="tuneClose" aria-label="Close">×</button></div>
+        <div class="panel-head"><span class="panel-title">Try your own priorities</span><button type="button" class="vr-x tune-x" id="tuneClose" aria-label="Close">×</button></div>
         <div class="scroll tune-body" id="tuneBody"></div>
       </div></aside>
       <aside class="rail right live" id="rankRail"><div class="panel ticks">
-        <button type="button" class="panel-head sheet-head" id="rankHead" aria-expanded="true"><span class="panel-title">Validation &amp; sites</span><span class="eyebrow" id="rankMission"></span></button>
+        <button type="button" class="panel-head sheet-head" id="rankHead" aria-expanded="true"><span class="panel-title">Check &amp; sites</span><span class="eyebrow" id="rankMission"></span></button>
         <div class="scroll" id="rankScroll">
           <div class="vmeter" id="vmeter"></div>
-          <div class="seg-tabs" role="tablist"><button type="button" class="tab" data-list="official" aria-selected="true">Official · 90 m</button><button type="button" class="tab" data-list="live" aria-selected="false">Your picks · live</button></div>
+          <div class="seg-tabs" role="tablist"><button type="button" class="tab" data-list="official" aria-selected="true">Official ranking</button><button type="button" class="tab" data-list="live" aria-selected="false">Your picks</button></div>
           <div id="ranks"></div>
         </div>
       </div></aside>
@@ -136,16 +136,16 @@ export default {
     function paintStrata() {
       const Wn = normalise(W || data.weights[store.mission]), R = MISSIONS[store.mission].ramp;
       $r("#strata").innerHTML = `
-        <button type="button" class="strat chip-tune" data-tune aria-pressed="${tuneOpen}"><span class="band" style="--rc:var(--moho)"></span><span><b>Tune live</b><small>Weights, keep-away, filters</small></span><span class="w">⚙</span></button>
+        <button type="button" class="strat chip-tune" data-tune aria-pressed="${tuneOpen}"><span class="band" style="--rc:var(--moho)"></span><span><b>Your priorities</b><small>What matters most, what to avoid</small></span><span class="w">⚙</span></button>
         <button type="button" class="strat asi" data-l="asi" aria-pressed="${layer === "asi"}" style="--r0:${R[1]};--r1:${R[2]};--r2:${R[3]};--r3:${R[4]}">
-          <span class="band"></span><span><b><span class="long">Analog Similarity Index</span><span class="short">ASI</span></b><small>Top ${topPct}% of allowed land · ${esc(MISSIONS[store.mission].label)}</small></span><span class="w">Σ</span></button>
+          <span class="band"></span><span><b><span class="long">Analog score (ASI)</span><span class="short">Score</span></b><small>All ten criteria together · best ${topPct}% of Oman shown</small></span><span class="w">Σ</span></button>
         ${CRITERIA.map(c => `<button type="button" class="strat" data-l="${c.k}" aria-pressed="${layer === c.k}" style="--rc:var(--c-${c.k})">
-          <span class="band"></span><span><b>${c.name}</b><small>${esc(c.src)}</small><span class="wb" style="width:${Wn[c.k] * 100}%"></span></span><span class="w">${Math.round(Wn[c.k] * 100)}%</span></button>`).join("")}`;
+          <span class="band"></span><span><b>${c.name}</b><small>${esc(c.what)}</small><span class="wb" style="width:${Wn[c.k] * 100}%"></span></span><span class="w">${Math.round(Wn[c.k] * 100)}%</span></button>`).join("")}`;
       const L = layer === "asi" ? null : CRIT[layer];
-      $r("#legName").textContent = L ? `${L.name} similarity` : `ASI · ${MISSIONS[store.mission].label} · top ${topPct}%`;
+      $r("#legName").textContent = L ? `${L.name}: how well Oman matches` : `Analog score · ${MISSIONS[store.mission].label} · best ${topPct}%`;
       $r("#legBar").style.background = L ? `linear-gradient(90deg, transparent, var(--c-${L.k}))` : `linear-gradient(90deg, ${R.slice(2).join(", ")})`;
-      $r("#legLo").textContent = L ? "0 · not alike" : (st ? `ASI ${st.cut.toFixed(2)}` : "cut-off");
-      $r("#legHi").textContent = L ? "1 · very alike" : "best";
+      $r("#legLo").textContent = L ? "no match" : (st ? `score ${score100(st.cut)}` : "cut-off");
+      $r("#legHi").textContent = L ? "perfect match" : "best";
     }
     $r("#strata").addEventListener("click", e => {
       if (e.target.closest("[data-tune]")) { setTune(!tuneOpen); return; }
@@ -161,22 +161,23 @@ export default {
     }
     $r("#tuneClose").addEventListener("click", () => setTune(false));
     function paintTune() {
-      if (!G) { $r("#tuneBody").innerHTML = `<p class="note">Loading the 1 km grids…</p>`; return; }
+      if (!G) { $r("#tuneBody").innerHTML = `<p class="note">Loading the map data…</p>`; return; }
       const Wn = normalise(W);
       $r("#tuneBody").innerHTML = `
-        <div class="tune-top"><button type="button" class="btn" id="tuneReset">Reset to AHP</button><span class="note">AHP default · CR ${(data.cr[store.mission] ?? 0).toFixed(3)}</span></div>
-        <h4 class="tune-h">Criterion weights</h4>
+        <p class="note">Change how much each criterion matters and the map, the check and your picks update at once.</p>
+        <div class="tune-top"><button type="button" class="btn" id="tuneReset">Back to the experts' choice</button><span class="note" title="Analytic Hierarchy Process; consistency ratio ${(data.cr[store.mission] ?? 0).toFixed(3)} (under 0.10 is consistent)">set with AHP</span></div>
+        <h4 class="tune-h">How much each one matters</h4>
         ${CRITERIA.map(c => `<div class="trow"><label for="w_${c.k}"><i style="background:var(--c-${c.k})"></i>${c.name}</label><output id="o_${c.k}">${Math.round(Wn[c.k] * 100)}%</output>
           <input type="range" id="w_${c.k}" data-w="${c.k}" min="0" max="100" value="${Math.round(W[c.k] * 100)}"></div>`).join("")}
-        <h4 class="tune-h">Keep away from</h4>
+        <h4 class="tune-h">Keep away from (people, roads, industry)</h4>
         ${Object.entries(CONSTRAINTS).map(([k, n]) => `<div class="trow"><label for="b_${k}">${esc(n)}</label><output id="ob_${k}">${buf[k] ? buf[k] + " km" : "off"}</output>
           <input type="range" id="b_${k}" data-b="${k}" min="0" max="20" step="0.5" value="${buf[k]}"></div>`).join("")}
-        <label class="tchk"><input type="checkbox" id="tProt" ${prot ? "checked" : ""}> Exclude protected areas</label>
-        <label class="tchk"><input type="checkbox" id="tEmit" ${emitOnly ? "checked" : ""}> Only where EMIT measured minerals</label>
-        <h4 class="tune-h">Display</h4>
-        <div class="trow"><label for="tTop">Show the top … % of allowed land</label><output id="oTop">${topPct}%</output><input type="range" id="tTop" min="1" max="50" value="${topPct}"></div>
-        <label class="tchk"><input type="checkbox" id="tNear" ${nearOnly ? "checked" : ""}> Pick sites within ${HACK.km} km of ${HACK.name} (drone range)</label>
-        <p class="note">${esc(VALIDATION.grid)} Click the map to see why a place scores as it does.</p>`;
+        <label class="tchk"><input type="checkbox" id="tProt" ${prot ? "checked" : ""}> Skip nature reserves and protected areas</label>
+        <label class="tchk"><input type="checkbox" id="tEmit" ${emitOnly ? "checked" : ""}> Only where minerals were measured from space (EMIT)</label>
+        <h4 class="tune-h">Show</h4>
+        <div class="trow"><label for="tTop">The best … % of Oman</label><output id="oTop">${topPct}%</output><input type="range" id="tTop" min="1" max="50" value="${topPct}"></div>
+        <label class="tchk"><input type="checkbox" id="tNear" ${nearOnly ? "checked" : ""}> Pick sites our drone team can reach (${HACK.km} km of ${HACK.name})</label>
+        <p class="note">${esc(VALIDATION.grid)} Tap the map to see why any place scores as it does.</p>`;
     }
     $r("#tuneBody").addEventListener("input", e => {
       const t = e.target;
@@ -203,7 +204,7 @@ export default {
       picks = topSites(G, s, 10, 4, nearOnly ? HACK : null);
       bench = benchmarks(G, s, m);
       const allowed = s.allowed.reduce((a, b) => a + b, 0), all = s.asi.reduce((a, v) => a + (Number.isFinite(v) ? 1 : 0), 0);
-      $r("#liveStatus").textContent = `Live index recomputed in ${Math.round(performance.now() - t0)} ms · ${Math.round(allowed / all * 100)}% of Oman allowed`;
+      $r("#liveStatus").textContent = `Map updated in ${Math.round(performance.now() - t0)} ms · ${Math.round(allowed / all * 100)}% of Oman can be used`;
       paintStrata(); paintMeter(); paintRanks(); paintPicks(); paintLayers();
     }
 
@@ -222,12 +223,12 @@ export default {
     /* ---------- validation meter ---------- */
     function paintMeter() {
       const m = store.mission, el = $r("#vmeter");
-      const rows = bench.length ? bench.map(b => `<li class="${b.pass ? "ok" : "no"}"><span><b>${esc(b.name.split(" – ")[0].split(" (")[0])}</b><small>${b.use === "calibrate" ? "calibration" : "independent test"}</small></span>
-          <span class="pct">${b.percentile == null ? "–" : ord(b.percentile)}<i>${b.pass ? "✓" : "✗"}</i></span></li>`).join("")
-        : `<li class="none">No Omani benchmark exists for this profile.</li>`;
-      const extra = m === "mars_science" ? `<p class="note">Official (90 m): ${esc(VALIDATION.facts.join(" "))}</p>`
+      const rows = bench.length ? bench.map(b => `<li class="${b.pass ? "ok" : "no"}"><span><b>${esc(b.name.split(" – ")[0].split(" (")[0])}</b><small>${b.use === "calibrate" ? "known site, used to tune the score" : "independent test site"}</small></span>
+          <span class="pct" title="${b.percentile == null ? "" : ord(b.percentile) + " percentile"}">${b.percentile == null ? "–" : `beats ${Math.round(b.percentile)}%`}<i>${b.pass ? "✓" : "✗"}</i></span></li>`).join("")
+        : `<li class="none">Oman has no known analog site for this mission yet, so there is nothing to check against.</li>`;
+      const extra = m === "mars_science" ? `<p class="note">Official result: ${esc(VALIDATION.facts.join(" "))}</p>`
         : (m === "mars_landing" || m === "mars_sedimentary") ? `<p class="note">${esc(VALIDATION.amadee)}</p>` : "";
-      el.innerHTML = `<p class="eyebrow">Validation meter · live</p><p class="note">Do your settings still rank the known analog sites in Oman's top 20 %?</p><ul class="vlist">${rows}</ul>${extra}`;
+      el.innerHTML = `<p class="eyebrow">Reality check · live</p><p class="note">Places scientists already use as ${esc(MISSIONS[m].worldName === "the Moon" ? "Moon" : "Mars")} analogs should score better than at least 80% of Oman. Do they, with your priorities?</p><ul class="vlist">${rows}</ul>${extra}`;
     }
 
     /* ---------- ranked lists ---------- */
@@ -237,9 +238,9 @@ export default {
       if (listMode === "live") {
         $r("#ranks").innerHTML = picks.length ? picks.map((p, i) => `
           <button type="button" class="rank live-pick" data-pick="${i}">
-            <span class="n">L${i + 1}</span><span><b>${p.lat.toFixed(3)}° N, ${p.lon.toFixed(3)}° E</b><small>3 × 3 km mean · ${nearOnly ? `within ${HACK.km} km of ${HACK.name}` : "all of Oman"}</small><span class="bar"><i style="width:${Math.min(100, p.asi * 100)}%"></i></span></span>
-            <span class="v">${p.asi.toFixed(2)}</span></button>`).join("") + `<p class="note" style="padding:8px 16px">Live picks from the 1 km grid with your settings. Official ranks use the 90 m analysis.</p>`
-          : `<p class="note" style="padding:12px 16px">${G ? "No allowed land matches these settings." : "Loading the 1 km grids…"}</p>`;
+            <span class="n">L${i + 1}</span><span><b>${p.lat.toFixed(3)}° N, ${p.lon.toFixed(3)}° E</b><small>3 × 3 km area · ${nearOnly ? `within ${HACK.km} km of ${HACK.name}` : "anywhere in Oman"}</small><span class="bar"><i style="width:${Math.min(100, p.asi * 100)}%"></i></span></span>
+            <span class="v">${score100(p.asi)}</span></button>`).join("") + `<p class="note" style="padding:8px 16px">Your picks use your priorities on the quick 1 km map. The official ranking uses the detailed 90 m analysis.</p>`
+          : `<p class="note" style="padding:12px 16px">${G ? "No usable land matches these settings. Try relaxing a keep-away distance." : "Loading the map data…"}</p>`;
         return;
       }
       const list = data.sites[store.mission];
@@ -247,7 +248,7 @@ export default {
         <button type="button" class="rank" data-id="${s.id}">
           <span class="n">${String(s.rank).padStart(2, "0")}</span>
           <span><b>${esc(s.name)}${s.benchmark ? '<span class="bench-tag">B</span>' : ""}${(s.group || []).includes("drone_range") ? '<span class="bench-tag drone">80 km</span>' : ""}</b><small>${esc(s.aoi)}</small><span class="bar"><i style="width:${s.asi * 100}%"></i></span></span>
-          <span class="v">${s.asi.toFixed(2)}</span></button>`).join("");
+          <span class="v" title="Analog score out of 100 (ASI ${s.asi.toFixed(2)})">${score100(s.asi)}</span></button>`).join("");
     }
     root.querySelector(".seg-tabs").addEventListener("click", e => { const t = e.target.closest("[data-list]"); if (!t) return; listMode = t.dataset.list; paintRanks(); paintPicks(); });
     $r("#rankHead").addEventListener("click", () => {
@@ -267,9 +268,9 @@ export default {
       const Wd = data.weights[store.mission];
       return `<div class="band"><h3>${esc(s.name)}</h3><p>${esc(s.aoi)} · rank ${s.rank}${s.benchmark ? " · benchmark" : ""}</p></div>
         <div class="body">
-          <div class="kv"><span>ASI · ${esc(MISSIONS[store.mission].label)}</span><span>${s.asi.toFixed(2)}</span></div>
+          <div class="kv"><span>Analog score · ${esc(MISSIONS[store.mission].label)}</span><span>${score100(s.asi)} / 100</span></div>
           <div class="mini-cbar">${CRITERIA.map(c => `<div style="--sc:var(--c-${c.k});flex-grow:${Wd[c.k]}"><i style="width:${s["s_" + c.k] * 100}%"></i></div>`).join("")}</div>
-          <div class="kv"><span>Strongest</span><span>${esc(CRITERIA.slice().sort((a, b) => Wd[b.k] * s["s_" + b.k] - Wd[a.k] * s["s_" + a.k])[0].name)}</span></div>
+          <div class="kv"><span>Best match</span><span>${esc(CRITERIA.slice().sort((a, b) => Wd[b.k] * s["s_" + b.k] - Wd[a.k] * s["s_" + a.k])[0].name)}</span></div>
         </div><div class="foot">Open passport ▸</div>`;
     }
     function paintNodes() {
@@ -306,17 +307,18 @@ export default {
       const [px, py] = G.toPx(lon, lat), col = Math.floor(px), row = Math.floor(py);
       if (col < 0 || row < 0 || col >= G.W || row >= G.H) { ex.hidden = true; return; }
       const i = row * G.W + col, v = st.asi[i];
-      if (!Number.isFinite(v)) { ex.innerHTML = `<button type="button" class="vr-x" data-close aria-label="Close">×</button><p class="note">No data here (outside Oman or a data gap).</p>`; ex.hidden = false; return; }
+      if (!Number.isFinite(v)) { ex.innerHTML = `<button type="button" class="vr-x" data-close aria-label="Close">×</button><p class="note">No data here (outside Oman, or the satellites have a gap).</p>`; ex.hidden = false; return; }
       const pr = G.meta.profiles[store.mission], Wn = normalise(W);
       const why = Object.entries(CONSTRAINTS).filter(([k]) => buf[k] > 0).map(([k, nm]) => { const d = G.layer("dist." + k)[i]; return d !== 255 && d / 10 < buf[k] ? `${nm} ${(d / 10).toFixed(1)} km away` : null; }).filter(Boolean);
       if (prot && G.layer("dist.protected")[i] === 0) why.push("inside a protected area");
-      if (emitOnly && G.layer("emit_coverage")[i] !== 1) why.push("no EMIT mineral measurement");
+      if (emitOnly && G.layer("emit_coverage")[i] !== 1) why.push("no mineral reading from space here");
       const rows = CRITERIA.map(c => { const s = G.layer(c.k === "minerals" ? pr.minerals_layer : `${pr.criteria_prefix}.${c.k}`)[i] / 254;
-        return `<tr><td><i class="chip-dot" style="--rc:var(--c-${c.k})"></i>${c.name}</td><td class="v">${s.toFixed(2)}</td><td class="v mut">× ${Math.round(Wn[c.k] * 100)}%</td></tr>`; }).join("");
+        return `<tr><td><i class="chip-dot" style="--rc:var(--c-${c.k})"></i>${c.name}</td><td class="v">${Math.round(s * 100)}%</td><td class="v mut">${Math.round(Wn[c.k] * 100)}%</td></tr>`; }).join("");
       ex.innerHTML = `<button type="button" class="vr-x" data-close aria-label="Close">×</button>
-        <p class="eyebrow">${lat.toFixed(3)}° N, ${lon.toFixed(3)}° E · 1 km cell</p>
-        <p class="ex-asi">ASI <b>${v.toFixed(3)}</b>${st.allowed[i] ? (v >= st.cut ? ` <span class="ok">in your top ${topPct}%</span>` : "") : ` <span class="bad">excluded${why.length ? ": " + esc(why.join(", ")) : ""}</span>`}</p>
-        <table class="ex-table"><thead><tr><th>Criterion</th><th>Similarity</th><th>Weight</th></tr></thead><tbody>${rows}</tbody></table>`;
+        <p class="eyebrow">${lat.toFixed(3)}° N, ${lon.toFixed(3)}° E · 1 km square</p>
+        <p class="ex-asi">Analog score <b>${score100(v)}</b> / 100${st.allowed[i] ? (v >= st.cut ? ` <span class="ok">among your best ${topPct}%</span>` : "") : ` <span class="bad">left out${why.length ? ": " + esc(why.join(", ")) : ""}</span>`}</p>
+        <table class="ex-table"><thead><tr><th>Criterion</th><th>Match</th><th>Matters</th></tr></thead><tbody>${rows}</tbody></table>
+        <p class="note">Score = each match × how much it matters, added up.</p>`;
       ex.hidden = false;
     }
     $r("#explain").addEventListener("click", e => { if (e.target.closest("[data-close]")) $r("#explain").hidden = true; });
@@ -350,9 +352,9 @@ export default {
     const unsub = store.subscribe(onMission);
     if (route.name === "site") openSite(route.id);
 
-    $r("#liveStatus").textContent = "Loading the 1 km grids…";
+    $r("#liveStatus").textContent = "Loading the map data…";
     getGrid().then(g => { if (!alive) return; G = g; W = defaultWeights(G, store.mission); paintTune(); recompute(); })
-      .catch(err => { $r("#liveStatus").textContent = "Live grids unavailable: " + err.message; });
+      .catch(err => { $r("#liveStatus").textContent = "The live map could not load: " + err.message; });
 
     const onKey = e => { if (e.key === "Escape") { if (!$r("#explain").hidden) $r("#explain").hidden = true; else if (drawerId) go("#oman"); else if (tuneOpen) setTune(false); else go("#director"); } };
     addEventListener("keydown", onKey);

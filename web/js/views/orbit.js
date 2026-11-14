@@ -15,12 +15,13 @@ export default {
         <p class="eyebrow">NASA Space Apps 2026 · Earth analogs for the Moon and Mars</p>
         <h1 id="orbit-h"><span>Oman</span><span>Analog</span><span>Atlas</span></h1>
         <p class="orbit-tag">Where Earth rehearses <b id="oWorld"></b>.</p>
+        <p class="orbit-lede">Before crews go to the Moon or Mars they rehearse on Earth. Using satellite data, we find the places in Oman that are most like their destination, and show why.</p>
         <hr class="moho">
         <dl class="stats">
-          <div><dt>${nSites}</dt><dd>Candidate sites</dd></div>
-          <div><dt>${CRITERIA.length}</dt><dd>Criteria</dd></div>
-          <div><dt>${MISSION_KEYS.length}</dt><dd>Mission profiles</dd></div>
-          <div><dt>${nBench}</dt><dd>Benchmark sites</dd></div>
+          <div><dt>${nSites}</dt><dd>Sites scored</dd></div>
+          <div><dt>${CRITERIA.length}</dt><dd>Things compared</dd></div>
+          <div><dt>${MISSION_KEYS.length}</dt><dd>Missions</dd></div>
+          <div><dt>${nBench}</dt><dd>Known analog sites</dd></div>
         </dl>
         <div class="cta">
           <a class="btn primary" href="#director">Open the Director <kbd>Enter</kbd></a>

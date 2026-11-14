@@ -63,7 +63,7 @@ export default {
 
       root.innerHTML = `<div class="page-inner">
         <div class="page-head"><p class="eyebrow">Twin Lens · real terrain at one scale</p><h1>${esc(oMap.name)} × ${esc(tMap.name)}</h1>
-          <p>Drag the gold Moho line. Oman sits below it and ${esc(MISSIONS[m].worldName)} above it, both ${tMap.width_km} × ${tMap.height_km} km at true scale, so slope and roughness compare directly.
+          <p>Drag the gold line. Oman sits below it and ${esc(MISSIONS[m].worldName)} above it, both ${tMap.width_km} × ${tMap.height_km} km at true scale, so slope and roughness compare directly. We call it the Moho line, after the boundary between Earth's crust and mantle that is exposed in Oman's mountains.
           ${noClip ? `<br><b>${esc(data.site(route.id, m)?.name || route.id)}</b> has no terrain clip yet, so its target's best terrain twin is shown.` : ""}</p></div>
         <div class="twin-pick">
           <label>Oman site <select id="pickOman">${omanMaps.map(o => `<option value="${o.id.slice(5)}" ${o.id === oMap.id ? "selected" : ""}>${esc(o.name)}</option>`).join("")}</select></label>
@@ -78,19 +78,19 @@ export default {
               <div class="scale"><i style="width:${Math.round(5 / tMap.width_km * 100)}%"></i><span>5 km · both sides</span></div>
               <div class="handle"><span class="grip" aria-hidden="true">⇕</span></div>
             </div>
-            <div class="range-row"><label for="mohoRange">Moho line position</label><input type="range" id="mohoRange" min="5" max="95" value="${y}"></div>
+            <div class="range-row"><label for="mohoRange">Gold line position</label><input type="range" id="mohoRange" min="5" max="95" value="${y}"></div>
           </div>
-          <div class="panel ticks"><div class="panel-head"><span class="panel-title">Terrain match</span>${twinRow ? `<span class="eyebrow">similarity ${twinRow.terrain_similarity.toFixed(2)}</span>` : ""}</div>
+          <div class="panel ticks"><div class="panel-head"><span class="panel-title">How alike is the ground?</span>${twinRow ? `<span class="eyebrow">terrain match ${Math.round(twinRow.terrain_similarity * 100)}%</span>` : ""}</div>
             <div class="panel-body" style="display:grid;gap:12px">
               ${tw ? `<table class="twin-table"><thead><tr><th></th><th>Oman</th><th>${esc(body)}</th></tr></thead><tbody>
-                <tr><td>Median slope</td><td class="v">${twinRow ? fmt(twinRow.oman_slope_deg, 1) + "°" : "–"}</td><td class="v">${fmt(tw.slope_deg, 1)}°</td></tr>
-                <tr><td>Roughness (TRI)</td><td class="v">${twinRow ? fmt(twinRow.oman_tri_m, 1) + " m" : "–"}</td><td class="v">${fmt(tw.tri_m, 1)} m</td></tr>
-                <tr><td>Relief in 1 km</td><td class="v">${twinRow ? fmt(twinRow.oman_relief_m, 0) + " m" : "–"}</td><td class="v">${fmt(tw.relief_m, 0)} m</td></tr></tbody></table>
-                <p class="note">${twinRow ? `Rank ${tw.oman_twins.indexOf(twinRow) + 1} of ${tw.oman_twins.length} Oman terrain twins for this target.` : "This site is not among this target's top terrain twins."} ${esc(data.twins.method || "")}</p>
-                <p class="note">Best twins: ${tw.oman_twins.map(o => `<a href="#" data-twin="${o.id}">${esc(o.name)}</a> ${o.terrain_similarity.toFixed(2)}`).join(" · ")}</p>` : `<p class="note">No terrain statistics for this target.</p>`}
+                <tr><td>Typical slope</td><td class="v">${twinRow ? fmt(twinRow.oman_slope_deg, 1) + "°" : "–"}</td><td class="v">${fmt(tw.slope_deg, 1)}°</td></tr>
+                <tr><td title="terrain ruggedness index (TRI)">Roughness (bumpiness)</td><td class="v">${twinRow ? fmt(twinRow.oman_tri_m, 1) + " m" : "–"}</td><td class="v">${fmt(tw.tri_m, 1)} m</td></tr>
+                <tr><td>Hilliness (height change in 1 km)</td><td class="v">${twinRow ? fmt(twinRow.oman_relief_m, 0) + " m" : "–"}</td><td class="v">${fmt(tw.relief_m, 0)} m</td></tr></tbody></table>
+                <p class="note">${twinRow ? `This site is number ${tw.oman_twins.indexOf(twinRow) + 1} of the ${tw.oman_twins.length} Oman places whose ground is most like this target.` : "This site is not among the Oman places whose ground is most like this target."} Both areas are compared at the same scale on slope, bumpiness and hilliness.</p>
+                <p class="note">Closest Oman ground: ${tw.oman_twins.map(o => `<a href="#" data-twin="${o.id}">${esc(o.name)}</a> ${Math.round(o.terrain_similarity * 100)}%`).join(" · ")}</p>` : `<p class="note">No terrain statistics for this target.</p>`}
               <div class="legend"><span><i style="background:var(--earth)"></i>Oman</span><span><i style="background:var(--accent)"></i>${esc(body)}</span></div>
               <svg class="chart" id="hist" viewBox="0 0 380 220" role="img" aria-label="Slope distribution, Oman versus target"></svg>
-              <p class="note">Share of cells per 2.5° slope bin at the clips' common 75 m spacing.${body === "Mars" ? " MOLA (463 m) is smooth at this scale: it shows landforms, not boulders." : ""}</p>
+              <p class="note">How much of each area is flat or steep: the share of ground in each 2.5° slope band.${body === "Mars" ? " The Mars height map is coarser (463 m), so it shows landforms, not boulders." : ""}</p>
               ${site ? `<a class="btn" href="#site-${esc(omanId)}">Open ${esc(site.name)} passport</a>` : ""}
             </div></div>
         </div></div>`;
@@ -133,7 +133,7 @@ export default {
     off.push(store.subscribe(() => { targetId = null; render(); }));
     const onKey = e => { if (e.key === "Escape") go(route.id ? "#site-" + route.id : "#oman"); };
     addEventListener("keydown", onKey);
-    setKeys([["Drag", "Moho line"], ["M", "Mission"], ["Esc", "Back"]]);
+    setKeys([["Drag", "Gold line"], ["M", "Mission"], ["Esc", "Back"]]);
     return { cleanup() { alive = false; off.forEach(f => f()); removeEventListener("keydown", onKey); } };
   },
 };

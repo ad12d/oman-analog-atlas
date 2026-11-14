@@ -58,6 +58,7 @@
   .orbit-copy h1{font-size:clamp(34px,10.5vw,44px);line-height:.95}
   .orbit-copy h1 span{display:inline-block;margin-right:.22em}
   .orbit-tag{font-size:15.5px}
+  .orbit-lede{font-size:13.5px;margin-top:-4px}
   .stats{grid-template-columns:repeat(4,minmax(0,auto));gap:2px 14px}
   .stats dt{font-size:20px}
   .stats dd{font-size:9px;letter-spacing:.08em;line-height:1.3}

@@ -4,6 +4,7 @@
 .orbit-copy h1 span{display:block}
 .orbit-tag{font-size:clamp(17px,1.6vw,21px);color:var(--muted)}
 .orbit-tag b{color:var(--accent);font-weight:500;transition:color .6s}
+.orbit-lede{font-size:15px;line-height:1.55;color:var(--fg);opacity:.82;max-width:46ch;margin:-8px 0 0}
 .orbit-copy .moho{width:100%}
 .stats{display:grid;grid-template-columns:repeat(4,auto);justify-content:start;gap:6px 26px;margin:0}
 .stats div{display:grid}
@@ -195,6 +196,11 @@
 .asi-big{text-align:right}
 .asi-big .num{font-family:var(--f-mono);font-size:52px;line-height:1;font-weight:500;color:var(--accent)}
 .asi-big .lab{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.asi-big .lab.tech{letter-spacing:.06em;text-transform:none;opacity:.7;margin-top:2px}
+/* technical footnotes: kept for experts and judges, visually second */
+.tech,.src .tech{font-family:var(--f-mono);font-size:11px;line-height:1.5;color:var(--muted);opacity:.85}
+.steps5{margin:10px 0 8px;padding-left:22px;display:grid;gap:6px;max-width:72ch;line-height:1.5}
+.steps5 b{color:var(--accent);font-weight:600}
 .pp-sec{padding:16px 20px;border-top:1px solid var(--hair);display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
 .pp-sec > *{min-width:0}
 .crow{min-width:0}

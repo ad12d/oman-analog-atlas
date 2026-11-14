@@ -1,6 +1,6 @@
 // METHOD: how the score works. ASI Stack (real 1 km similarity grids), similarity rules, AHP matrix, validation.
 import { h, esc, fmt, setKeys, rampColor, hexRgb, cssVar, showTip, hideTip } from "../core/ui.js";
-import { MISSIONS, CRITERIA, VALIDATION } from "../core/data.js";
+import { MISSIONS, CRITERIA, VALIDATION, RULE_PLAIN, pctOf } from "../core/data.js";
 import { getGrid } from "../core/grid.js";
 import { normalise } from "../core/live.js";
 import { noise2, fbm, normalize } from "../core/noise.js";
@@ -35,32 +35,40 @@ export default {
     scene.setActive(true); scene.setMode("director").then(() => { if (alive) scene.setActive(false); });
     const root = h("div", { class: "page live" });
     root.innerHTML = `<div class="page-inner">
-      <div class="page-head"><p class="eyebrow">Method</p><h1>How the Analog Similarity Index works</h1>
-        <p>Ten criteria turn Oman measurements into a 0–1 similarity with the Moon or Mars target: a bell curve for slope, roughness and relief, one-sided rules for the rest, and an EMIT mineral score. AHP sets how much each one counts for the mission. The weighted sum is the ASI, computed at 90 m and checked against known analog outcrops.</p></div>
+      <div class="page-head"><p class="eyebrow">Method</p><h1>How the analog score works</h1>
+        <p>The score answers one question: how much does this place in Oman resemble the Moon or Mars site a mission is heading to? It is built in five steps.</p>
+        <ol class="steps5">
+          <li><b>Measure.</b> Satellites measure ten things across all of Oman: slope, roughness, hilliness, temperature swings, wind, plant cover, old riverbeds, minerals and road access.</li>
+          <li><b>Compare.</b> Each measurement is compared with the same measurement at the Moon or Mars target and turned into a match from 0 to 100%.</li>
+          <li><b>Weigh.</b> For each mission, experts decide how much each criterion matters: terrain counts most for a Moon base, minerals for Mars science.</li>
+          <li><b>Add up.</b> Matches times importance, added together, give the analog score out of 100.</li>
+          <li><b>Check.</b> Places scientists already use as analogs must come out near the top; they do.</li>
+        </ol>
+        <p class="tech">For experts: ASI = Σ wᵢ·sᵢ; sᵢ from Gaussian (slope, TRI, relief) or one-sided rules against LOLA / MOLA / MODIS targets plus an EMIT L2B mineral score; wᵢ from hierarchical AHP; computed at 90 m; AUC 0.84 against benchmark outcrops.</p></div>
       <div class="grid-2">
         <div class="stage" id="stage"><div class="stage-cap"><span id="stageSrc">Loading the real 1 km grids… · drag to turn</span><span id="stageState">10 criterion layers</span></div></div>
-        <div class="panel ticks"><div class="panel-head"><span class="panel-title">ASI Stack</span></div><div class="panel-body" style="display:grid;gap:12px">
-          <p class="note">ASI = Σ wᵢ · sᵢ. Ten similarity maps of the same ${P} × ${P} km area around ${CENTRE.name} (the team's 1 km grids) are weighted and pressed into one.</p>
+        <div class="panel ticks"><div class="panel-head"><span class="panel-title">Ten maps become one</span></div><div class="panel-body" style="display:grid;gap:12px">
+          <p class="note">Each layer is a real match map of the same ${P} × ${P} km area around ${CENTRE.name}: bright where Oman matches the target. Weighted by importance and pressed together, they become the analog score.</p>
           <div id="stackLegend" style="display:grid;gap:4px"></div>
-          <button class="btn" type="button" id="stackBtn" aria-pressed="false">Combine into ASI</button>
+          <button class="btn" type="button" id="stackBtn" aria-pressed="false">Press into one score</button>
         </div></div>
       </div>
       <div class="grid-2b">
-        <div class="panel ticks"><div class="panel-head"><span class="panel-title">Similarity rule</span><span class="eyebrow" id="ruleMission"></span></div>
+        <div class="panel ticks"><div class="panel-head"><span class="panel-title">How a match is scored</span><span class="eyebrow" id="ruleMission"></span></div>
           <div class="panel-body" style="display:grid;gap:12px">
             <div id="ruleTabs" style="display:flex;gap:6px;flex-wrap:wrap"></div>
             <div class="curve-box"><p class="eyebrow" data-ctitle></p><svg class="curve" viewBox="0 0 420 210" role="img" aria-label="Similarity rule"></svg><p class="src" data-csrc></p></div>
-            <div class="range-row"><label for="ruleVal">Try an Oman value</label><input type="range" id="ruleVal" min="0" max="1000" value="300"><span class="mono" id="ruleOut"></span></div>
+            <div class="range-row"><label for="ruleVal">Try a value for Oman</label><input type="range" id="ruleVal" min="0" max="1000" value="300"><span class="mono" id="ruleOut"></span></div>
           </div></div>
-        <div class="panel ticks"><div class="panel-head"><span class="panel-title">AHP weights</span><span id="crBadge"></span></div>
+        <div class="panel ticks"><div class="panel-head"><span class="panel-title">How much each criterion matters</span><span id="crBadge"></span></div>
           <div class="panel-body" style="display:grid;gap:12px">
             <div class="src-wrap"><table class="ahp" id="ahp"></table></div>
-            <p class="note">Row criterion compared with column criterion on Saaty's 1–9 scale, derived from the current weights. A consistency ratio under 0.10 is acceptable.</p>
+            <p class="note">Experts compared every pair of criteria for this mission ("how much more does slope matter than wind?") on a 1 to 9 scale; read each row against each column. From these comparisons the method (AHP, the Analytic Hierarchy Process) derives one importance per criterion. A built-in consistency check (CR) must stay under 0.10 so the judgements do not contradict each other.</p>
           </div></div>
       </div>
-      <div class="panel ticks"><div class="panel-head"><span class="panel-title">Validation</span><span class="eyebrow" id="benchMission"></span></div>
+      <div class="panel ticks"><div class="panel-head"><span class="panel-title">Does it work?</span><span class="eyebrow" id="benchMission"></span></div>
         <div class="panel-body" style="display:grid;gap:10px">
-          <div class="legend"><span><i style="background:var(--muted)"></i>Calibration outcrop (used to tune)</span><span><i style="background:var(--earth)"></i>Independent test site</span><span><i style="background:var(--moho)"></i>80th percentile = pass</span></div>
+          <div class="legend"><span><i style="background:var(--muted)"></i>Known site used to tune the score</span><span><i style="background:var(--earth)"></i>Independent test site</span><span><i style="background:var(--moho)"></i>Pass line: better than 80% of Oman</span></div>
           <svg class="chart" id="bench" viewBox="0 0 760 150" role="img" aria-label="Benchmark percentiles"></svg>
           <ul class="vfacts" id="benchFacts"></ul>
         </div></div>
@@ -97,7 +105,7 @@ export default {
       normalize(acc);                              // colour stretched to this window
       if (stack3d) stack3d.update({ weights: w, asi: acc, ramp: MISSIONS[store.mission].ramp, label: MISSIONS[store.mission].label });
       else paintCssStack(cssStack, acc);
-      legend.innerHTML = CRITERIA.slice().reverse().map(c => `<div class="strat" style="--rc:var(--c-${c.k});cursor:default" data-k="${c.k}"><span class="band"></span><span><b>${c.name}</b><small>${esc(c.src)}</small><span class="wb" style="width:${w[c.k] * 100}%"></span></span><span class="w">w ${w[c.k].toFixed(2)}</span></div>`).join("");
+      legend.innerHTML = CRITERIA.slice().reverse().map(c => `<div class="strat" style="--rc:var(--c-${c.k});cursor:default" data-k="${c.k}"><span class="band"></span><span><b>${c.name}</b><small>${esc(c.what)}</small><span class="wb" style="width:${w[c.k] * 100}%"></span></span><span class="w">${Math.round(w[c.k] * 100)}%</span></div>`).join("");
       legend.querySelectorAll("[data-k]").forEach(el => {
         el.addEventListener("pointerenter", () => { stack3d?.highlight(el.dataset.k); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.add("hl"); });
         el.addEventListener("pointerleave", () => { stack3d?.highlight(null); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.remove("hl"); });
@@ -106,7 +114,7 @@ export default {
     }
     $r("#stackBtn").addEventListener("click", e => {
       combined = !combined; stage.classList.toggle("combined", combined); stack3d?.setCombined(combined);
-      e.currentTarget.setAttribute("aria-pressed", String(combined)); e.currentTarget.textContent = combined ? "Separate the layers" : "Combine into ASI";
+      e.currentTarget.setAttribute("aria-pressed", String(combined)); e.currentTarget.textContent = combined ? "Separate the layers" : "Press into one score";
       $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
     });
 
@@ -118,7 +126,7 @@ export default {
       $r("#ruleTabs").innerHTML = CRITERIA.map(x => `<button type="button" class="btn" style="padding:6px 10px;${x.k === rk ? "border-color:var(--moho)" : ""}" data-k="${x.k}" aria-pressed="${x.k === rk}"><span class="chip-dot" style="--rc:var(--c-${x.k})"></span>${x.name}</button>`).join("");
       $r("#ruleMission").textContent = MISSIONS[store.mission].label;
       drawCurve(box, data, store.mission, rk, v);
-      $r("#ruleOut").textContent = `${fmt(v, c.dp)}${c.unit} → s ${data.sim(rk, store.mission, v).toFixed(2)}`;
+      $r("#ruleOut").textContent = `${fmt(v, c.dp)}${c.unit} → ${Math.round(data.sim(rk, store.mission, v) * 100)}% match`;
     }
     $r("#ruleTabs").addEventListener("click", e => { const b = e.target.closest("[data-k]"); if (b) { rk = b.dataset.k; paintRule(); } });
     slider.addEventListener("input", paintRule);
@@ -138,7 +146,7 @@ export default {
       }
       $r("#ahp").innerHTML = html + "</tbody>";
       const cr = data.cr[store.mission];
-      $r("#crBadge").innerHTML = cr == null ? "" : `<span class="cr-badge ${cr >= 0.1 ? "bad" : ""}">CR ${cr.toFixed(3)}</span>`;
+      $r("#crBadge").innerHTML = cr == null ? "" : `<span class="cr-badge ${cr >= 0.1 ? "bad" : ""}" title="Consistency ratio: under 0.10 means the expert judgements agree with each other">consistency ${cr < 0.1 ? "✓" : "✗"} ${cr.toFixed(3)}</span>`;
     }
 
     /* validation: benchmark outcrops' percentile in the 90 m ASI (pass = 80th percentile or better) */
@@ -155,11 +163,11 @@ export default {
           <text x="${x(p) + 8}" y="${y + 4}" font-size="11.5" fill="var(--fg)" font-family="var(--f-mono)">${Math.round(p)}</text>
           <rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent"/></g>`;
       });
-      if (!list.length) g += `<text x="${L}" y="${top + 16}" font-size="12" fill="var(--muted)">No Omani benchmark outcrop exists for this profile.</text>`;
+      if (!list.length) g += `<text x="${L}" y="${top + 16}" font-size="12" fill="var(--muted)">Oman has no known analog site for this mission yet, so there is nothing to check against.</text>`;
       svg.setAttribute("viewBox", `0 0 ${W} ${top + n * rowH + 10}`);
       svg.innerHTML = g;
       svg.querySelectorAll(".bm").forEach(el => { const s = list.find(p => p.id === el.dataset.id);
-        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${s.benchmark === "test" ? "independent test" : "calibration"} · ${Math.round(s.validation_percentile)}th percentile of Oman · ASI ${s.asi.toFixed(2)}</span>`, e.clientX, e.clientY));
+        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${s.benchmark === "test" ? "independent test site" : "known site used to tune the score"} · better than ${Math.round(s.validation_percentile)}% of Oman</span>`, e.clientX, e.clientY));
         el.addEventListener("pointerleave", hideTip); });
       $r("#benchMission").textContent = MISSIONS[m].label;
       const facts = m === "mars_science" ? VALIDATION.facts : (m === "mars_landing" || m === "mars_sedimentary") ? [VALIDATION.amadee] : [];

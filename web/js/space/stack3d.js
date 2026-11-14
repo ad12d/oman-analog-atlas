@@ -117,7 +117,7 @@ export function createStack(host, { P, fields, criteria }) {
     el.innerHTML = `<i></i><b>${esc(c.name.split(" ")[0])}</b><span></span>`; labels.appendChild(el);
     return { k: c.k, g, mesh, mat, ticks, y0, v: 0, el, tex, color };
   });
-  const asiLabel = document.createElement("div"); asiLabel.className = "sl asi"; asiLabel.innerHTML = `<i></i><b>ASI</b><span></span>`; labels.appendChild(asiLabel);
+  const asiLabel = document.createElement("div"); asiLabel.className = "sl asi"; asiLabel.innerHTML = `<i></i><b>Score</b><span></span>`; labels.appendChild(asiLabel);
 
   // faint vertical guides at the corners, from the block up to the top layer
   const guideGeo = track(new THREE.BufferGeometry().setFromPoints([[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]].flatMap(([x, z]) => [new THREE.Vector3(x, 0, z), new THREE.Vector3(x, 1, z)])));
@@ -226,7 +226,7 @@ export function createStack(host, { P, fields, criteria }) {
     update({ weights, asi, ramp, label }) {
       const tex = dataTex((d, o, p) => { const [r, g, b] = rampColor(ramp, asi[p]), s = .55 + .62 * shade[p]; d.set([clamp255(r * s), clamp255(g * s), clamp255(b * s), 255], o); });
       asiU.map.value?.dispose(); asiU.map.value = tex;
-      layers.forEach(l => { l.el.querySelector("span").textContent = `w ${weights[l.k].toFixed(2)}`; });
+      layers.forEach(l => { l.el.querySelector("span").textContent = `${Math.round(weights[l.k] * 100)}%`; });
       asiLabel.querySelector("span").textContent = label;
       canvas.setAttribute("aria-label", combined ? `ASI map for ${label}` : `${criteria.length} criterion layers above a terrain block`);
       if (combined && !reduceMotion) scanT = 0;

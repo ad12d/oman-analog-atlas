@@ -52,9 +52,9 @@ export function createCamp(scene, terrain, rules, world) {
   function check(id, x, z, opts = {}) {
     const m = MODS[id], s = terrain.stats(x, z, m.radius_m), R = [];
     const add = (key, label, ok, value, limit, why, warn = false) => R.push({ key, label, ok, warn, value, limit, why });
-    if (!terrain.inNear(x, z, m.radius_m + 1)) add("inside", "Inside the surveyed landing area", false, "outside", "inside", "The detailed terrain (and the crew's walking zone) covers the landing area only.");
+    if (!terrain.inNear(x, z, m.radius_m + 1)) add("inside", "Inside the mapped landing area", false, "outside", "inside", "The detailed terrain (and the crew's walking zone) covers the landing area only.");
     add("slope", "Ground slope", s.slope <= m.max_slope_deg, `${s.slope.toFixed(1)}°`, `≤ ${m.max_slope_deg}°`, m.why?.slope || "Equipment needs gentle ground to stand and be serviced safely.", s.slope > m.max_slope_deg * .8 && s.slope <= m.max_slope_deg);
-    add("relief", "Unevenness (after removing the slope)", s.bumps <= m.max_relief_m, `${s.bumps.toFixed(2)} m`, `≤ ${m.max_relief_m} m`, m.why?.relief || "Large bumps under the footprint would have to be graded flat first.");
+    add("relief", "Bumps under the footprint", s.bumps <= m.max_relief_m, `${Math.round(s.bumps * 100)} cm`, `≤ ${Math.round(m.max_relief_m * 100)} cm`, m.why?.relief || "Large bumps under the footprint would have to be graded flat first.");
     if (m.keepout && lander) { const d = Math.hypot(x - lander.x, z - lander.z);
       add("keepout", "Distance from the landing pad", d >= keepout, `${d.toFixed(0)} m`, `≥ ${keepout} m`, C.keepout_why?.[world] || "Landing plumes throw debris outward."); }
     if (m.max_from) for (const [ref, max] of Object.entries(m.max_from)) {

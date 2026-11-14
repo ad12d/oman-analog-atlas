@@ -1,6 +1,6 @@
 // DIRECTOR: Earth, the Moon and Mars in one sky. Hover a world for its card; click to travel.
 import { h, esc, fmt, setKeys } from "../core/ui.js";
-import { MISSIONS, CRITERIA } from "../core/data.js";
+import { MISSIONS, CRITERIA, RULE_PLAIN, score100 } from "../core/data.js";
 import { SITES } from "../space/scene.js";
 
 const WORLD_INFO = {
@@ -59,10 +59,10 @@ export default {
       const M = MISSIONS[store.mission], t = top();
       root.querySelector("#bMission").textContent = M.label;
       root.querySelector("#bBody").innerHTML = `
-        <div class="cell"><span>Target</span><b>${esc(M.target)}</b></div>
-        <div class="cell c-world"><span>Target world</span><b>${esc(WORLD_INFO[M.world].title)}</b></div>
-        <div class="cell c-field"><span>Analog field</span><b>Oman · ${data.sites[store.mission].length} sites</b></div>
-        <div class="cell"><span>Top analog</span><b><a href="#site-${t.id}">${esc(t.name)}</a> · ${t.asi.toFixed(2)}</b></div>
+        <div class="cell"><span>Rehearsing for</span><b>${esc(M.target)}</b></div>
+        <div class="cell c-world"><span>World</span><b>${esc(WORLD_INFO[M.world].title)}</b></div>
+        <div class="cell c-field"><span>Rehearsal ground</span><b>Oman · ${data.sites[store.mission].length} sites</b></div>
+        <div class="cell"><span>Best match in Oman</span><b><a href="#site-${t.id}">${esc(t.name)}</a> · ${score100(t.asi)}/100</b></div>
         <a class="btn go" href="#oman" data-travel="earth">Travel to Oman <span aria-hidden="true">▸</span></a>`;
     }
     function cardHTML(w) {
@@ -71,20 +71,20 @@ export default {
         const list = data.sites[store.mission], t = list[0];
         return `<div class="band" style="--wc:var(--earth)"><h3>Oman</h3><p>Earth · analog field</p></div>
           <div class="body">
-            <p class="blurb">Ophiolite mountains, gravel plains and dry wadis scored against ${esc(M.worldName)}.</p>
-            <div class="kv"><span>Candidate sites</span><span>${list.length}</span></div>
-            <div class="kv"><span>Benchmark wadis</span><span>${list.filter(s => s.benchmark).length}</span></div>
-            <div class="kv"><span>Top for ${esc(M.label)}</span><span>${esc(t.name)} · ${t.asi.toFixed(2)}</span></div>
+            <p class="blurb">Oman has a slice of the Earth's deep mantle pushed up to the surface (the Samail ophiolite), plus gravel plains and dry valleys. We score how closely each place resembles ${esc(M.worldName)}.</p>
+            <div class="kv"><span>Sites scored</span><span>${list.length}</span></div>
+            <div class="kv"><span>Known analog sites</span><span>${list.filter(s => s.benchmark).length}</span></div>
+            <div class="kv"><span>Best for ${esc(M.label)}</span><span>${esc(t.name)} · ${score100(t.asi)}/100</span></div>
           </div><div class="foot">Click to travel ▸</div>`;
       }
       const m = w === "moon" ? "moon_base" : (store.mission === "moon_base" ? "mars_science" : store.mission);
       const tt = (k) => data.target(k, m);
-      return `<div class="band" style="--wc:${WORLD_INFO[w].color}"><h3>${esc(MISSIONS[m].target)}</h3><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)} target</p></div>
+      return `<div class="band" style="--wc:${WORLD_INFO[w].color}"><h3>${esc(MISSIONS[m].target)}</h3><p>${WORLD_INFO[w].title} · what Oman must resemble</p></div>
         <div class="body">
-          <div class="kv"><span>Target slope</span><span>${fmt(tt("slope").value, 1)}°</span></div>
-          <div class="kv"><span>Local relief</span><span>${fmt(tt("relief").value, 0)} m</span></div>
-          <div class="kv"><span>Surface minerals</span><span>${esc(tt("minerals").source)}</span></div>
-        </div><div class="foot">Click to open target dossier ▸</div>`;
+          <p class="blurb">${esc(MISSIONS[m].plain)}</p>
+          <div class="kv"><span>Typical slope</span><span>${fmt(tt("slope").value, 1)}°</span></div>
+          <div class="kv"><span>Hilliness (height change in 1 km)</span><span>${fmt(tt("relief").value, 0)} m</span></div>
+        </div><div class="foot">Click to see the full target ▸</div>`;
     }
     function openDossier(w) {
       const m = w === "moon" ? "moon_base" : (store.mission === "moon_base" ? "mars_science" : store.mission);
@@ -92,18 +92,19 @@ export default {
       focus = w; brief.hidden = true; dossier.hidden = false;
       const t = data.sites[m][0];
       dossier.innerHTML = `
-        <div class="band" style="--wc:${WORLD_INFO[w].color}"><h2>${esc(MISSIONS[m].target)}</h2><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)} target profile</p></div>
+        <div class="band" style="--wc:${WORLD_INFO[w].color}"><h2>${esc(MISSIONS[m].target)}</h2><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)}: what Oman must resemble</p></div>
         <div class="panel-body">
+          <p class="note" style="margin-bottom:10px">${esc(MISSIONS[m].plain)} These are the target values each Oman site is compared with.</p>
           <table>
-            <thead><tr><th>Criterion</th><th style="text-align:right">Target ± range</th></tr></thead>
-            <tbody>${CRITERIA.map(c => { const tg = data.target(c.k, m); return `<tr>
-              <td><span class="chip-dot" style="--rc:var(--c-${c.k})"></span>${esc(c.name)}<small>${esc(tg.source)}</small></td>
-              <td class="v">${fmt(tg.value, c.dp)}${esc(c.unit)} ± ${fmt(tg.tol, c.dp)}</td></tr>`; }).join("")}</tbody>
+            <thead><tr><th>Criterion</th><th style="text-align:right">Target</th></tr></thead>
+            <tbody>${CRITERIA.map(c => { const tg = data.target(c.k, m); return `<tr title="${esc(c.what + " " + (RULE_PLAIN[tg.kind] || ""))}">
+              <td><span class="chip-dot" style="--rc:var(--c-${c.k})"></span>${esc(c.name)}<small>${esc(c.what)}</small></td>
+              <td class="v">${c.k === "minerals" ? "water-formed" : fmt(tg.value, c.dp) + esc(c.unit)}</td></tr>`; }).join("")}</tbody>
           </table>
-          <p class="note" style="margin-top:12px">Best Oman analog for this profile: <a href="#site-${t.id}">${esc(t.name)}</a>, ASI ${t.asi.toFixed(2)}.</p>
+          <p class="note" style="margin-top:12px">Best match in Oman for this mission: <a href="#site-${t.id}">${esc(t.name)}</a>, analog score ${score100(t.asi)}/100.</p>
         </div>
         <div class="acts">
-          <button class="btn primary" type="button" data-travel="earth">Find analogs in Oman ▸</button>
+          <button class="btn primary" type="button" data-travel="earth">Find matching places in Oman ▸</button>
           <button class="btn" type="button" data-back>Back <kbd>Esc</kbd></button>
         </div>`;
       scene.setMode("focus-" + w);

@@ -22,9 +22,9 @@ const WORLDS = {
 };
 // how each placement rule connects to the project's site-selection criteria (for the base report)
 const CRITERION_LINK = {
-  habitat: "Slope and Roughness criteria: level, even ground", solar: "Local relief: high ground escapes terrain shadows",
-  comms: "Local relief: no ridge between the dish and Earth", rover: "Access criterion: a short walk from the airlock",
-  drill: "Water history and Minerals: where the science and resources are", path: "Access: a marked, gentle walking route",
+  habitat: "Slope and Roughness: level, even ground", solar: "Hilliness: high ground escapes the shadows of hills",
+  comms: "Hilliness: no ridge between the dish and Earth", rover: "Road access: a short walk from the airlock",
+  drill: "Ancient riverbeds and Mars-like minerals: where the science and resources are", path: "Road access: a marked, gentle walking route",
 };
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
@@ -239,7 +239,7 @@ export default {
         ring.rotation.x = -Math.PI / 2; ring.position.y = .15;
         const beam = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 26, 8, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
         beam.position.y = 13;
-        const tag = label([`Pad ${"ABC"[i]}`, `${r.slope.toFixed(1)}° · ${r.roughness.toFixed(2)} m · ${LEVEL[r.level]}`], LEVEL_COL[r.level]); tag.position.y = 7;
+        const tag = label([`Pad ${"ABC"[i]}`, `slope ${r.slope.toFixed(1)}° · ${LEVEL[r.level]}`], LEVEL_COL[r.level]); tag.position.y = 7;
         g.add(ring, beam, tag); g.position.set(c.x, terrain.heightAt(c.x, c.z), c.z); scene.add(g);
         pads.push({ x: c.x, z: c.z, g, r, name: `Pad ${"ABC"[i]}` });
       });
@@ -248,7 +248,7 @@ export default {
       const r = padGrade(p);
       chosen = { x: p.x, z: p.z, r, name };
       padMarker.visible = true; padMarker.position.set(p.x, terrain.heightAt(p.x, p.z) + .16, p.z); padMarker.material.color.setHex(LEVEL_HEX[r.level]);
-      msg(`${name}: slope ${r.slope.toFixed(1)}°, roughness ${r.roughness.toFixed(2)} m, lander tilt ${r.tilt.toFixed(1)}° → ${LEVEL[r.level]}. A lander needs a flat, smooth pad so it settles level and can lift off again. Press Start landing.`);
+      msg(`${name}: slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm, the lander would lean ${r.tilt.toFixed(1)}° → ${LEVEL[r.level]}. A lander needs flat, smooth ground so it stands level and can take off again. Press Start landing.`);
       paint();
     }
 
@@ -266,15 +266,15 @@ export default {
       const L = rules.landing, col = LEVEL_COL[r.level];
       const row = (n, v, s, hz, g) => `<tr><td>${n}</td><td class="v">${v}</td><td class="lim">${s} / ${hz}</td><td><i class="dot" style="background:${LEVEL_COL[g]}"></i></td></tr>`;
       $r("#vrCard").innerHTML = `<div class="vr-card-head" style="--lc:${col}"><button type="button" class="vr-x" data-a="close" aria-label="Close">×</button><span class="eyebrow">Touchdown · ${esc(chosen.name)}</span><b>${LEVEL[r.level]}</b></div>
-        <table class="vr-table"><thead><tr><th>Check</th><th>Value</th><th>Safe / hazard</th><th></th></tr></thead><tbody>
+        <table class="vr-table"><thead><tr><th>Check</th><th>Measured</th><th>Safe up to / danger from</th><th></th></tr></thead><tbody>
         ${row("Lander tilt", r.tilt.toFixed(1) + "°", L.tilt_safe_deg + "°", L.tilt_hazard_deg + "°", r.grades[0])}
         ${row("Ground slope", r.slope.toFixed(1) + "°", L.slope_safe_deg + "°", L.slope_hazard_deg + "°", r.grades[1])}
-        ${row("Roughness", r.roughness.toFixed(2) + " m", L.roughness_safe_m + " m", L.roughness_hazard_m + " m", r.grades[2])}
+        ${row("Surface bumps", Math.round(r.roughness * 100) + " cm", Math.round(L.roughness_safe_m * 100) + " cm", Math.round(L.roughness_hazard_m * 100) + " cm", r.grades[2])}
         </tbody></table>
-        <p class="note">Why it matters: a lander tilted beyond about 8° risks tipping or cannot launch again; rocks under a footpad can puncture it. Measured on the ${L.pad_radius_m} m pad from ${esc(terrain.meta.source || "the terrain tile")}. Thresholds are team design rules.</p>
+        <p class="note">Why it matters: a lander leaning more than about 8° could tip over or be unable to take off again, and rocks under a foot can puncture it. Measured on the ${L.pad_radius_m} m pad from ${esc(terrain.meta.source || "the terrain tile")}. Limits set by our team from published Moon and Mars landing practice.</p>
         <div class="vr-card-acts"><button type="button" class="btn primary" data-a="tour">Build the recommended base ▸</button><button type="button" class="btn" data-a="tool:habitat">Place modules myself</button></div>`;
       $r("#vrCard").hidden = false;
-      showBoard(`Touchdown · ${LEVEL[r.level]}`, [`Tilt ${r.tilt.toFixed(1)}°, slope ${r.slope.toFixed(1)}°, roughness ${r.roughness.toFixed(2)} m.`, "Next: build the base from the console."], col);
+      showBoard(`Touchdown · ${LEVEL[r.level]}`, [`Leaning ${r.tilt.toFixed(1)}°, slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm.`, "Next: build the base from the console."], col);
       msg(`Touchdown ${LEVEL[r.level].toLowerCase()}. Now establish the base: place each module where the rules allow, or watch the recommended base being built.`);
       paint();
     }
@@ -444,7 +444,7 @@ export default {
       if (cine) cine.interruptible = true;        // the overview keeps turning until you drag or press a key
       msg("The base is established. Drag or press a key to take back the camera; place more modules or switch worlds to compare.");
     }
-    const linkFor = id => id === "comms" && world !== "moon" ? (world === "mars" ? "Access: the link runs through orbiting relay satellites, so the mast stays close to the habitat" : "Access: a short cable run to the habitat") : CRITERION_LINK[id] || "";
+    const linkFor = id => id === "comms" && world !== "moon" ? (world === "mars" ? "Road access: the link runs through orbiting relay satellites, so the mast stays close to the habitat" : "Road access: a short cable run to the habitat") : CRITERION_LINK[id] || "";
     function baseReport() {
       const s = camp.status(), card = $r("#vrCard");
       const rows = s.placed.filter((p, i, a) => a.findIndex(q => q.id === p.id) === i).map(p => {
@@ -452,8 +452,8 @@ export default {
         return `<tr><td>${esc(camp.MODS[p.id].name)}${p.id === "path" ? ` ×${s.counts.path}` : ""}</td><td>${esc(key ? `${key.label}: ${key.value}` : "")}</td><td class="lim">${esc(linkFor(p.id))}</td></tr>`;
       }).join("");
       card.innerHTML = `<div class="vr-card-head" style="--lc:${LEVEL_COL[0]}"><button type="button" class="vr-x" data-a="close" aria-label="Close">×</button><span class="eyebrow">Base report · ${esc(WORLDS[world].label)}</span><b>Base established</b></div>
-        <table class="vr-table report"><thead><tr><th>Module</th><th>Key measurement</th><th>Linked criterion</th></tr></thead><tbody>${rows}</tbody></table>
-        <p class="note">What this teaches: the terrain properties the Analog Similarity Index measures in Oman (slope, roughness, relief, access, water history) are the same ones that decide where a real base can stand. ${world === "moon" ? "At the lunar south pole, sunlight and line of sight to Earth come from relief: the ridges that make the terrain hard are also what keep the base powered and in contact." : world === "mars" ? "On Mars, the flat crater floor that made Jezero a safe landing site also makes building easy; the science lies a short drive away at the delta." : "In Oman, level wadi floors take the habitat while ridges carry the antennas: the same layout a Moon or Mars crew would rehearse."}</p>`;
+        <table class="vr-table report"><thead><tr><th>Module</th><th>Key measurement</th><th>Which Oman criterion it rehearses</th></tr></thead><tbody>${rows}</tbody></table>
+        <p class="note">What this teaches: the things our analog score measures across Oman (slope, roughness, hilliness, access, ancient riverbeds) are the same things that decide where a real base can stand. ${world === "moon" ? "At the lunar south pole, sunlight and line of sight to Earth come from relief: the ridges that make the terrain hard are also what keep the base powered and in contact." : world === "mars" ? "On Mars, the flat crater floor that made Jezero a safe landing site also makes building easy; the science lies a short drive away at the delta." : "In Oman, level wadi floors take the habitat while ridges carry the antennas: the same layout a Moon or Mars crew would rehearse."}</p>`;
       card.hidden = false;
       showBoard("Base established", ["Every module stands where the rules allow.", "Switch worlds from the console to compare the same steps on the Moon, Mars and Oman."], LEVEL_COL[0], 16);
     }
@@ -484,7 +484,7 @@ export default {
       controls.teleport(start.x, terrain.heightAt(start.x, start.z), start.z); controls.face(best.x, best.z);
       const m = terrain.meta;
       $r("#vrPlace").textContent = `${WORLDS[w].label} · ${WORLDS[w].place}`;
-      $r("#vrSrc").innerHTML = m.placeholder ? `Terrain: <b>placeholder</b> tile.` : `Terrain: <b>${esc(m.source)}</b>. ${esc(m.note || "")}`;
+      $r("#vrSrc").innerHTML = m.placeholder ? `Ground: a <b>placeholder</b> made-up terrain.` : `Ground: <b>real</b> satellite height map (${esc(m.source)}). ${esc(m.note || "")}`;
       load.hidden = true; root.querySelector(".vr-brief").hidden = false; $r("#vrBar").hidden = false;
       loading = false; if (renderer.xr.isPresenting && menu?.mesh.visible) consoleDue = .5;
       restart();

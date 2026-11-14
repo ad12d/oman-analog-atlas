@@ -2,48 +2,90 @@
 // if a file is missing the app falls back to web/data/mock/ and shows the "Mock data" flag.
 // Real files (team GIS hand-off): sites.geojson (55 sites x 4 profiles, 90 m analysis), weights.json (AHP tier 2),
 // targets.csv (target value + tolerance + the similarity rule per criterion), target_sites.json (terrain twins).
+//
+// Wording: the interface speaks plainly first ("analog score", "match", "importance") and keeps the technical term
+// second (ASI, similarity, AHP weight) so the science stays traceable. All plain texts live here.
 
 export const MISSIONS = {
   moon_base:        { label: "Moon base",        short: "Moon base",  world: "moon", worldName: "the Moon", target: "Lunar south pole (Artemis III regions)",
+                      plain: "Where to rehearse building and living at a base near the Moon's south pole.",
                       ramp: ["#0F1B2E", "#24456E", "#4F7FB8", "#96BDE6", "#E3EEFA"] },
   mars_landing:     { label: "Mars landing",     short: "Mars land.", world: "mars", worldName: "Mars", target: "Jezero crater floor",
+                      plain: "Where to rehearse landing, driving and working on flat Martian ground like Jezero's crater floor.",
                       ramp: ["#2A0F0A", "#6E2414", "#B8442A", "#E38A66", "#F6D3C2"] },
-  mars_science:     { label: "Mars science",     short: "Mars sci.",  world: "mars", worldName: "Mars", target: "Jezero delta (olivine–carbonate)",
+  mars_science:     { label: "Mars science",     short: "Mars sci.",  world: "mars", worldName: "Mars", target: "Jezero's ancient river delta",
+                      plain: "Where to rehearse the search for signs of past life, in rock that formed with water as at Jezero's delta.",
                       ramp: ["#2A0F0A", "#6E2414", "#B8442A", "#E38A66", "#F6D3C2"] },
-  mars_sedimentary: { label: "Mars sedimentary", short: "Mars sed.",  world: "mars", worldName: "Mars", target: "Gale / Meridiani layered sulfates",
+  mars_sedimentary: { label: "Mars sedimentary", short: "Mars sed.",  world: "mars", worldName: "Mars", target: "Gale and Meridiani layered rocks",
+                      plain: "Where to rehearse reading layered rocks laid down in water, like those at Gale crater and Meridiani.",
                       ramp: ["#22150A", "#5E3A12", "#A86F1E", "#E0AE55", "#F7E2B4"] },
 };
 export const MISSION_KEYS = Object.keys(MISSIONS);
 
-// Criterion display config, fixed order (raw_* units match sites.geojson). Colours: css/theme.css --c-<k>,
-// grouped by family (terrain blues, climate reds, then dryness, water history, geology, access).
+// The ten criteria, fixed order (raw_* units match sites.geojson). Colours: css/theme.css --c-<k>.
+//   name  = short plain name shown everywhere      tech = the technical term (shown second, for judges)
+//   what  = what we measure, in one plain sentence  why  = why it matters for a Moon or Mars rehearsal
 export const CRITERIA = [
-  { k: "slope",      name: "Slope",            metric: "mean slope",                word: "Terrain",     unit: "°",    dp: 1, min: 0, max: 30,  src: "Copernicus DEM GLO-90 vs LOLA / MOLA" },
-  { k: "tri",        name: "Roughness",        metric: "terrain ruggedness (TRI)",  word: "Terrain",     unit: " m",   dp: 1, min: 0, max: 60,  src: "Copernicus DEM vs LOLA / MOLA" },
-  { k: "relief",     name: "Local relief",     metric: "relief in 1 km",            word: "Terrain",     unit: " m",   dp: 0, min: 0, max: 400, src: "Copernicus DEM vs LOLA / MOLA" },
-  { k: "dT_diurnal", name: "Day–night ΔT",     metric: "day − night LST",           word: "Climate",     unit: " °C",  dp: 1, min: 0, max: 25,  src: "MODIS MOD11A2 LST 2025" },
-  { k: "dT_annual",  name: "Annual ΔT",        metric: "annual LST range",          word: "Climate",     unit: " °C",  dp: 1, min: 0, max: 45,  src: "MODIS MOD11A2 LST 2025" },
-  { k: "wind",       name: "Wind",             metric: "mean 10 m wind",            word: "Climate",     unit: " m/s", dp: 1, min: 0, max: 8,   src: "NASA POWER WS10M" },
-  { k: "ndvi",       name: "Dryness",          metric: "annual max NDVI",           word: "Dryness",     unit: "",     dp: 2, min: 0, max: 0.6, src: "MODIS MOD13Q1 2025" },
-  { k: "channels",   name: "Ancient channels", metric: "distance to paleo-channel", word: "Water history", unit: " km", dp: 1, min: 0, max: 30, src: "SAGA channel network, incised ≥ 25 m" },
-  { k: "minerals",   name: "Minerals",         metric: "EMIT mineral score",        word: "Geology",     unit: "",     dp: 2, min: 0, max: 1,   src: "NASA EMIT L2B MIN (ISS)" },
-  { k: "access",     name: "Access",           metric: "distance to road",          word: "Access",      unit: " km",  dp: 1, min: 0, max: 60,  src: "OpenStreetMap" },
+  { k: "slope", name: "Slope", tech: "mean slope", word: "Terrain", unit: "°", dp: 1, min: 0, max: 30, src: "Copernicus DEM GLO-90 vs LOLA / MOLA",
+    what: "How steep the ground is.",
+    why: "Landers, habitats and rovers need gentle ground. Matching the target's slopes lets crews rehearse the same walking and driving." },
+  { k: "tri", name: "Roughness", tech: "terrain ruggedness index (TRI)", word: "Terrain", unit: " m", dp: 1, min: 0, max: 60, src: "Copernicus DEM vs LOLA / MOLA",
+    what: "How bumpy the ground is: rocks, steps and gullies.",
+    why: "Rough ground is what damages wheels and trips astronauts. A good analog is about as rough as the target, not smoother or harder." },
+  { k: "relief", name: "Hilliness", tech: "local relief within 1 km", word: "Terrain", unit: " m", dp: 0, min: 0, max: 400, src: "Copernicus DEM vs LOLA / MOLA",
+    what: "How much the height changes within one kilometre.",
+    why: "Hills cast shadows, block radio links and limit how far a crew can see, which shapes how a base is laid out." },
+  { k: "dT_diurnal", name: "Day–night swing", tech: "day − night land surface temperature", word: "Climate", unit: " °C", dp: 1, min: 0, max: 25, src: "MODIS MOD11A2 LST 2025",
+    what: "How much the ground cools between day and night.",
+    why: "On the Moon and Mars the surface swings by 100 °C or more. No place on Earth comes close, so Oman sites with the biggest swings test equipment best." },
+  { k: "dT_annual", name: "Seasonal swing", tech: "annual land surface temperature range", word: "Climate", unit: " °C", dp: 1, min: 0, max: 45, src: "MODIS MOD11A2 LST 2025",
+    what: "How much the ground temperature changes over the year.",
+    why: "Big seasonal swings stress seals, batteries and materials, as a long mission would." },
+  { k: "wind", name: "Wind", tech: "mean wind at 10 m", word: "Climate", unit: " m/s", dp: 1, min: 0, max: 8, src: "NASA POWER WS10M",
+    what: "Average wind speed.",
+    why: "For Moon and landing rehearsals calm is better. For Mars science, wind-blown sand is part of what makes the site Mars-like." },
+  { k: "ndvi", name: "Dryness", tech: "peak vegetation index (NDVI)", word: "Dryness", unit: "", dp: 2, min: 0, max: 0.6, src: "MODIS MOD13Q1 2025",
+    what: "How little plant cover there is, measured from space.",
+    why: "The Moon and Mars have no plants, so bare ground is the first sign of a good analog." },
+  { k: "channels", name: "Ancient riverbeds", tech: "distance to a paleo-channel", word: "Water history", unit: " km", dp: 1, min: 0, max: 30, src: "SAGA channel network, incised ≥ 25 m",
+    what: "How far the site is from old, dry river channels.",
+    why: "Mars once had rivers and lakes (Jezero was a lake), so channels are where to rehearse the search for past water. The Moon never had rivers, so for a Moon base, farther is better." },
+  { k: "minerals", name: "Mars-like minerals", tech: "EMIT mineral score", word: "Geology", unit: "", dp: 2, min: 0, max: 1, src: "NASA EMIT L2B MIN (ISS)",
+    what: "Whether a mineral scanner on the space station sees the same water-formed minerals as the target.",
+    why: "Oman's serpentine and carbonate rocks match minerals found at Jezero. On Mars, such rocks are where signs of past life would be sought." },
+  { k: "access", name: "Road access", tech: "distance to the nearest road", word: "Access", unit: " km", dp: 1, min: 0, max: 60, src: "OpenStreetMap",
+    what: "How far the site is from the nearest road.",
+    why: "Field teams have to reach the site with vehicles and equipment. A site far from any road is slow and costly to use." },
 ];
 export const CRIT = Object.fromEntries(CRITERIA.map(c => [c.k, c]));
 
+/** how a target's similarity rule works, in plain words (kinds come from targets.csv "rule") */
+export const RULE_PLAIN = {
+  gauss: "Best when Oman matches the target closely; the match falls off smoothly the further away it is.",
+  high: "Higher is better, up to the target value.",
+  low: "Lower is better; full marks at or below the target value.",
+  score: "Full marks where the space-station scanner clearly detects the matching minerals.",
+  linear: "Full marks at the target value, falling to zero at the edge of the allowed range.",
+};
+
+/* display helpers: scores out of 100, matches and importance as percentages, percentiles as "better than X %" */
+export const score100 = v => Math.round(+v * 100);
+export const pctOf = v => Math.round(+v * 100) + "%";
+export const betterThan = p => `better than ${Math.round(p)}% of Oman`;
+
 export const AOIS = [{ id: "OMAN", name: "Sultanate of Oman", bbox: [51.73, 16.63, 59.94, 26.39] }];
 
-// Validation facts from the 90 m analysis (team hand-off, MAZIN_INTEGRATION.md §4)
+// Validation, from the 90 m analysis (team hand-off, MAZIN_INTEGRATION.md §4), in plain words
 export const VALIDATION = {
   auc: { profile: "mars_science", value: 0.84 },
   facts: [
-    "Mars science AUC 0.84 against the benchmark outcrops (90 m analysis).",
-    "Oman Drilling Project IGSN outcrop: 97th percentile.",
-    "Wadi Laywani (independent test site): 86th percentile.",
-    "Changing any weight by ±20 % moves results by at most 9 percentile points.",
+    "Against known analog sites, a real analog spot outranks a random spot in Oman 84 times out of 100 (AUC 0.84, Mars science).",
+    "The Oman Drilling Project outcrop (IGSN sample site) scores better than 97% of Oman.",
+    "Wadi Laywani, kept aside as an independent test, scores better than 86% of Oman.",
+    "Changing any importance by ±20% moves a site's standing by at most 9 points, so the result is stable.",
   ],
-  amadee: "AMADEE-18 (Kepler station) scores the 64th percentile for Mars landing and the 47th for sedimentary. It looks like Mars (iron-oxide varnish, mesas), but EMIT finds almost no sulfates or clays there. The index separates visual analogs from mineralogical ones.",
-  grid: "The 1 km grid is for interaction. The ranked sites and percentiles come from the 90 m analysis.",
+  amadee: "AMADEE-18 (the Kepler station of the Austrian Space Forum's 2018 Mars simulation) scores better than 64% of Oman for Mars landing but only 47% for layered rocks. It looks like Mars (dark varnished rock, flat-topped hills), yet the space-station mineral scanner finds almost none of the water-formed minerals there. The score separates places that look like Mars from places made of Mars-like rock.",
+  grid: "The live map uses a 1 km grid so it can update instantly. The ranked sites and the validation use the finer 90 m analysis.",
 };
 
 async function getJSON(paths) {
