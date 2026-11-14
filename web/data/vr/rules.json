@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "note": "max_relief_m = allowed unevenness after removing the ground slope. Team design rules for the Space Apps 2026 demo. They are planning thresholds chosen by the team, not NASA requirements; replace with sourced values when available. Units: metres, degrees, seconds, m/s^2.",
+  "worlds": {
+    "oman": { "label": "Oman (Earth)", "gravity": 9.81 },
+    "moon": { "label": "Moon", "gravity": 1.62 },
+    "mars": { "label": "Mars", "gravity": 3.71 }
+  },
+  "landing": {
+    "pad_radius_m": 6,
+    "slope_safe_deg": 5, "slope_hazard_deg": 10,
+    "tilt_safe_deg": 4, "tilt_hazard_deg": 8,
+    "roughness_safe_m": 0.15, "roughness_hazard_m": 0.35,
+    "start_altitude_m": 260, "start_downrange_m": 200,
+    "descent_s": { "oman": 24, "moon": 34, "mars": 28 },
+    "touchdown_speed_mps": 1.5
+  },
+  "camp": {
+    "plume_keepout_m": 35,
+    "modules": [
+      { "id": "habitat", "name": "Habitat dome", "radius_m": 4.5, "max_slope_deg": 5,  "max_relief_m": 0.5, "keepout": true },
+      { "id": "solar",   "name": "Solar array",  "radius_m": 3.2, "max_slope_deg": 12, "max_relief_m": 1.0, "keepout": true },
+      { "id": "comms",   "name": "Comms mast",   "radius_m": 1.5, "max_slope_deg": 15, "max_relief_m": 1.0, "keepout": true },
+      { "id": "rover",   "name": "Rover",        "radius_m": 2.2, "max_slope_deg": 20, "max_relief_m": 1.2, "keepout": false },
+      { "id": "path",    "name": "Path marker",  "radius_m": 0.6, "max_slope_deg": 25, "max_relief_m": 2.0, "keepout": false }
+    ],
+    "needs": ["habitat", "solar", "comms"]
+  }
+}

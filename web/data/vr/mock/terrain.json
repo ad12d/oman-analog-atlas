@@ -1,0 +1,10 @@
+{
+  "size_m": 256,
+  "res_m": 0.501,
+  "z_min": 0.0,
+  "z_max": 23.739,
+  "grid": 512,
+  "source": "Procedural placeholder",
+  "placeholder": true,
+  "note": "Placeholder terrain until the team's drone LiDAR survey is processed."
+}

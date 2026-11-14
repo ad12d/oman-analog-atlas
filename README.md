@@ -31,7 +31,12 @@ web/
   js/space/scene.js     three.js scene: Earth day/night shader, Moon/Mars relief + target markers,
                         nebula sky, orbit arcs, gold transfer route, camera shots incl. the dive to Oman, bloom
   js/space/stack3d.js   three.js ASI Stack on the Method page (six layers press into the ASI)
-  js/views/             orbit, director, atlas (Oman map), passport, twin, method, sources
+  js/views/             orbit, director, atlas (Oman map), passport, twin, method, sources, vr
+  js/vr/                VR landing + camp: terrain (tile loader, slope/roughness queries, baked detail),
+                        skins (Oman/Moon/Mars sky + light), lander (descent, plume, dust, touchdown check),
+                        camp (modules + rule checks), controls (Quest controllers, screen fallback)
+  data/vr/rules.json    landing + camp thresholds and the module catalogue (engine-neutral)
+  data/vr/<ID>/         VR terrain tile per site (height.png + terrain.json); data/vr/mock/ is the placeholder
   data/mock/            MOCK contract files (placeholders)
   data/                 put the REAL files here; they override the mock ones automatically
   assets/textures/      globe textures: Earth day (SVS Blue Marble), night lights (NASA Black Marble 2016),
@@ -40,6 +45,7 @@ web/
   vendor/               three.js r160 (+ post-processing add-ons for bloom), MapLibre GL 4.7.1 (stored locally)
 pipeline/
   make_mock_data.py     writes the mock files; documents the exact data contract
+  make_vr_terrain.py    makes a VR terrain tile from the LiDAR DTM (.tif) or point cloud (.las/.laz), or the placeholder (--mock)
 ```
 
 ## Routes
@@ -52,6 +58,7 @@ pipeline/
 | `#oman` | Destination map: ASI overlay, Strata layers, ranked sites |
 | `#site-<ID>` | Oman map with that site's Analog Passport open |
 | `#twin-<ID>` | Twin Lens: Oman vs Moon/Mars terrain at one scale |
+| `#vr`, `#vr-<ID>` | VR: pick a pad, watch the lander touch down, check it, build the camp (Quest: **Enter VR**) |
 | `#method` | ASI Stack, similarity rules, AHP matrix, benchmark check |
 | `#sources` | Every dataset cited |
 
@@ -60,6 +67,29 @@ Keys: `M` cycles the mission, `Enter` travels, `Esc` goes back, `G` switches gra
 **Graphics.** High = bloom glow and full resolution; Light = no post-processing, 1× pixels. The app guesses from the device,
 drops to Light once by itself if frames are slow, and remembers the viewer's own choice. For a demo machine you can force it
 with `?fx=high` or `?fx=low` in the URL, e.g. `http://localhost:8000/?fx=high#orbit`.
+
+## VR (landing + camp)
+
+Open `#vr` (or **Land here in VR** on a site passport). On a **Meta Quest**, open https://ubar.space/#vr in the Quest Browser and press **Enter VR**:
+trigger = select, right stick = snap turn, menu on the left wrist. On a screen: drag to look, click/tap to act, WASD to walk.
+
+1. **Choose a pad**: the three best 6 m pads (lowest slope + roughness) are suggested; point anywhere to test another.
+2. **Watch the landing**: powered descent under the chosen world's gravity (Oman 9.81, Moon 1.62, Mars 3.71 m/s²). At touchdown the
+   terrain under the four footpads gives lander tilt, ground slope and roughness → SAFE / MARGINAL / HAZARD.
+3. **Build the camp**: habitat, solar array, comms mast, rover, path markers. Each is checked for slope, unevenness and the plume keep-out distance.
+
+The World buttons show the same ground under Oman, Moon and Mars skies. Thresholds live in `web/data/vr/rules.json` and are **team design
+rules**, not NASA requirements. The tile and rules are plain PNG + JSON so a later Unity version can read them unchanged.
+
+**Plugging in the LiDAR** (when Luqman's survey is processed):
+
+```
+pip install rasterio "laspy[lazrs]"
+python pipeline/make_vr_terrain.py --dtm dtm_10cm.tif --name S19      # or: --laz cloud.laz --name S19
+```
+
+`--name` is the site ID, so `#vr-S19` picks it up; other sites keep the placeholder. The script writes heights relative to the
+tile centre only (no CRS, coordinates or EXIF). Check the output before committing.
 
 ## Data contract (what the GIS work must deliver)
 

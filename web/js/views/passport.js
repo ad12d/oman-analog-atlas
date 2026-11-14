@@ -59,7 +59,7 @@ export function renderPassport(el, { data, mission, id }) {
       <div class="pp-sec">
         <h3>Field evidence</h3>
         <p class="note">Drone LiDAR survey: not yet added. Luqman's DTM and photos will appear here (EXIF stripped).</p>
-        <div class="pp-acts"><a class="btn" href="#twin-${esc(id)}">Open Twin Lens ▸</a></div>
+        <div class="pp-acts"><a class="btn primary" href="#vr-${esc(id)}">Land here in VR ▸</a><a class="btn" href="#twin-${esc(id)}">Open Twin Lens ▸</a></div>
       </div>
     </div>`;
 

@@ -124,3 +124,19 @@
   .brief{top:calc(52px + env(safe-area-inset-top,0px))}
   .dossier{top:calc(56px + env(safe-area-inset-top,0px));bottom:calc(46px + env(safe-area-inset-bottom,0px));left:8px;right:auto;width:min(380px,48vw);max-height:none}
 }
+
+/* VR view on a phone: message strip on top, report card above the button rows */
+@media (max-width:760px){
+  .vr-brief{top:calc(54px + env(safe-area-inset-top,0px));left:8px;right:8px;width:auto}
+  .vr-brief .panel-head{display:none}
+  .vr-brief .panel-body{padding:10px 12px}
+  .vr-msg{font-size:12.5px;min-height:0}
+  .vr-src{display:none}
+  .vr-card{top:auto;bottom:calc(222px + env(safe-area-inset-bottom,0px));left:8px;right:8px;width:auto;max-height:30vh}
+  .vr-card-head b{font-size:20px}
+  .vr-bar{bottom:calc(50px + env(safe-area-inset-bottom,0px));width:calc(100vw - 16px)}
+  .vr-row{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;width:100%}
+  .vr-row::-webkit-scrollbar{display:none}
+  .vr-row .btn{flex:none}
+  .vr-enter{bottom:auto;top:calc(150px + env(safe-area-inset-top,0px));right:8px;padding:8px 12px}
+}

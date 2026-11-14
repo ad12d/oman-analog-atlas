@@ -10,13 +10,14 @@ import atlas from "./views/atlas.js";
 import twin from "./views/twin.js";
 import method from "./views/method.js";
 import sources from "./views/sources.js";
+import vr from "./views/vr.js";
 
-// route name -> view module. "site-<ID>" and "twin-<ID>" carry a site id.
-const ROUTES = { orbit, director, oman: atlas, site: atlas, twin, method, sources };
+// route name -> view module. "site-<ID>", "twin-<ID>" and "vr-<ID>" carry a site id.
+const ROUTES = { orbit, director, oman: atlas, site: atlas, twin, method, sources, vr };
 
 function parseHash() {
   const raw = location.hash.replace(/^#/, "") || "orbit";
-  const m = raw.match(/^(site|twin)-([A-Za-z0-9_]+)$/);
+  const m = raw.match(/^(site|twin|vr)-([A-Za-z0-9_]+)$/);
   if (m) return { name: m[1], id: m[2] };
   const d = raw.match(/^director-(moon|mars)$/);           // deep link straight to a target dossier
   if (d) return { name: "director", id: d[1] };
@@ -26,12 +27,13 @@ function parseHash() {
 function crumbs(route, data) {
   const parts = [["#director", "Director"]];
   if (route.name === "orbit") return [["#orbit", "Orbit"]];
-  if (["oman", "site", "twin"].includes(route.name)) parts.push(["#oman", "Earth · Oman"]);
-  if (route.name === "site" || route.name === "twin") {
+  if (["oman", "site", "twin", "vr"].includes(route.name)) parts.push(["#oman", "Earth · Oman"]);
+  if ((route.name === "site" || route.name === "twin" || route.name === "vr") && route.id) {
     const s = data.site(route.id, store.mission);
     parts.push([`#site-${route.id}`, s ? s.name : route.id]);
   }
   if (route.name === "twin") parts.push([location.hash, "Twin Lens"]);
+  if (route.name === "vr") parts.push([location.hash, "VR landing"]);
   if (route.name === "method") parts.push(["#method", "Method"]);
   if (route.name === "sources") parts.push(["#sources", "Sources"]);
   return parts;

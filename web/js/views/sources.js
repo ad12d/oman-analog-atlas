@@ -19,6 +19,7 @@ const ROWS = [
   ["AppEEARS (LP DAAC)", "NASA", "https://appeears.earthdatacloud.nasa.gov/", "MODIS NDVI and LST subsets for Oman", "Dryness · Thermal", false],
   ["Sentinel-2 cloudless by EOX", "EOX / ESA data", "https://s2maps.eu/", "Basemap of Oman", "Basemap", false],
   ["OpenStreetMap", "OSM contributors", "https://www.openstreetmap.org/copyright", "Roads for the access criterion", "Access", false],
+  ["Team drone LiDAR survey", "Sultan Qaboos Air Academy team", "#vr", "Bare-earth terrain of the civilian survey site for the VR landing (placeholder until processed)", "VR terrain", false],
   ["three.js", "Open source (MIT licence)", "https://threejs.org/", "3D engine and bloom effect; globe cloud texture from its example files", "Visuals", false],
   ["Rajendran & Nasir (2015), Tectonophysics 657", "Sultan Qaboos University", "https://doi.org/10.1016/j.tecto.2015.06.023", "ASTER band ratios and field-verified benchmark wadis", "Minerals · Benchmarks", false],
 ];
@@ -32,7 +33,7 @@ export default {
         <p>Rows marked "Challenge" are the resources listed on the NASA Space Apps challenge page. The others are cited separately.</p></div>
       <div class="panel ticks"><div class="src-wrap"><table class="src-table">
         <thead><tr><th>Resource</th><th>Agency</th><th>What we use</th><th>Feeds</th><th>List</th></tr></thead>
-        <tbody>${ROWS.map(([n, a, u, what, feeds, ch]) => `<tr><td class="nm"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></td><td data-l="Agency">${esc(a)}</td><td data-l="What we use">${esc(what)}</td><td class="use" data-l="Feeds">${esc(feeds)}</td><td class="use" data-l="List">${ch ? "Challenge" : "Additional"}</td></tr>`).join("")}</tbody>
+        <tbody>${ROWS.map(([n, a, u, what, feeds, ch]) => `<tr><td class="nm"><a href="${esc(u)}"${u.startsWith("#") ? "" : ' target="_blank" rel="noopener"'}>${esc(n)}</a></td><td data-l="Agency">${esc(a)}</td><td data-l="What we use">${esc(what)}</td><td class="use" data-l="Feeds">${esc(feeds)}</td><td class="use" data-l="List">${ch ? "Challenge" : "Additional"}</td></tr>`).join("")}</tbody>
       </table></div></div>
     </div>`;
     view.appendChild(root);
