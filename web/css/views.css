@@ -41,6 +41,7 @@
 .wtext em.analog{color:var(--bg);background:var(--earth)}
 /* mission brief: a slim strip under the header, in the empty band above the worlds */
 .brief{position:absolute;left:max(24px, env(safe-area-inset-left,0px));top:74px;max-width:calc(100vw - 48px);display:flex;align-items:stretch}
+.brief[hidden],.dossier[hidden]{display:none}
 .brief-head{display:grid;align-content:center;gap:5px;padding:10px 18px;border-right:1px solid var(--hair);flex:none}
 .brief-body{display:flex;flex-wrap:wrap;align-items:center;min-width:0}
 .brief .cell{display:grid;gap:3px;padding:9px 18px;border-right:1px solid var(--hair);min-width:0}

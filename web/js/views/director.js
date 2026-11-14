@@ -155,7 +155,11 @@ export default {
         const p = scene.world(w), size = p.r * 2 + 22;
         el.style.transform = `translate(${p.x}px, ${p.y}px)`; el.style.opacity = p.front && focus !== w ? 1 : 0;
         const ring = el.firstElementChild; ring.style.width = ring.style.height = size + "px";
-        const txt = el.lastElementChild; txt.style.left = (p.r * 0.75 + 18) + "px"; txt.style.top = (p.r * 0.75 + 6) + "px";
+        // label sits lower right of the world; near the right edge (phones) it flips to the left side
+        const txt = el.lastElementChild, off = p.r * 0.75 + 18, tw = txt.offsetWidth;
+        const flip = p.x + off + tw > innerWidth - 10;
+        txt.style.left = (flip ? -off - tw : off) + "px"; txt.style.top = (p.r * 0.75 + 6) + "px";
+        txt.style.textAlign = flip ? "right" : ""; txt.style.justifyItems = flip ? "end" : "";
       }
     });
 

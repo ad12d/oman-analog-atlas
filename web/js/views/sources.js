@@ -32,7 +32,7 @@ export default {
         <p>Rows marked "Challenge" are the resources listed on the NASA Space Apps challenge page. The others are cited separately.</p></div>
       <div class="panel ticks"><div class="src-wrap"><table class="src-table">
         <thead><tr><th>Resource</th><th>Agency</th><th>What we use</th><th>Feeds</th><th>List</th></tr></thead>
-        <tbody>${ROWS.map(([n, a, u, what, feeds, ch]) => `<tr><td><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></td><td>${esc(a)}</td><td>${esc(what)}</td><td class="use">${esc(feeds)}</td><td class="use">${ch ? "Challenge" : "Additional"}</td></tr>`).join("")}</tbody>
+        <tbody>${ROWS.map(([n, a, u, what, feeds, ch]) => `<tr><td class="nm"><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></td><td data-l="Agency">${esc(a)}</td><td data-l="What we use">${esc(what)}</td><td class="use" data-l="Feeds">${esc(feeds)}</td><td class="use" data-l="List">${ch ? "Challenge" : "Additional"}</td></tr>`).join("")}</tbody>
       </table></div></div>
     </div>`;
     view.appendChild(root);

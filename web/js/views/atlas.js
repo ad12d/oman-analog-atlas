@@ -28,6 +28,12 @@ function ensureMap() {
   if (map) return map;
   map = new window.maplibregl.Map({ container: "map", style: BASEMAP, bounds: VIEW_BOUNDS, attributionControl: false, maxPitch: 55, dragRotate: true });
   map.addControl(new window.maplibregl.AttributionControl({ compact: true }), "bottom-right");
+  // phones: start with the credits folded into the (i) button so they don't cover the map
+  map.once("load", () => {
+    if (innerWidth > 980) return;
+    const a = map.getContainer().querySelector(".maplibregl-ctrl-attrib");
+    if (a) { a.classList.remove("maplibregl-compact-show"); a.removeAttribute("open"); }
+  });
   if (window.__oaa) window.__oaa.map = map;   // QA only
   // Add our layers as soon as the style is ready. ("load" waits for every basemap tile,
   // so on slow Wi-Fi the overlay would appear late or not at all.)
@@ -117,7 +123,7 @@ export default {
         <div class="legend-ramp"><span class="eyebrow" id="legName"></span><div class="bar" id="legBar"></div><div class="ends"><span>0 · not alike</span><span>1 · very alike</span></div></div>
       </div></aside>
       <aside class="rail right live" id="rankRail"><div class="panel ticks">
-        <div class="panel-head"><span class="panel-title">Ranked sites</span><span class="eyebrow" id="rankMission"></span></div>
+        <button type="button" class="panel-head sheet-head" id="rankHead" aria-expanded="true"><span class="panel-title">Ranked sites</span><span class="eyebrow" id="rankMission"></span></button>
         <div class="scroll" id="ranks"></div>
       </div></aside>
       <aside class="drawer live" id="drawer" aria-label="Analog passport"><div class="panel ticks">
@@ -128,14 +134,17 @@ export default {
     view.appendChild(root);
     const $r = s => root.querySelector(s);
 
-    function pad() { const wide = innerWidth > 980; return { top: 90, bottom: 80, left: wide ? 340 : 30, right: wide ? 340 : 30 }; }
+    // phones/tablets: layer chips sit under the header and the site list is a sheet above the footer
+    function pad() { const wide = innerWidth > 980, side = innerHeight <= 500 && innerWidth > innerHeight;
+      if (!wide && side) return { top: 100, bottom: 50, left: 24, right: Math.min(340, innerWidth * .42) + 24 };
+      return wide ? { top: 90, bottom: 80, left: 340, right: 340 } : { top: 130, bottom: Math.round(innerHeight * .34) + 70, left: 24, right: 24 }; }
 
     /* Strata rail */
     function paintStrata() {
       const W = data.weights[store.mission], R = MISSIONS[store.mission].ramp;
       $r("#strata").innerHTML = `
         <button type="button" class="strat asi" data-l="asi" aria-pressed="${layer === "asi"}" style="--r0:${R[1]};--r1:${R[2]};--r2:${R[3]};--r3:${R[4]}">
-          <span class="band"></span><span><b>Analog Similarity Index</b><small>All six criteria, ${esc(MISSIONS[store.mission].label)} weights</small></span><span class="w">Σ</span></button>
+          <span class="band"></span><span><b><span class="long">Analog Similarity Index</span><span class="short">ASI</span></b><small>All six criteria, ${esc(MISSIONS[store.mission].label)} weights</small></span><span class="w">Σ</span></button>
         ${CRITERIA.map(c => `<button type="button" class="strat" data-l="${c.k}" aria-pressed="${layer === c.k}" style="--rc:var(--c-${c.k})">
           <span class="band"></span><span><b>${c.name}</b><small>${esc(c.src)}</small><span class="wb" style="width:${W[c.k] * 100}%"></span></span><span class="w">w ${W[c.k].toFixed(2)}</span></button>`).join("")}`;
       const L = layer === "asi" ? null : CRITERIA.find(c => c.k === layer);
@@ -158,6 +167,11 @@ export default {
           <span><b>${esc(s.name)}${s.benchmark ? '<span class="bench-tag">B</span>' : ""}</b><small>${esc(s.aoi)}</small><span class="bar"><i style="width:${s.asi * 100}%"></i></span></span>
           <span class="v">${s.asi.toFixed(2)}</span></button>`).join("");
     }
+    // on phones the list header folds the sheet down so the whole map is visible
+    $r("#rankHead").addEventListener("click", () => {
+      const rail = $r("#rankRail"), open = rail.classList.toggle("folded") === false;
+      $r("#rankHead").setAttribute("aria-expanded", String(open));
+    });
     $r("#ranks").addEventListener("click", e => { const b = e.target.closest("[data-id]"); if (b) go("#site-" + b.dataset.id); });
     $r("#ranks").addEventListener("pointerover", e => { const b = e.target.closest("[data-id]"); markers.forEach(m => m.getElement().classList.toggle("hl", !!b && m.getElement().dataset.id === b.dataset.id)); });
     $r("#ranks").addEventListener("pointerleave", () => markers.forEach(m => m.getElement().classList.remove("hl")));

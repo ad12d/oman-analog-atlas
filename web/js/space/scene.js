@@ -300,13 +300,21 @@ export function createSpace(canvas) {
 
   function goalFor(m) {
     const narrow = innerWidth / innerHeight < 1.05;
+    const tall = innerWidth / innerHeight < 0.75;   // phone held upright
     const E = WORLDS.earth.pos, M = WORLDS.moon.pos, R = WORLDS.mars.pos;
     switch (m) {
-      case "orbit": return { pos: E.clone().addScaledVector(viewDir, narrow ? 3.9 : 2.7), tgt: E.clone(), shift: narrow ? 0 : 0.2 };
-      case "director": return { pos: new THREE.Vector3(3.4, 2.9, narrow ? 18 : 12.8), tgt: new THREE.Vector3(4.7, -0.3, -3.0), shift: 0 };
+      // phone: whole Earth in the upper half, the title copy sits below it
+      case "orbit": return tall ? { pos: E.clone().addScaledVector(viewDir, 6.4), tgt: E.clone().add(new THREE.Vector3(0, -0.95, 0)), shift: 0 }
+                                : { pos: E.clone().addScaledVector(viewDir, narrow ? 3.9 : 2.7), tgt: E.clone(), shift: narrow ? 0 : 0.2 };
+      // phone: the three worlds run corner to corner (Earth low left, Mars high right) above the brief panel
+      case "director": return tall ? { pos: new THREE.Vector3(-6, 10, 10), tgt: new THREE.Vector3(1.5, -0.5, -0.5), shift: 0 }
+                                   : { pos: new THREE.Vector3(3.4, 2.9, narrow ? 18 : 12.8), tgt: new THREE.Vector3(4.7, -0.3, -3.0), shift: 0 };
       case "focus-earth": return { pos: E.clone().addScaledVector(viewDir, 1.32), tgt: E.clone(), shift: 0 };
-      case "focus-moon": return { pos: M.clone().add(new THREE.Vector3(.3, -.72, 1).normalize().multiplyScalar(narrow ? 1.75 : 1.22)), tgt: M.clone(), shift: narrow ? 0 : 0.16 };
-      case "focus-mars": return { pos: R.clone().addScaledVector(marsView, narrow ? 3 : 2.0), tgt: R.clone(), shift: narrow ? 0 : 0.16 };
+      // phone close-ups: the world sits in the upper half, above the dossier card
+      case "focus-moon": if (tall) return { pos: M.clone().add(new THREE.Vector3(.3, -.72, 1).normalize().multiplyScalar(2.15)), tgt: M.clone().add(new THREE.Vector3(0, -0.4, 0)), shift: 0 };
+        return { pos: M.clone().add(new THREE.Vector3(.3, -.72, 1).normalize().multiplyScalar(narrow ? 1.75 : 1.22)), tgt: M.clone(), shift: narrow ? 0 : 0.16 };
+      case "focus-mars": if (tall) return { pos: R.clone().addScaledVector(marsView, 3.6), tgt: R.clone().add(new THREE.Vector3(0, -0.55, 0)), shift: 0 };
+        return { pos: R.clone().addScaledVector(marsView, narrow ? 3 : 2.0), tgt: R.clone(), shift: narrow ? 0 : 0.16 };
       case "dive": {
         // straight down onto Oman, at about the height where the Oman map takes over
         const d = latLonLocal(OMAN.lat, OMAN.lon).applyAxisAngle(new THREE.Vector3(0, 1, 0), faceYaw);
