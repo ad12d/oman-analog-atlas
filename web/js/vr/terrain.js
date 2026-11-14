@@ -6,27 +6,39 @@
 import * as THREE from "three";
 import { noise2, fbm } from "../core/noise.js";
 
-async function decodeImage(url) {
-  const blob = await (await fetch(url)).blob();
+/** fetch a file as a blob, reporting 0..1 progress when the size is known */
+async function fetchBlob(url, onP) {
+  const r = await fetch(url); if (!r.ok) throw new Error(url + " " + r.status);
+  const total = +r.headers.get("content-length") || 0;
+  if (!total || !r.body || !onP) return r.blob();
+  const reader = r.body.getReader(), parts = []; let got = 0;
+  for (;;) { const { done, value } = await reader.read(); if (done) break; parts.push(value); got += value.length; onP(Math.min(1, got / total)); }
+  return new Blob(parts);
+}
+async function decodeImage(url, onP) {
+  const blob = await fetchBlob(url, onP);
   return createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" });
 }
-async function fetchTile(dir) {
+async function fetchTile(dir, prog = () => {}) {
   const r = await fetch(dir + "terrain.json"); if (!r.ok) throw new Error("no tile at " + dir);
   const meta = await r.json();
-  const bmp = await decodeImage(dir + "height.png");
+  prog(0.05, "Downloading the elevation data");
+  const bmp = await decodeImage(dir + "height.png", p => prog(0.05 + p * 0.4, "Downloading the elevation data"));
   const cv = document.createElement("canvas"); cv.width = bmp.width; cv.height = bmp.height;
   const cx = cv.getContext("2d", { willReadFrequently: true }); cx.drawImage(bmp, 0, 0);
   const px = cx.getImageData(0, 0, bmp.width, bmp.height).data, N = bmp.width;
   const H = new Float32Array(N * N), k = (meta.z_max - meta.z_min) / 65535;
   for (let i = 0; i < N * N; i++) H[i] = meta.z_min + (px[i * 4] * 256 + px[i * 4 + 1]) * k;
   let albedo = null;
-  if (meta.albedo) { try { albedo = await createImageBitmap(await (await fetch(dir + meta.albedo)).blob(), { imageOrientation: "none" }); } catch { /* shaded grey fallback */ } }
+  if (meta.albedo) { try { albedo = await createImageBitmap(await fetchBlob(dir + meta.albedo, p => prog(0.45 + p * 0.4, "Downloading the ground colours")), { imageOrientation: "none" }); } catch { /* shaded grey fallback */ } }
+  prog(0.88, "Building the 3D ground");
+  await new Promise(res => setTimeout(res, 30));   // let the progress text paint before the heavy build
   return { meta, H, N, albedo };
 }
 
 /** dirs: candidate folders in priority order (e.g. LiDAR tile first, then the satellite tile, then the placeholder) */
-export async function loadTerrain(dirs) {
-  for (const dir of dirs.filter(Boolean)) { try { return makeTerrain(await fetchTile(dir)); } catch { /* next */ } }
+export async function loadTerrain(dirs, onProgress) {
+  for (const dir of dirs.filter(Boolean)) { try { return makeTerrain(await fetchTile(dir, onProgress)); } catch { /* next */ } }
   throw new Error("VR terrain tile missing");
 }
 

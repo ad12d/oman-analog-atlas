@@ -11,28 +11,32 @@ import twin from "./views/twin.js";
 import method from "./views/method.js";
 import sources from "./views/sources.js";
 import vr from "./views/vr.js";
+import destinations from "./views/destinations.js";
 
 // route name -> view module. "site-<ID>", "twin-<ID>" and "vr-<ID>" carry a site id.
-const ROUTES = { orbit, director, oman: atlas, site: atlas, twin, method, sources, vr };
+const ROUTES = { orbit, director, oman: atlas, site: atlas, twin, method, sources, vr, destinations, destination: destinations };
 
 function parseHash() {
   const raw = location.hash.replace(/^#/, "") || "orbit";
   const m = raw.match(/^(site|twin|vr)-([A-Za-z0-9_]+)$/);
   if (m) return { name: m[1], id: m[2] };
+  const ds = raw.match(/^destination-([a-z_]+)$/);         // one destination in 3D
+  if (ds) return { name: "destination", id: ds[1] };
   const d = raw.match(/^director-(moon|mars)$/);           // deep link straight to a target dossier
   if (d) return { name: "director", id: d[1] };
   return { name: ROUTES[raw] ? raw : "orbit" };
 }
 
 function crumbs(route, data) {
-  const parts = [["#director", "Director"]];
+  const parts = [["#director", "Choose a mission"]];
   if (route.name === "orbit") return [["#orbit", "Orbit"]];
   if (["oman", "site", "twin", "vr"].includes(route.name)) parts.push(["#oman", "Earth · Oman"]);
   if ((route.name === "site" || route.name === "twin" || route.name === "vr") && route.id) {
     const s = data.site(route.id, store.mission);
     parts.push([`#site-${route.id}`, s ? s.name : route.id]);
   }
-  if (route.name === "twin") parts.push([location.hash, "Twin Lens"]);
+  if (route.name === "twin") parts.push([location.hash, "Compare terrain"]);
+  if (route.name === "destinations" || route.name === "destination") parts.push(["#destinations", "Destinations"]);
   if (route.name === "vr") parts.push([location.hash, "VR landing"]);
   if (route.name === "method") parts.push(["#method", "Method"]);
   if (route.name === "sources") parts.push(["#sources", "Sources"]);
@@ -96,7 +100,7 @@ async function start() {
     document.body.classList.toggle("reticle-on", finePointer && (r.name === "orbit" || r.name === "director"));
     $("#crumbs").innerHTML = crumbs(r, data).map(([href, label], i, a) =>
       i === a.length - 1 ? `<span class="here">${esc(label)}</span>` : `<a href="${href}">${esc(label)}</a><span class="sep">/</span>`).join("");
-    $$(".menu a").forEach(a => a.toggleAttribute("aria-current", a.dataset.r === (r.name === "site" || r.name === "twin" ? "oman" : r.name)));
+    $$(".menu a").forEach(a => a.toggleAttribute("aria-current", a.dataset.r === (r.name === "site" || r.name === "twin" ? "oman" : r.name === "destination" ? "destinations" : r.name)));
     if (a11yFocus) view.focus({ preventScroll: true });
   }
   let a11yFocus = false;

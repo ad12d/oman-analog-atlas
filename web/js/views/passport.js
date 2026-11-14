@@ -1,6 +1,21 @@
 // ANALOG PASSPORT: one site, characterised against the current mission's target.
 import { esc, fmt, bindTip, showTip, hideTip, reduceMotion } from "../core/ui.js";
 import { MISSIONS, MISSION_KEYS, CRITERIA, RULE_PLAIN, score100, pctOf, betterThan } from "../core/data.js";
+import { twinOf, slopeWords, reliefWords } from "./destinations.js";
+
+const REHEARSE = { moon_base: "a Moon-base camp", mars_landing: "a Mars landing", mars_science: "the search for signs of past life on Mars", mars_sedimentary: "reading Mars rock layers" };
+const CANT = { moon: "low gravity, vacuum and the deep polar cold", mars: "low gravity, thin air and the Martian cold" };
+const ICON = { slope: "◢", tri: "⁂", relief: "⛰", dT_diurnal: "☀", dT_annual: "📅", wind: "≋", ndvi: "🏜", channels: "〰", minerals: "◆", access: "🛣" };
+const WHY_STRONG = { slope: "the ground is as steep as the target's", tri: "the ground is about as bumpy", relief: "the hills are the right size",
+  dT_diurnal: "the ground heats and cools a lot", dT_annual: "the seasons swing hard", wind: "the wind matches", ndvi: "it is almost bare of plants",
+  channels: "ancient riverbeds are close", minerals: "it has the same water-formed minerals", access: "field teams can reach it easily" };
+/** everyday words for a criterion value where they exist */
+const everyday = (k, v) => k === "slope" ? ` (${slopeWords(v)})` : k === "relief" ? ` (${reliefWords(v)})` : "";
+/** what to show as the destination's value: the real world value; Oman-only limits are never shown as targets */
+function worldVal(t, c, world) {
+  if (c.k === "access") return "Field logistics (Earth only)";
+  return `${world === "moon" ? "On the Moon" : "On Mars"}: ${t.world || fmt(t.value, c.dp) + c.unit}`;
+}
 
 // gap / match texts from the GIS export carry "(s 0.18)"; show the match as a percentage instead
 const plainGap = g => String(g).replace(/\(s ([0-9.]+)\)/, (_, v) => `(${Math.round(+v * 100)}% match)`);
@@ -21,6 +36,9 @@ export function renderPassport(el, { data, mission, id }) {
   const groupTags = (s.group || []).filter(g => g !== "benchmark").map(g => `<span class="tag">${esc(GROUP[g] || g)}</span>`).join("");
   const emitTag = s.emit_covered === false ? `<span class="tag" title="EMIT, a mineral scanner on the International Space Station, has no reading here">No mineral reading here: Oman average used</span>` : s.emit_covered ? `<span class="tag" title="EMIT: a mineral scanner on the International Space Station">Minerals measured from space</span>` : "";
 
+  const world = MISSIONS[mission].world;
+  const strong = CRITERIA.map(c => ({ c, pts: W[c.k] * s["s_" + c.k], sv: s["s_" + c.k] })).filter(x => x.sv >= 0.5).sort((a, b) => b.pts - a.pts).slice(0, 3);
+  const lead = `Good for rehearsing ${REHEARSE[mission]}${strong.length ? ` because ${strong.slice(0, 2).map(x => WHY_STRONG[x.c.k]).join(" and ")}` : ""}; it can't copy ${CANT[world]}.`;
   el.innerHTML = `
     <div class="pp">
       <div class="pp-head">
@@ -28,36 +46,41 @@ export function renderPassport(el, { data, mission, id }) {
           <p class="eyebrow">Analog passport · ranked ${s.rank} of ${data.sites[mission].length} shortlisted sites for ${esc(MISSIONS[mission].label)}</p>
           <h2>${esc(s.name)}</h2>
           <div class="pp-meta"><span>${esc(s.aoi)}</span><span class="mono">≈ ${fmt(s.lonlat[1], 2)}° N, ${fmt(s.lonlat[0], 2)}° E</span>${s.km_from_hackathon != null ? `<span>${fmt(s.km_from_hackathon, 0)} km from Al Bidiyah</span>` : ""}</div>
-          <div class="pp-tags">${benchTag}${groupTags}${emitTag}</div>
+          <div class="pp-tags">${benchTag}${groupTags}${emitTag}<span data-twinchip></span></div>
         </div>
-        <div class="asi-big"><div class="num">${score100(s.asi)}</div><div class="lab">Analog score / 100</div><div class="lab tech">ASI ${s.asi.toFixed(2)} · ${MISSIONS[mission].label}</div></div>
+        <div class="asi-big"><div class="num">${score100(s.asi)}</div><div class="lab">Analog score / 100</div><div class="lab tech">${MISSIONS[mission].label}</div></div>
       </div>
+      <div class="pp-sec pp-lead"><p class="lead">${esc(lead)}</p>
+        <div class="strong">${strong.map(x => `<div class="sitem" style="--rc:var(--c-${x.c.k})"><span class="ic" aria-hidden="true">${ICON[x.c.k]}</span><span><b>${esc(x.c.name)}</b><small>${pctOf(x.sv)} match</small></span></div>`).join("")}</div></div>
       <div class="pp-sec"><h3>Score for each mission</h3><div class="stamps">${stamps}<div class="sep"></div>${denied}</div>
         <p class="note">${esc(MISSIONS[mission].plain)} Grey stamps show what no place on Earth can copy.</p></div>
+      <details class="pp-more"><summary>See the full breakdown</summary>
       <div class="pp-sec">
         <div class="cbar-top"><h3>What makes up the score</h3><span class="formula">bar width = how much it matters · coloured part = how well this site matches</span></div>
         <div class="cbar" role="img" aria-label="${esc(CRITERIA.map(c => `${c.name} matters ${pctOf(W[c.k])}, match ${pctOf(s["s_" + c.k])}`).join("; "))}">
           ${CRITERIA.map(c => `<div class="seg" tabindex="0" data-k="${c.k}" style="--segc:var(--c-${c.k});flex-grow:${W[c.k]}"><div class="fill"></div></div>`).join("")}
         </div>
         <div class="cbar-labels" aria-hidden="true">${CRITERIA.map(c => `<div style="flex-grow:${W[c.k]}">${W[c.k] >= .06 ? `<span class="k">${c.name}</span><br><span class="mono">matters ${pctOf(W[c.k])} · match ${pctOf(s["s_" + c.k])}</span>` : ""}</div>`).join("")}</div>
-        <p class="note">Small criteria are unlabelled; hover a segment for its values. For experts: ASI = Σ weight × similarity = ${CRITERIA.reduce((a, c) => a + W[c.k] * s["s_" + c.k], 0).toFixed(3)}, with weights from the AHP method.</p>
+        <p class="note">Small criteria are unlabelled; hover a segment for its values.</p>
+        <details class="experts"><summary>For experts</summary><p class="tech">ASI = sum over all criteria of weight × similarity = ${CRITERIA.reduce((a, c) => a + W[c.k] * s["s_" + c.k], 0).toFixed(3)}; weights from the AHP method (90 m analysis).</p></details>
       </div>
       <div class="pp-sec">
         <h3>This site compared with ${esc(MISSIONS[mission].target)}</h3>
-        <div class="rows-key"><span><i class="k-dot"></i>This site</span><span><i class="k-dia"></i>Target</span><span><i class="k-band"></i>Range that still counts as a match</span></div>
+        <div class="rows-key"><span><i class="k-dot"></i>This site</span><span><i class="k-dia"></i>Full marks</span><span><i class="k-band"></i>Range that still counts as a match</span></div>
         <div class="crows">${CRITERIA.map(c => {
           const t = data.target(c.k, mission), raw = +s["raw_" + c.k], sv = +s["s_" + c.k];
           const [b0, b1] = data.band(c.k, mission), lo = Math.max(c.min, b0), hi = Math.min(c.max, b1);
           return `<button type="button" class="crow" data-k="${c.k}" style="--rc:var(--c-${c.k})" aria-pressed="${c.k === selected}"
-              aria-label="${esc(`${c.name}: this site ${fmt(raw, c.dp)}${c.unit}, target ${fmt(t.value, c.dp)}${c.unit}, match ${pctOf(sv)}`)}">
+              aria-label="${esc(`${c.name}: this site ${fmt(raw, c.dp)}${c.unit}, ${worldVal(t, c, world)}, match ${pctOf(sv)}`)}">
             <span class="name"><span class="chip"></span><span><b>${c.name}</b><small>${c.word}</small></span></span>
             <span class="track"><span class="base"></span><span class="tol" style="left:${pos(c, lo)}%;width:${pos(c, hi) - pos(c, lo)}%"></span>
               <span class="tgt" style="left:${pos(c, t.value)}%"></span><span class="er" style="left:${pos(c, raw)}%"></span></span>
-            <span class="vals"><b>${fmt(raw, c.dp)}${c.unit}</b> here<br>${fmt(t.value, c.dp)}${c.unit} target</span>
+            <span class="vals"><b>${fmt(raw, c.dp)}${c.unit}</b> here${everyday(c.k, raw)}<br>${esc(worldVal(t, c, world))}${t.omanNote ? `<br><i class="onote">Earth can't reach this; Oman's own best counts as 100%</i>` : ""}</span>
             <span class="sval ${sv < 0.4 ? "weak" : ""}">${pctOf(sv)}</span></button>`; }).join("")}</div>
         <p class="note">Tap a row to see what it measures, why it matters and how the match is scored.</p>
-        <div class="curve-box"><p class="eyebrow" data-ctitle></p><svg class="curve" viewBox="0 0 420 210" role="img" aria-label="Similarity rule"></svg><p class="src" data-csrc></p></div>
+        <div class="curve-box"><p class="eyebrow" data-ctitle></p><svg class="curve" viewBox="0 0 420 210" role="img" aria-label="How the match is scored"></svg><p class="src" data-csrc></p></div>
       </div>
+      </details>
       <div class="pp-sec">
         <div class="mbu">
           <div class="m"><h4>Where it matches</h4><ul>${(s.matches || []).map(x => `<li>${esc(plainGap(x))}</li>`).join("")}</ul></div>
@@ -68,9 +91,16 @@ export function renderPassport(el, { data, mission, id }) {
       <div class="pp-sec">
         <h3>Field survey</h3>
         <p class="note">Our drone survey (LiDAR, a laser scanner) will add centimetre-scale terrain and photos here. Until then the scores come from satellite data.</p>
-        <div class="pp-acts"><a class="btn primary" href="#vr-${esc(id)}">Land here in VR ▸</a><a class="btn" href="#twin-${esc(id)}">Open Twin Lens ▸</a></div>
+        <div class="pp-acts"><a class="btn primary" href="#vr-${esc(id)}">Land here in VR ▸</a><a class="btn" href="#twin-${esc(id)}">Compare terrain ▸</a></div>
       </div>
     </div>`;
+
+  // "This site is the Oman twin of …" (from the destinations data)
+  twinOf(id).then(list => {
+    const chip = el.querySelector("[data-twinchip]"); if (!chip || !list.length) return;
+    const main = list.filter(x => x.main), show = main.length ? main : list;
+    chip.outerHTML = `<span class="tag twinchip">${main.length ? "This site is the Oman twin of" : "A close Oman match for"} ${show.map(x => `<a href="#destination-${x.id}">${esc(x.name)}</a>`).join(", ")}</span>`;
+  });
 
   // animate fills
   el.querySelectorAll(".seg").forEach((seg, i) => {
@@ -116,7 +146,9 @@ export function drawCurve(box, data, mission, k, earth, sOfficial) {
     <line class="cx" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--fg)" stroke-opacity=".35" visibility="hidden"/>
     <rect class="chit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>`;
   box.querySelector("[data-ctitle]").textContent = `How the match is scored · ${c.name}`;
-  box.querySelector("[data-csrc]").innerHTML = `<b>What it measures:</b> ${esc(c.what)} <b>Why it matters:</b> ${esc(c.why)}<br><b>Scoring:</b> ${esc(RULE_PLAIN[t.kind] || RULE_PLAIN.linear)} Target ${fmt(t.value, c.dp)}${c.unit} (${esc(t.site || t.body)}).<br><span class="tech">Data: ${esc(c.src)} (Oman) · ${esc(t.source)} (target)${t.rule ? ` · rule: ${esc(t.rule)}` : ""}</span>`;
+  const onWorld = k === "access" ? "Field logistics (Earth only): not a property of the Moon or Mars." : t.world ? `${t.body === "Moon" ? "On the Moon" : "On Mars"}: ${t.world}${t.worldSrc ? ` (${t.worldSrc})` : ""}.` : "";
+  box.querySelector("[data-csrc]").innerHTML = `<b>What it measures:</b> ${esc(c.what)} <b>Why it matters:</b> ${esc(c.why)}<br><b>Scoring:</b> ${esc(RULE_PLAIN[t.kind] || RULE_PLAIN.linear)} Full marks at ${fmt(t.value, c.dp)}${c.unit}. ${esc(onWorld)}${t.omanNote ? ` <i class="onote">Earth can't reach this; Oman's own best counts as 100%.</i>` : ""}
+    <details class="experts"><summary>For experts</summary><span class="tech">Data: ${esc(c.src)} (Oman) · ${esc(t.source)} (target)${t.rule ? ` · rule: ${esc(t.rule)}` : ""}</span></details>`;
   const hit = svg.querySelector(".chit"), cx = svg.querySelector(".cx");
   hit.addEventListener("pointermove", e => {
     const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * W, v = c.min + (px - L) / (W - L - R) * (c.max - c.min);

@@ -44,7 +44,7 @@ export default {
           <li><b>Add up.</b> Matches times importance, added together, give the analog score out of 100.</li>
           <li><b>Check.</b> Places scientists already use as analogs must come out near the top; they do.</li>
         </ol>
-        <p class="tech">For experts: ASI = Σ wᵢ·sᵢ; sᵢ from Gaussian (slope, TRI, relief) or one-sided rules against LOLA / MOLA / MODIS targets plus an EMIT L2B mineral score; wᵢ from hierarchical AHP; computed at 90 m; AUC 0.84 against benchmark outcrops.</p></div>
+        <details class="experts"><summary>For experts</summary><p class="tech">Analog score (ASI) = sum over all criteria of wᵢ·sᵢ; sᵢ from Gaussian (slope, TRI, relief) or one-sided rules against LOLA / MOLA / MODIS targets plus an EMIT L2B mineral score; wᵢ from hierarchical AHP; computed at 90 m; AUC 0.84 against benchmark outcrops.</p></details></div>
       <div class="grid-2">
         <div class="stage" id="stage"><div class="stage-cap"><span id="stageSrc">Loading the real 1 km grids… · drag to turn</span><span id="stageState">10 criterion layers</span></div></div>
         <div class="panel ticks"><div class="panel-head"><span class="panel-title">Ten maps become one</span></div><div class="panel-body" style="display:grid;gap:12px">
@@ -60,15 +60,18 @@ export default {
             <div class="curve-box"><p class="eyebrow" data-ctitle></p><svg class="curve" viewBox="0 0 420 210" role="img" aria-label="Similarity rule"></svg><p class="src" data-csrc></p></div>
             <div class="range-row"><label for="ruleVal">Try a value for Oman</label><input type="range" id="ruleVal" min="0" max="1000" value="300"><span class="mono" id="ruleOut"></span></div>
           </div></div>
-        <div class="panel ticks"><div class="panel-head"><span class="panel-title">How much each criterion matters</span><span id="crBadge"></span></div>
+        <div class="panel ticks"><div class="panel-head"><span class="panel-title">How much each criterion matters</span></div>
           <div class="panel-body" style="display:grid;gap:12px">
+            <div id="wbars" class="wbars"></div>
+            <details class="experts"><summary>For experts: the comparison table</summary>
+            <div style="margin:6px 0"><span id="crBadge"></span></div>
             <div class="src-wrap"><table class="ahp" id="ahp"></table></div>
-            <p class="note">Experts compared every pair of criteria for this mission ("how much more does slope matter than wind?") on a 1 to 9 scale; read each row against each column. From these comparisons the method (AHP, the Analytic Hierarchy Process) derives one importance per criterion. A built-in consistency check (CR) must stay under 0.10 so the judgements do not contradict each other.</p>
+            <p class="note">Experts compared every pair of criteria for this mission ("how much more does slope matter than wind?") on a 1 to 9 scale; read each row against each column. From these comparisons the method (AHP, the Analytic Hierarchy Process) derives one importance per criterion. A built-in consistency check (CR) must stay under 0.10 so the judgements do not contradict each other.</p></details>
           </div></div>
       </div>
       <div class="panel ticks"><div class="panel-head"><span class="panel-title">Does it work?</span><span class="eyebrow" id="benchMission"></span></div>
         <div class="panel-body" style="display:grid;gap:10px">
-          <div class="legend"><span><i style="background:var(--muted)"></i>Known site used to tune the score</span><span><i style="background:var(--earth)"></i>Independent test site</span><span><i style="background:var(--moho)"></i>Pass line: better than 80% of Oman</span></div>
+          <div class="legend"><span><i style="background:var(--muted)"></i>Known site used to tune the score</span><span><i style="background:var(--earth)"></i>Independent test site</span><span><i style="background:var(--ice)"></i>Outside benchmark (Utah)</span><span><i style="background:var(--moho)"></i>Pass line: better than 80% of Oman</span></div>
           <svg class="chart" id="bench" viewBox="0 0 760 150" role="img" aria-label="Benchmark percentiles"></svg>
           <ul class="vfacts" id="benchFacts"></ul>
         </div></div>
@@ -110,12 +113,12 @@ export default {
         el.addEventListener("pointerenter", () => { stack3d?.highlight(el.dataset.k); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.add("hl"); });
         el.addEventListener("pointerleave", () => { stack3d?.highlight(null); cssStack?.querySelector(`[data-k="${el.dataset.k}"]`)?.classList.remove("hl"); });
       });
-      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
+      $r("#stageState").textContent = combined ? `Analog score · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
     }
     $r("#stackBtn").addEventListener("click", e => {
       combined = !combined; stage.classList.toggle("combined", combined); stack3d?.setCombined(combined);
       e.currentTarget.setAttribute("aria-pressed", String(combined)); e.currentTarget.textContent = combined ? "Separate the layers" : "Press into one score";
-      $r("#stageState").textContent = combined ? `ASI · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
+      $r("#stageState").textContent = combined ? `Analog score · ${MISSIONS[store.mission].label}` : `${CRITERIA.length} criterion layers`;
     });
 
     /* similarity rule explorer */
@@ -134,6 +137,8 @@ export default {
     /* AHP matrix */
     function paintAHP() {
       const w = data.weights[store.mission];
+      $r("#wbars").innerHTML = CRITERIA.slice().sort((a, b) => w[b.k] - w[a.k]).map(c => `<div class="wbar" style="--rc:var(--c-${c.k})"><span>${esc(c.name)}</span><i style="width:${Math.round(w[c.k] * 100 / Math.max(...CRITERIA.map(x => w[x.k])))}%"></i><b>${Math.round(w[c.k] * 100)}%</b></div>`).join("")
+        + `<p class="note">For ${esc(MISSIONS[store.mission].label)}: how much each criterion counts toward the analog score. Together they add up to 100%.</p>`;
       let html = `<thead><tr><th></th>${CRITERIA.map(c => `<th>${c.name.split(" ")[0]}</th>`).join("")}</tr></thead><tbody>`;
       for (const a of CRITERIA) {
         html += `<tr><th style="text-align:left"><span class="chip-dot" style="--rc:var(--c-${a.k})"></span>${a.name.split(" ")[0]}</th>`;
@@ -151,15 +156,19 @@ export default {
 
     /* validation: benchmark outcrops' percentile in the 90 m ASI (pass = 80th percentile or better) */
     function paintBench() {
-      const m = store.mission, list = data.sites[m].filter(s => s.benchmark && s.validation_percentile != null), svg = $r("#bench");
+      const m = store.mission, svg = $r("#bench");
+      // AMADEE-18 belongs to the Mars landing and Mars sedimentary profiles only; MDRS (Utah) is an outside benchmark scored with the same method
+      const list = data.sites[m].filter(s => s.benchmark && s.validation_percentile != null && !(s.id === "S04" && (m === "mars_science" || m === "moon_base")))
+        .map(s => ({ ...s, name: s.name.split(" – ")[0] }));
+      list.push({ id: "MDRS", name: "MDRS, Utah (outside benchmark)", benchmark: "external", validation_percentile: VALIDATION.mdrs[m] });
       const W = 760, L = 230, R = 40, rowH = 26, top = 20, x = p => L + p / 100 * (W - L - R), n = Math.max(1, list.length);
       let g = "";
       for (let p = 0; p <= 100; p += 20) g += `<line x1="${x(p)}" x2="${x(p)}" y1="${top - 4}" y2="${top + n * rowH}" stroke="var(--hair)"/><text x="${x(p)}" y="${top - 8}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${p}</text>`;
       g += `<line x1="${x(80)}" x2="${x(80)}" y1="${top - 4}" y2="${top + n * rowH}" stroke="var(--moho)" stroke-dasharray="4 3"/>`;
       list.forEach((s, i) => {
-        const y = top + i * rowH + rowH / 2, p = +s.validation_percentile, test = s.benchmark === "test";
-        g += `<g class="bm" data-id="${s.id}"><text x="${L - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="var(--fg)">${esc(s.name.split(" – ")[0])}</text>
-          <line x1="${x(0)}" x2="${x(Math.max(1, p))}" y1="${y}" y2="${y}" stroke="${test ? "var(--earth)" : "var(--muted)"}" stroke-width="6" stroke-linecap="round"/>
+        const y = top + i * rowH + rowH / 2, p = +s.validation_percentile, test = s.benchmark === "test", ext = s.benchmark === "external";
+        g += `<g class="bm" data-id="${s.id}"><text x="${L - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="var(--fg)">${esc(s.name)}</text>
+          <line x1="${x(0)}" x2="${x(Math.max(1, p))}" y1="${y}" y2="${y}" stroke="${ext ? "var(--ice)" : test ? "var(--earth)" : "var(--muted)"}" stroke-width="6" stroke-linecap="round"/>
           <text x="${x(p) + 8}" y="${y + 4}" font-size="11.5" fill="var(--fg)" font-family="var(--f-mono)">${Math.round(p)}</text>
           <rect x="0" y="${y - rowH / 2}" width="${W}" height="${rowH}" fill="transparent"/></g>`;
       });
@@ -167,10 +176,10 @@ export default {
       svg.setAttribute("viewBox", `0 0 ${W} ${top + n * rowH + 10}`);
       svg.innerHTML = g;
       svg.querySelectorAll(".bm").forEach(el => { const s = list.find(p => p.id === el.dataset.id);
-        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${s.benchmark === "test" ? "independent test site" : "known site used to tune the score"} · better than ${Math.round(s.validation_percentile)}% of Oman</span>`, e.clientX, e.clientY));
+        el.addEventListener("pointermove", e => showTip(`<b>${esc(s.name)}</b><br><span class="mono">${s.benchmark === "external" ? "outside benchmark, same method, no tuning" : s.benchmark === "test" ? "independent test site" : "known site used to tune the score"} · better than ${Math.round(s.validation_percentile)}% of Oman</span>`, e.clientX, e.clientY));
         el.addEventListener("pointerleave", hideTip); });
       $r("#benchMission").textContent = MISSIONS[m].label;
-      const facts = m === "mars_science" ? VALIDATION.facts : (m === "mars_landing" || m === "mars_sedimentary") ? [VALIDATION.amadee] : [];
+      const facts = [...(m === "mars_science" ? VALIDATION.facts : (m === "mars_landing" || m === "mars_sedimentary") ? [VALIDATION.amadee] : []), VALIDATION.mdrsStory];
       $r("#benchFacts").innerHTML = [...facts, VALIDATION.grid].map(f => `<li>${esc(f)}</li>`).join("");
     }
 

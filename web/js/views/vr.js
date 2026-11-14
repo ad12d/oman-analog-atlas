@@ -60,7 +60,7 @@ export default {
     root.innerHTML = `
       <canvas class="vr-canvas" aria-label="3D view of the landing site"></canvas>
       <div class="vr-fade" id="vrFade"></div>
-      <div class="vr-load" id="vrLoad"><span class="eyebrow" id="vrLoadW">VR</span><b>Loading the real terrain…</b><small>Heights, slopes and shading come from the elevation data.</small></div>
+      <div class="vr-load" id="vrLoad"><span class="eyebrow" id="vrLoadW">VR</span><b>Loading the real terrain… <span id="vrLoadPct">0%</span></b><div class="vr-prog"><i id="vrLoadBar"></i></div><small id="vrLoadStep">Heights, slopes and shading come from the elevation data.</small></div>
       <aside class="vr-brief panel ticks" hidden>
         <div class="panel-head"><span class="panel-title">Landing &amp; base</span><span class="eyebrow" id="vrPlace"></span></div>
         <div class="panel-body">
@@ -464,7 +464,10 @@ export default {
       const load = $r("#vrLoad"); if (!quiet) { load.hidden = false; $r("#vrLoadW").textContent = `VR · ${WORLDS[w].label} · ${WORLDS[w].place}`; }
       await wait(30);                                                 // let the loading card paint first
       let t;
-      try { t = await loadTerrain(WORLDS[w].dirs(route.id)); }
+      const prog = (p, step) => { const pc = $r("#vrLoadPct"), bar = $r("#vrLoadBar"), st = $r("#vrLoadStep");
+        if (pc) pc.textContent = Math.round(p * 100) + "%"; if (bar) bar.style.width = Math.round(p * 100) + "%"; if (st && step) st.textContent = step + "…"; };
+      prog(0, "Finding the terrain tile");
+      try { t = await loadTerrain(WORLDS[w].dirs(route.id), prog); }
       catch (err) { load.hidden = false; load.innerHTML = `<b>Could not load the terrain.</b><small>${esc(err.message)}</small>`; loading = false; return; }
       if (!alive) { t.dispose(); return; }
       if (terrain) { scene.remove(terrain.group); terrain.dispose(); }

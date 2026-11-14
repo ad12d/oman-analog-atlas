@@ -16,6 +16,11 @@ export default {
         <h1 id="orbit-h"><span>Oman</span><span>Analog</span><span>Atlas</span></h1>
         <p class="orbit-tag">Where Earth rehearses <b id="oWorld"></b>.</p>
         <p class="orbit-lede">Before crews go to the Moon or Mars they rehearse on Earth. Using satellite data, we find the places in Oman that are most like their destination, and show why.</p>
+        <ol class="how3">
+          <li><a href="#director"><b>1</b> Choose where astronauts are going</a></li>
+          <li><a href="#destinations"><b>2</b> See the place</a></li>
+          <li><a href="#destinations"><b>3</b> Meet its Oman twin, and why</a></li>
+        </ol>
         <hr class="moho">
         <dl class="stats">
           <div><dt>${nSites}</dt><dd>Sites scored</dd></div>
@@ -24,7 +29,7 @@ export default {
           <div><dt>${nBench}</dt><dd>Known analog sites</dd></div>
         </dl>
         <div class="cta">
-          <a class="btn primary" href="#director">Open the Director <kbd>Enter</kbd></a>
+          <a class="btn primary" href="#director">Choose a mission <kbd>Enter</kbd></a>
           <a class="btn" href="#oman">Go to Oman</a>
           <a class="btn" href="#method">How the score works</a>
         </div>
@@ -49,7 +54,7 @@ export default {
 
     const onKey = e => { if (e.key === "Enter" && !e.target.closest("a, button, input")) go("#director"); };
     addEventListener("keydown", onKey);
-    setKeys([["Enter", "Director"], ["M", "Mission"]]);
+    setKeys([["Enter", "Choose a mission"], ["M", "Mission"]]);
 
     return { cleanup() { off(); unsub(); removeEventListener("keydown", onKey); } };
   },

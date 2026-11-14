@@ -68,7 +68,9 @@
   .cta .btn:not(.primary){flex:1 1 0;font-size:11px;letter-spacing:.1em}
 
   /* director: focused world sits up top, its dossier is a bottom card */
-  .dossier{left:8px;right:8px;width:auto;top:auto;bottom:calc(54px + env(safe-area-inset-bottom,0px));max-height:46vh}
+  .dossier{left:8px;right:8px;width:auto;top:auto;bottom:calc(54px + env(safe-area-inset-bottom,0px));max-height:56vh}
+  .dossier .acts{padding:10px 12px;gap:6px}
+  .dossier .acts .btn{padding:8px 10px}
   .dossier .band h2{font-size:22px}
   .wtext b{font-size:13px;letter-spacing:.18em}
   .wtext span{font-size:10px}

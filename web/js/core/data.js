@@ -73,6 +73,15 @@ export const score100 = v => Math.round(+v * 100);
 export const pctOf = v => Math.round(+v * 100) + "%";
 export const betterThan = p => `better than ${Math.round(p)}% of Oman`;
 
+// Readable site names: descriptive names from the team's destination twins; generic "Ibra site 8" reads as "Near Ibra · candidate 8".
+const FRIENDLY = { S07: "Mahalih ophiolite (near Ibra)", S11: "Al Mudairib ophiolite hills", S21: "Al Mudairib plain", S29: "Al Qabil plain",
+  S34: "Mizayra, Wahiba Sands edge", S43: "Manah gravel plains", S45: "Mabrah foothills", S55: "Uwaybiyat (Al Buraimi)" };
+export function friendlyName(id, name) {
+  if (FRIENDLY[id]) return FRIENDLY[id];
+  const m = String(name).match(/^(.+?) site(?: (\d+))?$/);
+  return m ? `Near ${m[1]} · candidate ${m[2] || 1}` : name;
+}
+
 export const AOIS = [{ id: "OMAN", name: "Sultanate of Oman", bbox: [51.73, 16.63, 59.94, 26.39] }];
 
 // Validation, from the 90 m analysis (team hand-off, MAZIN_INTEGRATION.md §4), in plain words
@@ -80,12 +89,15 @@ export const VALIDATION = {
   auc: { profile: "mars_science", value: 0.84 },
   facts: [
     "Against known analog sites, a real analog spot outranks a random spot in Oman 84 times out of 100 (AUC 0.84, Mars science).",
-    "The Oman Drilling Project outcrop (IGSN sample site) scores better than 97% of Oman.",
-    "Wadi Laywani, kept aside as an independent test, scores better than 86% of Oman.",
+    "The Oman Drilling Project outcrop (IGSN sample site) scores better than 97% of Oman, and Wadi Laywani, kept aside as an independent test, better than 86%.",
+    "Wadi Mansah scores better than 70% of Oman: it is a gravel wadi, a known weak benchmark, so a middling result is expected.",
     "Changing any importance by ±20% moves a site's standing by at most 9 points, so the result is stable.",
   ],
-  amadee: "AMADEE-18 (the Kepler station of the Austrian Space Forum's 2018 Mars simulation) scores better than 64% of Oman for Mars landing but only 47% for layered rocks. It looks like Mars (dark varnished rock, flat-topped hills), yet the space-station mineral scanner finds almost none of the water-formed minerals there. The score separates places that look like Mars from places made of Mars-like rock.",
-  grid: "The live map uses a 1 km grid so it can update instantly. The ranked sites and the validation use the finer 90 m analysis.",
+  amadee: "AMADEE-18 (the Austrian Space Forum's 2018 Mars simulation in Dhofar) looks like Mars, with dark iron-oxide varnish and flat-topped hills, but NASA's EMIT mineral scanner finds almost no sulfates or clays there. It scores better than 64% of Oman for Mars landing and 47% for Mars sedimentary. Our index separates looking like Mars from being chemically like Mars.",
+  // External benchmark: the Mars Desert Research Station (Utah), scored with exactly the Oman method and no tuning (utah/MDRS_benchmark_results.json)
+  mdrs: { moon_base: 98.9, mars_landing: 89.3, mars_science: 88.8, mars_sedimentary: 94.8 },
+  mdrsStory: "Built only on Oman, our index independently ranks NASA-famous MDRS (Mars Desert Research Station, Utah) in the top 11%. For Jezero-type astrobiology, Oman's Samail ophiolite beats it: the IGSN outcrop scores 78 against MDRS 54, because MDRS has no serpentine. Utah's colder continental climate gives it bigger temperature swings than anywhere in Oman.",
+  grid: "The live map uses a 1 km grid so it can update instantly. The ranked sites and the validation numbers come from the finer 90 m analysis.",
 };
 
 async function getJSON(paths) {
@@ -141,6 +153,7 @@ export async function loadData() {
   const byId = {};
   for (const f of sites.body.features) {
     const p = { ...f.properties, lonlat: centroid(f.geometry), geometry: f.geometry };
+    p.name = friendlyName(p.id, p.name);
     if (!byMission[p.profile]) continue;
     byMission[p.profile].push(p);
     (byId[p.id] ??= {})[p.profile] = p;
@@ -148,7 +161,7 @@ export async function loadData() {
   for (const m of MISSION_KEYS) byMission[m].sort((a, b) => a.rank - b.rank);
 
   const tgt = {};
-  for (const r of parseCSV(targets.body)) (tgt[r.profile] ??= {})[r.criterion] = { value: +r.value, tol: +r.tolerance, unit: r.unit, body: r.body, site: r.site, source: r.source, rule: r.rule || "", kind: ruleKind(r.rule) };
+  for (const r of parseCSV(targets.body)) (tgt[r.profile] ??= {})[r.criterion] = { value: +r.value, tol: +r.tolerance, unit: r.unit, body: r.body, site: r.site, source: r.source, rule: r.rule || "", world: r.world_value || "", worldSrc: r.world_source || "", omanNote: r.oman_note || "", kind: ruleKind(r.rule) };
 
   const W = weights.body.weights, CRv = weights.body.cr || {};
   /** display-only similarity curve; the s_* values in sites.geojson are the official ones (computed at 90 m) */

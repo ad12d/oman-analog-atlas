@@ -1,8 +1,8 @@
-// TWIN LENS: an Oman site below the Moho line, a Moon or Mars target above it, at one shared scale
+// COMPARE TERRAIN: an Oman site below the gold line, a Moon or Mars target above it, at one shared scale
 // (24 x 13.5 km). Real terrain: Copernicus DEM (Oman, 90 m), LRO LOLA (Moon, 80 m), MGS MOLA (Mars, 463 m),
 // from data/twin/ (16-bit heights packed as R*256+G). Terrain similarity from data/target_sites.json.
 import { h, esc, fmt, setKeys, showTip, hideTip } from "../core/ui.js";
-import { MISSIONS } from "../core/data.js";
+import { MISSIONS, friendlyName } from "../core/data.js";
 
 const DEFAULT_TARGET = { moon_base: "moon_shackleton", mars_landing: "mars_jezero_floor", mars_science: "mars_jezero_delta", mars_sedimentary: "mars_jezero_delta" };
 let indexP = null;
@@ -27,6 +27,22 @@ function slopes(t) {
   }
   return s;
 }
+/** median slope, mean roughness (TRI) and mean height change within ~1 km, from one tile */
+function tileStats(t, s) {
+  const { z, W, H, res } = t, sl = [], tri = [];
+  for (let j = 1; j < H - 1; j++) for (let i = 1; i < W - 1; i++) {
+    const c = z[j * W + i]; let a = 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) if (di || dj) a += Math.abs(z[(j + dj) * W + i + di] - c);
+    tri.push(a / 8); sl.push(s[j * W + i]);
+  }
+  sl.sort((a, b) => a - b);
+  const w = Math.max(2, Math.round(1000 / res)); let rel = 0, n = 0;
+  for (let j = 0; j + w <= H; j += w) for (let i = 0; i + w <= W; i += w) {
+    let lo = Infinity, hi = -Infinity; for (let y = j; y < j + w; y++) for (let x = i; x < i + w; x++) { const v = z[y * W + x]; if (v < lo) lo = v; if (v > hi) hi = v; }
+    rel += hi - lo; n++;
+  }
+  return { slope: sl[sl.length >> 1], tri: tri.reduce((a, b) => a + b, 0) / tri.length, relief: rel / n };
+}
 /** hillshade at true scale (no vertical exaggeration), sun from the north-west */
 function shade(cv, t, [br, bg, bb]) {
   const { z, W, H, res } = t; cv.width = W; cv.height = H;
@@ -49,10 +65,10 @@ export default {
 
     async function render() {
       let idx;
-      try { idx = await loadIndex(); } catch (e) { root.innerHTML = `<div class="page-inner"><p class="note">Twin Lens terrain not available: ${esc(e.message)}</p></div>`; return; }
+      try { idx = await loadIndex(); } catch (e) { root.innerHTML = `<div class="page-inner"><p class="note">Terrain comparison not available: ${esc(e.message)}</p></div>`; return; }
       if (!alive) return;
       const m = store.mission, world = MISSIONS[m].world, body = world === "moon" ? "Moon" : "Mars";
-      const omanMaps = idx.maps.filter(x => x.body === "Earth"), tMaps = idx.maps.filter(x => x.body === body);
+      const omanMaps = idx.maps.filter(x => x.body === "Earth").map(o => ({ ...o, name: friendlyName(o.id.slice(5), o.name) })), tMaps = idx.maps.filter(x => x.body === body);
       if (!targetId || !tMaps.some(t => t.id === targetId)) targetId = DEFAULT_TARGET[m];
       const tw = (data.twins?.targets || []).find(t => t.id === targetId);
       // Oman side: the passport's site if it has a terrain clip, else the target's best terrain twin
@@ -62,8 +78,8 @@ export default {
       const noClip = route.id && route.id !== omanId && !omanMaps.some(o => o.id === "oman_" + route.id);
 
       root.innerHTML = `<div class="page-inner">
-        <div class="page-head"><p class="eyebrow">Twin Lens · real terrain at one scale</p><h1>${esc(oMap.name)} × ${esc(tMap.name)}</h1>
-          <p>Drag the gold line. Oman sits below it and ${esc(MISSIONS[m].worldName)} above it, both ${tMap.width_km} × ${tMap.height_km} km at true scale, so slope and roughness compare directly. We call it the Moho line, after the boundary between Earth's crust and mantle that is exposed in Oman's mountains.
+        <div class="page-head"><p class="eyebrow">Compare terrain · real ground at one scale</p><h1>${esc(oMap.name)} × ${esc(tMap.name)}</h1>
+          <p>Drag the gold line. Oman sits below it and ${esc(MISSIONS[m].worldName)} above it, both ${tMap.width_km} × ${tMap.height_km} km at true scale, so slope and roughness compare directly.
           ${noClip ? `<br><b>${esc(data.site(route.id, m)?.name || route.id)}</b> has no terrain clip yet, so its target's best terrain twin is shown.` : ""}</p></div>
         <div class="twin-pick">
           <label>Oman site <select id="pickOman">${omanMaps.map(o => `<option value="${o.id.slice(5)}" ${o.id === oMap.id ? "selected" : ""}>${esc(o.name)}</option>`).join("")}</select></label>
@@ -83,11 +99,11 @@ export default {
           <div class="panel ticks"><div class="panel-head"><span class="panel-title">How alike is the ground?</span>${twinRow ? `<span class="eyebrow">terrain match ${Math.round(twinRow.terrain_similarity * 100)}%</span>` : ""}</div>
             <div class="panel-body" style="display:grid;gap:12px">
               ${tw ? `<table class="twin-table"><thead><tr><th></th><th>Oman</th><th>${esc(body)}</th></tr></thead><tbody>
-                <tr><td>Typical slope</td><td class="v">${twinRow ? fmt(twinRow.oman_slope_deg, 1) + "°" : "–"}</td><td class="v">${fmt(tw.slope_deg, 1)}°</td></tr>
-                <tr><td title="terrain ruggedness index (TRI)">Roughness (bumpiness)</td><td class="v">${twinRow ? fmt(twinRow.oman_tri_m, 1) + " m" : "–"}</td><td class="v">${fmt(tw.tri_m, 1)} m</td></tr>
-                <tr><td>Hilliness (height change in 1 km)</td><td class="v">${twinRow ? fmt(twinRow.oman_relief_m, 0) + " m" : "–"}</td><td class="v">${fmt(tw.relief_m, 0)} m</td></tr></tbody></table>
-                <p class="note">${twinRow ? `This site is number ${tw.oman_twins.indexOf(twinRow) + 1} of the ${tw.oman_twins.length} Oman places whose ground is most like this target.` : "This site is not among the Oman places whose ground is most like this target."} Both areas are compared at the same scale on slope, bumpiness and hilliness.</p>
-                <p class="note">Closest Oman ground: ${tw.oman_twins.map(o => `<a href="#" data-twin="${o.id}">${esc(o.name)}</a> ${Math.round(o.terrain_similarity * 100)}%`).join(" · ")}</p>` : `<p class="note">No terrain statistics for this target.</p>`}
+                <tr><td>Typical slope</td><td class="v">${twinRow ? fmt(twinRow.oman_slope_deg, 1) + "°" : `<span data-calc="slope">…</span>`}</td><td class="v">${fmt(tw.slope_deg, 1)}°</td></tr>
+                <tr><td title="terrain ruggedness index (TRI)">Roughness (bumpiness)</td><td class="v">${twinRow ? fmt(twinRow.oman_tri_m, 1) + " m" : `<span data-calc="tri">…</span>`}</td><td class="v">${fmt(tw.tri_m, 1)} m</td></tr>
+                <tr><td>Hilliness (height change in 1 km)</td><td class="v">${twinRow ? fmt(twinRow.oman_relief_m, 0) + " m" : `<span data-calc="relief">…</span>`}</td><td class="v">${fmt(tw.relief_m, 0)} m</td></tr></tbody></table>
+                <p class="note">${twinRow ? `This site is number ${tw.oman_twins.indexOf(twinRow) + 1} of the ${tw.oman_twins.length} Oman places whose ground is most like this target.` : "This site is not among the Oman places whose ground is most like this target."}${twinRow ? "" : `<span data-calcnote hidden> Its values above are measured from its own height map, the same way.</span>`} Both areas are compared at the same scale on slope, bumpiness and hilliness.</p>
+                <p class="note">Closest Oman ground: ${tw.oman_twins.map(o => `<a href="#" data-twin="${o.id}">${esc(friendlyName(o.id, o.name))}</a> ${Math.round(o.terrain_similarity * 100)}%`).join(" · ")}</p>` : `<p class="note">No terrain statistics for this target.</p>`}
               <div class="legend"><span><i style="background:var(--earth)"></i>Oman</span><span><i style="background:var(--accent)"></i>${esc(body)}</span></div>
               <svg class="chart" id="hist" viewBox="0 0 380 220" role="img" aria-label="Slope distribution, Oman versus target"></svg>
               <p class="note">How much of each area is flat or steep: the share of ground in each 2.5° slope band.${body === "Mars" ? " The Mars height map is coarser (463 m), so it shows landforms, not boulders." : ""}</p>
@@ -100,7 +116,14 @@ export default {
       shade(root.querySelector("#cE"), hE, [196, 168, 128]);
       shade(root.querySelector("#cT"), hT, world === "moon" ? [172, 174, 178] : [200, 116, 80]);
       const hist = s => { const b = new Array(12).fill(0); let n = 0; for (const v of s) { if (!v) continue; b[Math.min(11, Math.floor(v / 2.5))]++; n++; } return b.map(x => x / (n || 1)); };
-      drawHist(root.querySelector("#hist"), hist(slopes(hE)), hist(slopes(hT)), body);
+      const sE = slopes(hE);
+      drawHist(root.querySelector("#hist"), hist(sE), hist(slopes(hT)), body);
+      // Oman column for sites outside this target's official twin list: computed from the site's own height map
+      if (root.querySelector("[data-calc]")) {
+        const st = tileStats(hE, sE), put = (k, v) => { const el = root.querySelector(`[data-calc="${k}"]`); if (el) el.textContent = v; };
+        put("slope", fmt(st.slope, 1) + "°"); put("tri", fmt(st.tri, 1) + " m"); put("relief", fmt(st.relief, 0) + " m");
+        const n = root.querySelector("[data-calcnote]"); if (n) n.hidden = false;
+      }
 
       const lens = root.querySelector("#lens"), range = root.querySelector("#mohoRange");
       const setY = v => { y = Math.max(5, Math.min(95, v)); lens.style.setProperty("--y", y + "%"); range.value = Math.round(y); };

@@ -80,14 +80,17 @@ export default {
       // Dive: the globe camera drops straight onto Oman, the map fades in at matching scale and keeps zooming.
       const fromFar = scene.mode === "director" || scene.mode.startsWith("focus-m");
       mapEl.classList.add("away"); vig.classList.add("away");
-      scene.setActive(true); scene.setMode("dive");
+      scene.setActive(true); const landed = scene.setMode("dive");
       const end = map.cameraForBounds(VIEW_BOUNDS, { padding: pad() });
       map.jumpTo({ center: end.center, zoom: end.zoom - 1.1 });
-      timers.push(setTimeout(() => {
+      const reveal = () => {
+        if (!alive) return;
         mapEl.classList.remove("away"); vig.classList.remove("away");
         if (route.name !== "site") map.easeTo({ center: end.center, zoom: end.zoom, duration: 2000, easing: t => 1 - Math.pow(1 - t, 3), essential: true });
-      }, fromFar ? 1100 : 450));
-      timers.push(setTimeout(() => scene.setActive(false), fromFar ? 2300 : 1600));
+        timers.push(setTimeout(() => { if (alive) scene.setActive(false); }, 1200));
+      };
+      // from the Moon or Mars the camera flies back first; the map fades in as it reaches Oman
+      if (fromFar) landed.then(reveal); else timers.push(setTimeout(reveal, 450));
     } else {
       mapEl.classList.remove("away"); vig.classList.remove("away");
       map.fitBounds(VIEW_BOUNDS, { padding: pad(), duration: 0 });
@@ -138,7 +141,7 @@ export default {
       $r("#strata").innerHTML = `
         <button type="button" class="strat chip-tune" data-tune aria-pressed="${tuneOpen}"><span class="band" style="--rc:var(--moho)"></span><span><b>Your priorities</b><small>What matters most, what to avoid</small></span><span class="w">⚙</span></button>
         <button type="button" class="strat asi" data-l="asi" aria-pressed="${layer === "asi"}" style="--r0:${R[1]};--r1:${R[2]};--r2:${R[3]};--r3:${R[4]}">
-          <span class="band"></span><span><b><span class="long">Analog score (ASI)</span><span class="short">Score</span></b><small>All ten criteria together · best ${topPct}% of Oman shown</small></span><span class="w">Σ</span></button>
+          <span class="band"></span><span><b><span class="long">Analog score</span><span class="short">Score</span></b><small>All ten criteria together · best ${topPct}% of Oman shown</small></span><span class="w">all</span></button>
         ${CRITERIA.map(c => `<button type="button" class="strat" data-l="${c.k}" aria-pressed="${layer === c.k}" style="--rc:var(--c-${c.k})">
           <span class="band"></span><span><b>${c.name}</b><small>${esc(c.what)}</small><span class="wb" style="width:${Wn[c.k] * 100}%"></span></span><span class="w">${Math.round(Wn[c.k] * 100)}%</span></button>`).join("")}`;
       const L = layer === "asi" ? null : CRIT[layer];
@@ -277,7 +280,7 @@ export default {
       markers.splice(0).forEach(m => m.remove());
       for (const s of data.sites[store.mission].slice().reverse()) {
         const el = h("button", { type: "button", class: `node ${s.rank <= 3 ? "top" : ""} ${s.benchmark ? "bench" : ""}`, "data-id": s.id, "aria-label": `${s.name}, rank ${s.rank}, ASI ${s.asi.toFixed(2)}` },
-          `<span class="dia"><b>${s.rank}</b></span><span class="nlab"><b>${esc(s.name)}</b><i>ASI ${s.asi.toFixed(2)}</i></span>`);
+          `<span class="dia"><b>${s.rank}</b></span><span class="nlab"><b>${esc(s.name)}</b><i>score ${Math.round(s.asi * 100)}</i></span>`);
         el.addEventListener("pointerenter", () => {
           card.innerHTML = nodeCard(s); card.classList.add("on");
           const r = el.getBoundingClientRect(); let x = r.right + 18, y = r.top - 20;
@@ -295,7 +298,7 @@ export default {
       pickMarkers.splice(0).forEach(m => m.remove());
       if (listMode !== "live") return;
       picks.forEach((p, i) => {
-        const el = h("button", { type: "button", class: "pick", "aria-label": `Live pick ${i + 1}, ASI ${p.asi.toFixed(2)}` }, `<b>L${i + 1}</b>`);
+        const el = h("button", { type: "button", class: "pick", "aria-label": `Live pick ${i + 1}, score ${Math.round(p.asi * 100)}` }, `<b>L${i + 1}</b>`);
         el.addEventListener("click", ev => { ev.stopPropagation(); explainAt(p.lon, p.lat); });
         pickMarkers.push(new window.maplibregl.Marker({ element: el, anchor: "center" }).setLngLat([p.lon, p.lat]).addTo(map));
       });
