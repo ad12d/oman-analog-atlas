@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-mission="mars_science">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oman Analog Atlas</title>
+<meta name="description" content="Earth analogs in Oman for the Moon base and Mars, scored with an Analog Similarity Index. NASA Space Apps 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/hud.css">
+<link rel="stylesheet" href="css/views.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+<script src="vendor/maplibre/maplibre-gl.js" defer></script>
+</head>
+<body>
+  <!-- Layer 0: space scene (Orbit + Director) -->
+  <div id="space-bg" aria-hidden="true"></div>
+  <canvas id="space" aria-hidden="true"></canvas>
+  <!-- Layer 1: destination map (Oman) -->
+  <div id="map" hidden></div>
+  <div id="map-vignette" hidden aria-hidden="true"></div>
+
+  <!-- Layer 2: HUD chrome -->
+  <header class="hud-top">
+    <a class="brand" href="#orbit" aria-label="Oman Analog Atlas, back to orbit">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Oman Analog Atlas</span>
+    </a>
+    <nav class="crumbs" id="crumbs" aria-label="Location"></nav>
+    <div class="hud-right">
+      <div class="mission" role="radiogroup" aria-label="Mission profile" id="mission">
+        <button type="button" role="radio" data-m="moon_base"><i></i>Moon base</button>
+        <button type="button" role="radio" data-m="mars_landing"><i></i>Mars landing</button>
+        <button type="button" role="radio" data-m="mars_science"><i></i>Mars science</button>
+      </div>
+      <span class="mock-flag" id="mockFlag" hidden>Mock data</span>
+    </div>
+  </header>
+
+  <!-- Layer 3: the active view -->
+  <main id="view" tabindex="-1"></main>
+
+  <footer class="hud-bottom">
+    <nav class="menu" aria-label="Sections">
+      <a href="#director" data-r="director">Director</a>
+      <a href="#oman" data-r="oman">Oman</a>
+      <a href="#method" data-r="method">Method</a>
+      <a href="#sources" data-r="sources">Sources</a>
+    </nav>
+    <div class="hud-bottom-right">
+      <div class="keys" id="keys" aria-hidden="true"></div>
+      <button type="button" class="fx-btn" id="fxBtn" aria-pressed="true" title="Graphics quality (G)">Graphics <b>High</b></button>
+    </div>
+  </footer>
+
+  <div id="reticle" aria-hidden="true"></div>
+  <div id="tip" role="tooltip" hidden></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+/* Oman Analog Atlas · theme tokens
+   Concept: "Crossing the Moho". Rock-sourced palette; criterion colours validated for
+   colour-blind separation on the dark surface (adjacent ΔE ≥ 8.6, OKLab×100).
+   The app is deliberately single-theme (space is dark). */
+:root{
+  /* ground */
+  --void:#04060A;          /* deep space behind the scene */
+  --bg:#0D0F12;            /* harzburgite */
+  --surface:#161A20;       /* gabbro */
+  --surface-2:#1D222A;
+  --glass:rgba(10,12,16,.78);
+  --glass-2:rgba(18,22,28,.86);
+  --line:#2A313B;
+  --hair:rgba(233,230,223,.14);
+  /* ink */
+  --fg:#E9E6DF; --muted:#9BA3AD; --faint:#6B737D;
+  /* worlds */
+  --moho:#F2C46D;          /* the boundary line */
+  --earth:#3FB68B;         /* Samail serpentine */
+  --ochre:#D9A441;         /* wadi gravel */
+  --moon:#CBD5E1; --ice:#7DB7FF;
+  --mars:#E07250; --mars-deep:#8E2F1C;
+  /* criteria (fixed order) */
+  --c-terrain:#5188CD; --c-dryness:#BD871C; --c-minerals:#2CA470;
+  --c-thermal:#C44229; --c-radar:#9763CC; --c-access:#21A3BC;
+  /* mission accent */
+  --accent:var(--mars);
+  /* type */
+  --f-display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  /* motion */
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:dark;
+}
+:root[data-mission="moon_base"]{ --accent:var(--ice); }

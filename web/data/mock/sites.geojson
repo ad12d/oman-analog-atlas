@@ -1,0 +1,1586 @@
+{
+ "type": "FeatureCollection",
+ "mock": true,
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.88,
+     24.02
+    ]
+   },
+   "properties": {
+    "id": "S19",
+    "name": "Samail cell 19",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.643,
+    "rank": 1,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.902,
+    "s_dryness": 0.727,
+    "s_minerals": 0.0,
+    "s_thermal": 0.293,
+    "s_radar": 0.625,
+    "s_access": 1.0,
+    "raw_terrain": 5.479,
+    "raw_dryness": 0.082,
+    "raw_minerals": 0.871,
+    "raw_thermal": 33.969,
+    "raw_radar": -12.998,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.29)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.05,
+     23.05
+    ]
+   },
+   "properties": {
+    "id": "WND",
+    "name": "Wadi Nidab",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.632,
+    "rank": 2,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.907,
+    "s_dryness": 0.743,
+    "s_minerals": 0.0,
+    "s_thermal": 0.226,
+    "s_radar": 0.664,
+    "s_access": 1.0,
+    "raw_terrain": 5.433,
+    "raw_dryness": 0.077,
+    "raw_minerals": 0.821,
+    "raw_thermal": 23.839,
+    "raw_radar": -13.313,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.23)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7,
+     19.2
+    ]
+   },
+   "properties": {
+    "id": "D09",
+    "name": "Dhofar plateau cell 09",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "moon_base",
+    "asi": 0.584,
+    "rank": 3,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.938,
+    "s_dryness": 0.863,
+    "s_minerals": 0.83,
+    "s_thermal": 0.294,
+    "s_radar": 0.572,
+    "s_access": 0.23,
+    "raw_terrain": 3.881,
+    "raw_dryness": 0.041,
+    "raw_minerals": 0.185,
+    "raw_thermal": 34.084,
+    "raw_radar": -12.575,
+    "raw_access": 9.243,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong mineral match match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak temperature range match (s 0.29)",
+     "Weak access match (s 0.23)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.3,
+     23.62
+    ]
+   },
+   "properties": {
+    "id": "S07",
+    "name": "Samail cell 07",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.58,
+    "rank": 4,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.822,
+    "s_dryness": 0.56,
+    "s_minerals": 0.0,
+    "s_thermal": 0.302,
+    "s_radar": 0.416,
+    "s_access": 0.94,
+    "raw_terrain": 6.283,
+    "raw_dryness": 0.132,
+    "raw_minerals": 0.777,
+    "raw_thermal": 35.337,
+    "raw_radar": -11.33,
+    "raw_access": 0.721,
+    "matches": [
+     "Strong slope match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.30)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.78,
+     23.43
+    ]
+   },
+   "properties": {
+    "id": "WAB",
+    "name": "Wadi Al Abyad",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.546,
+    "rank": 5,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.77,
+    "s_dryness": 0.7,
+    "s_minerals": 0.0,
+    "s_thermal": 0.273,
+    "s_radar": 0.688,
+    "s_access": 0.717,
+    "raw_terrain": 6.8,
+    "raw_dryness": 0.09,
+    "raw_minerals": 0.84,
+    "raw_thermal": 31,
+    "raw_radar": -13.5,
+    "raw_access": 3.4,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.27)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.4,
+     22.95
+    ]
+   },
+   "properties": {
+    "id": "WTY",
+    "name": "Wadi Tayin",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.515,
+    "rank": 6,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.914,
+    "s_dryness": 0.61,
+    "s_minerals": 0.0,
+    "s_thermal": 0.221,
+    "s_radar": 0.59,
+    "s_access": 0.482,
+    "raw_terrain": 3.637,
+    "raw_dryness": 0.117,
+    "raw_minerals": 0.752,
+    "raw_thermal": 23.075,
+    "raw_radar": -12.718,
+    "raw_access": 6.213,
+    "matches": [
+     "Strong slope match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.22)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.72,
+     22.78
+    ]
+   },
+   "properties": {
+    "id": "S12",
+    "name": "Samail cell 12",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.492,
+    "rank": 7,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.7,
+    "s_dryness": 0.677,
+    "s_minerals": 0.0,
+    "s_thermal": 0.236,
+    "s_radar": 0.792,
+    "s_access": 0.548,
+    "raw_terrain": 7.505,
+    "raw_dryness": 0.097,
+    "raw_minerals": 0.781,
+    "raw_thermal": 25.39,
+    "raw_radar": -14.336,
+    "raw_access": 5.421,
+    "matches": [
+     "Strong slope match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.24)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.4,
+     18.55
+    ]
+   },
+   "properties": {
+    "id": "D05",
+    "name": "Dhofar gravel plain cell 05",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "moon_base",
+    "asi": 0.475,
+    "rank": 8,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.794,
+    "s_dryness": 0.837,
+    "s_minerals": 0.686,
+    "s_thermal": 0.337,
+    "s_radar": 0.158,
+    "s_access": 0.132,
+    "raw_terrain": 2.437,
+    "raw_dryness": 0.049,
+    "raw_minerals": 0.257,
+    "raw_thermal": 40.594,
+    "raw_radar": -9.267,
+    "raw_access": 10.417,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak temperature range match (s 0.34)",
+     "Weak radar roughness match (s 0.16)",
+     "Weak access match (s 0.13)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.95,
+     18.92
+    ]
+   },
+   "properties": {
+    "id": "D02",
+    "name": "Dhofar plateau cell 02",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "moon_base",
+    "asi": 0.466,
+    "rank": 9,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.55,
+    "s_dryness": 0.82,
+    "s_minerals": 0.71,
+    "s_thermal": 0.355,
+    "s_radar": 0.246,
+    "s_access": 0.378,
+    "raw_terrain": 0,
+    "raw_dryness": 0.054,
+    "raw_minerals": 0.245,
+    "raw_thermal": 43.211,
+    "raw_radar": -9.967,
+    "raw_access": 7.468,
+    "matches": [
+     "Strong dryness match",
+     "Strong mineral match match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak temperature range match (s 0.35)",
+     "Weak radar roughness match (s 0.25)",
+     "Weak access match (s 0.38)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.55,
+     19.95
+    ]
+   },
+   "properties": {
+    "id": "H01",
+    "name": "Huqf cell 01",
+    "aoi": "AOI-3 Wildcard",
+    "profile": "moon_base",
+    "asi": 0.459,
+    "rank": 10,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.735,
+    "s_dryness": 0.96,
+    "s_minerals": 0.474,
+    "s_thermal": 0.317,
+    "s_radar": 0.0,
+    "s_access": 0.317,
+    "raw_terrain": 7.146,
+    "raw_dryness": 0.012,
+    "raw_minerals": 0.363,
+    "raw_thermal": 37.509,
+    "raw_radar": -7.998,
+    "raw_access": 8.201,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak temperature range match (s 0.32)",
+     "Weak radar roughness match (s 0.00)",
+     "Weak access match (s 0.32)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.25,
+     23.2
+    ]
+   },
+   "properties": {
+    "id": "WAD",
+    "name": "Wadi Abda",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.423,
+    "rank": 11,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.648,
+    "s_dryness": 0.8,
+    "s_minerals": 0.0,
+    "s_thermal": 0.313,
+    "s_radar": 0.36,
+    "s_access": 0.371,
+    "raw_terrain": 8.021,
+    "raw_dryness": 0.06,
+    "raw_minerals": 0.807,
+    "raw_thermal": 36.887,
+    "raw_radar": -10.879,
+    "raw_access": 7.543,
+    "matches": [
+     "Strong dryness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.31)",
+     "Weak radar roughness match (s 0.36)",
+     "Weak access match (s 0.37)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.5,
+     24.35
+    ]
+   },
+   "properties": {
+    "id": "WFZ",
+    "name": "Wadi Fizh",
+    "aoi": "AOI-1 Samail",
+    "profile": "moon_base",
+    "asi": 0.299,
+    "rank": 12,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.079,
+    "s_dryness": 0.697,
+    "s_minerals": 0.0,
+    "s_thermal": 0.141,
+    "s_radar": 0.7,
+    "s_access": 0.675,
+    "raw_terrain": 13.709,
+    "raw_dryness": 0.091,
+    "raw_minerals": 0.908,
+    "raw_thermal": 11.217,
+    "raw_radar": -13.596,
+    "raw_access": 3.898,
+    "matches": [
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.17 g",
+     "1 bar atmosphere vs vacuum",
+     "Shielded from space radiation",
+     "Weak slope match (s 0.08)",
+     "Weak mineral match match (s 0.00)",
+     "Weak temperature range match (s 0.14)"
+    ],
+    "best_use": "Surface mobility and site-survey drills on low-slope ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.3,
+     23.62
+    ]
+   },
+   "properties": {
+    "id": "S07",
+    "name": "Samail cell 07",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.778,
+    "rank": 1,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.672,
+    "s_dryness": 0.56,
+    "s_minerals": 0.538,
+    "s_thermal": 0.603,
+    "s_radar": 0.959,
+    "s_access": 0.94,
+    "raw_terrain": 6.283,
+    "raw_dryness": 0.132,
+    "raw_minerals": 0.777,
+    "raw_thermal": 35.337,
+    "raw_radar": -11.33,
+    "raw_access": 0.721,
+    "matches": [
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.88,
+     24.02
+    ]
+   },
+   "properties": {
+    "id": "S19",
+    "name": "Samail cell 19",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.765,
+    "rank": 2,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.752,
+    "s_dryness": 0.727,
+    "s_minerals": 0.382,
+    "s_thermal": 0.59,
+    "s_radar": 0.75,
+    "s_access": 1.0,
+    "raw_terrain": 5.479,
+    "raw_dryness": 0.082,
+    "raw_minerals": 0.871,
+    "raw_thermal": 33.969,
+    "raw_radar": -12.998,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak mineral match match (s 0.38)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.05,
+     23.05
+    ]
+   },
+   "properties": {
+    "id": "WND",
+    "name": "Wadi Nidab",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.752,
+    "rank": 3,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.757,
+    "s_dryness": 0.743,
+    "s_minerals": 0.465,
+    "s_thermal": 0.488,
+    "s_radar": 0.711,
+    "s_access": 1.0,
+    "raw_terrain": 5.433,
+    "raw_dryness": 0.077,
+    "raw_minerals": 0.821,
+    "raw_thermal": 23.839,
+    "raw_radar": -13.313,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.4,
+     22.95
+    ]
+   },
+   "properties": {
+    "id": "WTY",
+    "name": "Wadi Tayin",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.728,
+    "rank": 4,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.936,
+    "s_dryness": 0.61,
+    "s_minerals": 0.58,
+    "s_thermal": 0.481,
+    "s_radar": 0.785,
+    "s_access": 0.482,
+    "raw_terrain": 3.637,
+    "raw_dryness": 0.117,
+    "raw_minerals": 0.752,
+    "raw_thermal": 23.075,
+    "raw_radar": -12.718,
+    "raw_access": 6.213,
+    "matches": [
+     "Strong slope match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7,
+     19.2
+    ]
+   },
+   "properties": {
+    "id": "D09",
+    "name": "Dhofar plateau cell 09",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_landing",
+    "asi": 0.692,
+    "rank": 5,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.912,
+    "s_dryness": 0.863,
+    "s_minerals": 0.475,
+    "s_thermal": 0.591,
+    "s_radar": 0.803,
+    "s_access": 0.23,
+    "raw_terrain": 3.881,
+    "raw_dryness": 0.041,
+    "raw_minerals": 0.185,
+    "raw_thermal": 34.084,
+    "raw_radar": -12.575,
+    "raw_access": 9.243,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak access match (s 0.23)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.4,
+     18.55
+    ]
+   },
+   "properties": {
+    "id": "D05",
+    "name": "Dhofar gravel plain cell 05",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_landing",
+    "asi": 0.69,
+    "rank": 6,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.944,
+    "s_dryness": 0.837,
+    "s_minerals": 0.595,
+    "s_thermal": 0.656,
+    "s_radar": 0.783,
+    "s_access": 0.132,
+    "raw_terrain": 2.437,
+    "raw_dryness": 0.049,
+    "raw_minerals": 0.257,
+    "raw_thermal": 40.594,
+    "raw_radar": -9.267,
+    "raw_access": 10.417,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak access match (s 0.13)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.95,
+     18.92
+    ]
+   },
+   "properties": {
+    "id": "D02",
+    "name": "Dhofar plateau cell 02",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_landing",
+    "asi": 0.676,
+    "rank": 7,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.7,
+    "s_dryness": 0.82,
+    "s_minerals": 0.575,
+    "s_thermal": 0.682,
+    "s_radar": 0.871,
+    "s_access": 0.378,
+    "raw_terrain": 0,
+    "raw_dryness": 0.054,
+    "raw_minerals": 0.245,
+    "raw_thermal": 43.211,
+    "raw_radar": -9.967,
+    "raw_access": 7.468,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak access match (s 0.38)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.78,
+     23.43
+    ]
+   },
+   "properties": {
+    "id": "WAB",
+    "name": "Wadi Al Abyad",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.645,
+    "rank": 8,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.62,
+    "s_dryness": 0.7,
+    "s_minerals": 0.433,
+    "s_thermal": 0.56,
+    "s_radar": 0.688,
+    "s_access": 0.717,
+    "raw_terrain": 6.8,
+    "raw_dryness": 0.09,
+    "raw_minerals": 0.84,
+    "raw_thermal": 31,
+    "raw_radar": -13.5,
+    "raw_access": 3.4,
+    "matches": [
+     "Strong dryness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.25,
+     23.2
+    ]
+   },
+   "properties": {
+    "id": "WAD",
+    "name": "Wadi Abda",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.621,
+    "rank": 9,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.498,
+    "s_dryness": 0.8,
+    "s_minerals": 0.488,
+    "s_thermal": 0.619,
+    "s_radar": 0.985,
+    "s_access": 0.371,
+    "raw_terrain": 8.021,
+    "raw_dryness": 0.06,
+    "raw_minerals": 0.807,
+    "raw_thermal": 36.887,
+    "raw_radar": -10.879,
+    "raw_access": 7.543,
+    "matches": [
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak access match (s 0.37)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.55,
+     19.95
+    ]
+   },
+   "properties": {
+    "id": "H01",
+    "name": "Huqf cell 01",
+    "aoi": "AOI-3 Wildcard",
+    "profile": "mars_landing",
+    "asi": 0.574,
+    "rank": 10,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.585,
+    "s_dryness": 0.96,
+    "s_minerals": 0.772,
+    "s_thermal": 0.625,
+    "s_radar": 0.625,
+    "s_access": 0.317,
+    "raw_terrain": 7.146,
+    "raw_dryness": 0.012,
+    "raw_minerals": 0.363,
+    "raw_thermal": 37.509,
+    "raw_radar": -7.998,
+    "raw_access": 8.201,
+    "matches": [
+     "Strong dryness match",
+     "Strong mineral match match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak access match (s 0.32)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.72,
+     22.78
+    ]
+   },
+   "properties": {
+    "id": "S12",
+    "name": "Samail cell 12",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.558,
+    "rank": 11,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.549,
+    "s_dryness": 0.677,
+    "s_minerals": 0.532,
+    "s_thermal": 0.504,
+    "s_radar": 0.583,
+    "s_access": 0.548,
+    "raw_terrain": 7.505,
+    "raw_dryness": 0.097,
+    "raw_minerals": 0.781,
+    "raw_thermal": 25.39,
+    "raw_radar": -14.336,
+    "raw_access": 5.421,
+    "matches": [
+     "No criterion above 0.7"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.5,
+     24.35
+    ]
+   },
+   "properties": {
+    "id": "WFZ",
+    "name": "Wadi Fizh",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_landing",
+    "asi": 0.391,
+    "rank": 12,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.0,
+    "s_dryness": 0.697,
+    "s_minerals": 0.32,
+    "s_thermal": 0.362,
+    "s_radar": 0.675,
+    "s_access": 0.675,
+    "raw_terrain": 13.709,
+    "raw_dryness": 0.091,
+    "raw_minerals": 0.908,
+    "raw_thermal": 11.217,
+    "raw_radar": -13.596,
+    "raw_access": 3.898,
+    "matches": [
+     "No criterion above 0.7"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Shielded from space radiation",
+     "Weak slope match (s 0.00)",
+     "Weak mineral match match (s 0.32)",
+     "Weak temperature range match (s 0.36)"
+    ],
+    "best_use": "Rover traverse planning and hazard-detection tests on rock-strewn ground."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.88,
+     24.02
+    ]
+   },
+   "properties": {
+    "id": "S19",
+    "name": "Samail cell 19",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.874,
+    "rank": 1,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.707,
+    "s_dryness": 0.727,
+    "s_minerals": 0.978,
+    "s_thermal": 0.59,
+    "s_radar": 0.875,
+    "s_access": 1.0,
+    "raw_terrain": 5.479,
+    "raw_dryness": 0.082,
+    "raw_minerals": 0.871,
+    "raw_thermal": 33.969,
+    "raw_radar": -12.998,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong mineral match match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.05,
+     23.05
+    ]
+   },
+   "properties": {
+    "id": "WND",
+    "name": "Wadi Nidab",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.813,
+    "rank": 2,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.703,
+    "s_dryness": 0.743,
+    "s_minerals": 0.852,
+    "s_thermal": 0.488,
+    "s_radar": 0.836,
+    "s_access": 1.0,
+    "raw_terrain": 5.433,
+    "raw_dryness": 0.077,
+    "raw_minerals": 0.821,
+    "raw_thermal": 23.839,
+    "raw_radar": -13.313,
+    "raw_access": 0,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong mineral match match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.78,
+     23.43
+    ]
+   },
+   "properties": {
+    "id": "WAB",
+    "name": "Wadi Al Abyad",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.787,
+    "rank": 3,
+    "benchmark": "calibration",
+    "tier": 2,
+    "s_terrain": 0.817,
+    "s_dryness": 0.7,
+    "s_minerals": 0.9,
+    "s_thermal": 0.56,
+    "s_radar": 0.812,
+    "s_access": 0.717,
+    "raw_terrain": 6.8,
+    "raw_dryness": 0.09,
+    "raw_minerals": 0.84,
+    "raw_thermal": 31,
+    "raw_radar": -13.5,
+    "raw_access": 3.4,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong mineral match match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.3,
+     23.62
+    ]
+   },
+   "properties": {
+    "id": "S07",
+    "name": "Samail cell 07",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.753,
+    "rank": 4,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.774,
+    "s_dryness": 0.56,
+    "s_minerals": 0.743,
+    "s_thermal": 0.603,
+    "s_radar": 0.916,
+    "s_access": 0.94,
+    "raw_terrain": 6.283,
+    "raw_dryness": 0.132,
+    "raw_minerals": 0.777,
+    "raw_thermal": 35.337,
+    "raw_radar": -11.33,
+    "raw_access": 0.721,
+    "matches": [
+     "Strong slope match",
+     "Strong mineral match match",
+     "Strong radar roughness match",
+     "Strong access match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     56.5,
+     24.35
+    ]
+   },
+   "properties": {
+    "id": "WFZ",
+    "name": "Wadi Fizh",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.749,
+    "rank": 5,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.608,
+    "s_dryness": 0.697,
+    "s_minerals": 0.93,
+    "s_thermal": 0.362,
+    "s_radar": 0.8,
+    "s_access": 0.675,
+    "raw_terrain": 13.709,
+    "raw_dryness": 0.091,
+    "raw_minerals": 0.908,
+    "raw_thermal": 11.217,
+    "raw_radar": -13.596,
+    "raw_access": 3.898,
+    "matches": [
+     "Strong mineral match match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak temperature range match (s 0.36)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.25,
+     23.2
+    ]
+   },
+   "properties": {
+    "id": "WAD",
+    "name": "Wadi Abda",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.718,
+    "rank": 6,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.918,
+    "s_dryness": 0.8,
+    "s_minerals": 0.818,
+    "s_thermal": 0.619,
+    "s_radar": 0.86,
+    "s_access": 0.371,
+    "raw_terrain": 8.021,
+    "raw_dryness": 0.06,
+    "raw_minerals": 0.807,
+    "raw_thermal": 36.887,
+    "raw_radar": -10.879,
+    "raw_access": 7.543,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match",
+     "Strong mineral match match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak access match (s 0.37)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.72,
+     22.78
+    ]
+   },
+   "properties": {
+    "id": "S12",
+    "name": "Samail cell 12",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.686,
+    "rank": 7,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.875,
+    "s_dryness": 0.677,
+    "s_minerals": 0.753,
+    "s_thermal": 0.504,
+    "s_radar": 0.708,
+    "s_access": 0.548,
+    "raw_terrain": 7.505,
+    "raw_dryness": 0.097,
+    "raw_minerals": 0.781,
+    "raw_thermal": 25.39,
+    "raw_radar": -14.336,
+    "raw_access": 5.421,
+    "matches": [
+     "Strong slope match",
+     "Strong mineral match match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     58.4,
+     22.95
+    ]
+   },
+   "properties": {
+    "id": "WTY",
+    "name": "Wadi Tayin",
+    "aoi": "AOI-1 Samail",
+    "profile": "mars_science",
+    "asi": 0.609,
+    "rank": 8,
+    "benchmark": "test",
+    "tier": 2,
+    "s_terrain": 0.553,
+    "s_dryness": 0.61,
+    "s_minerals": 0.68,
+    "s_thermal": 0.481,
+    "s_radar": 0.91,
+    "s_access": 0.482,
+    "raw_terrain": 3.637,
+    "raw_dryness": 0.117,
+    "raw_minerals": 0.752,
+    "raw_thermal": 23.075,
+    "raw_radar": -12.718,
+    "raw_access": 6.213,
+    "matches": [
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     57.55,
+     19.95
+    ]
+   },
+   "properties": {
+    "id": "H01",
+    "name": "Huqf cell 01",
+    "aoi": "AOI-3 Wildcard",
+    "profile": "mars_science",
+    "asi": 0.38,
+    "rank": 9,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.846,
+    "s_dryness": 0.96,
+    "s_minerals": 0.0,
+    "s_thermal": 0.625,
+    "s_radar": 0.5,
+    "s_access": 0.317,
+    "raw_terrain": 7.146,
+    "raw_dryness": 0.012,
+    "raw_minerals": 0.363,
+    "raw_thermal": 37.509,
+    "raw_radar": -7.998,
+    "raw_access": 8.201,
+    "matches": [
+     "Strong slope match",
+     "Strong dryness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak mineral match match (s 0.00)",
+     "Weak access match (s 0.32)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.7,
+     19.2
+    ]
+   },
+   "properties": {
+    "id": "D09",
+    "name": "Dhofar plateau cell 09",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_science",
+    "asi": 0.338,
+    "rank": 10,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.573,
+    "s_dryness": 0.863,
+    "s_minerals": 0.0,
+    "s_thermal": 0.591,
+    "s_radar": 0.928,
+    "s_access": 0.23,
+    "raw_terrain": 3.881,
+    "raw_dryness": 0.041,
+    "raw_minerals": 0.185,
+    "raw_thermal": 34.084,
+    "raw_radar": -12.575,
+    "raw_access": 9.243,
+    "matches": [
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak mineral match match (s 0.00)",
+     "Weak access match (s 0.23)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     54.95,
+     18.92
+    ]
+   },
+   "properties": {
+    "id": "D02",
+    "name": "Dhofar plateau cell 02",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_science",
+    "asi": 0.329,
+    "rank": 11,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.25,
+    "s_dryness": 0.82,
+    "s_minerals": 0.0,
+    "s_thermal": 0.682,
+    "s_radar": 0.746,
+    "s_access": 0.378,
+    "raw_terrain": 0,
+    "raw_dryness": 0.054,
+    "raw_minerals": 0.245,
+    "raw_thermal": 43.211,
+    "raw_radar": -9.967,
+    "raw_access": 7.468,
+    "matches": [
+     "Strong dryness match",
+     "Strong radar roughness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak slope match (s 0.25)",
+     "Weak mineral match match (s 0.00)",
+     "Weak access match (s 0.38)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     55.4,
+     18.55
+    ]
+   },
+   "properties": {
+    "id": "D05",
+    "name": "Dhofar gravel plain cell 05",
+    "aoi": "AOI-2 Dhofar",
+    "profile": "mars_science",
+    "asi": 0.296,
+    "rank": 12,
+    "benchmark": null,
+    "tier": 2,
+    "s_terrain": 0.453,
+    "s_dryness": 0.837,
+    "s_minerals": 0.0,
+    "s_thermal": 0.656,
+    "s_radar": 0.658,
+    "s_access": 0.132,
+    "raw_terrain": 2.437,
+    "raw_dryness": 0.049,
+    "raw_minerals": 0.257,
+    "raw_thermal": 40.594,
+    "raw_radar": -9.267,
+    "raw_access": 10.417,
+    "matches": [
+     "Strong dryness match"
+    ],
+    "gaps": [
+     "1 g gravity vs 0.38 g",
+     "Air ~170x denser than Mars",
+     "Active groundwater today",
+     "Weak mineral match match (s 0.00)",
+     "Weak access match (s 0.13)"
+    ],
+    "best_use": "Sample selection and in-situ spectroscopy on altered ultramafic rock."
+   }
+  }
+ ]
+}

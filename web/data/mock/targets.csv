@@ -1,0 +1,19 @@
+criterion,profile,body,site,value,tolerance,unit,source
+terrain,moon_base,Moon,Shackleton connecting ridge,4.5,10,deg,LRO LOLA polar DEM
+terrain,mars_landing,Mars,Jezero crater floor,3.0,10,deg,MOLA MEGDR / HiRISE DTM
+terrain,mars_science,Mars,Jezero delta front,9.0,12,deg,HiRISE DTM
+dryness,moon_base,Moon,Shackleton connecting ridge,0.0,0.3,NDVI,No vegetation
+dryness,mars_landing,Mars,Jezero crater floor,0.0,0.3,NDVI,No vegetation
+dryness,mars_science,Mars,Jezero delta front,0.0,0.3,NDVI,No vegetation
+minerals,moon_base,Moon,Shackleton connecting ridge,0.1,0.5,index,Anorthosite highland (M3)
+minerals,mars_landing,Mars,Jezero crater floor,0.5,0.6,index,MRO CRISM MTRDR
+minerals,mars_science,Mars,Jezero delta front,0.88,0.4,index,MRO CRISM olivine-carbonate
+thermal,moon_base,Moon,Shackleton connecting ridge,140,150,K,LRO Diviner polar products
+thermal,mars_landing,Mars,Jezero crater floor,75,100,K,Mars Odyssey THEMIS
+thermal,mars_science,Mars,Jezero delta front,75,100,K,Mars Odyssey THEMIS
+radar,moon_base,Moon,Shackleton connecting ridge,-16,8,dB,LRO Mini-RF
+radar,mars_landing,Mars,Jezero crater floor,-11,8,dB,Rock abundance (HiRISE)
+radar,mars_science,Mars,Jezero delta front,-12,8,dB,Rock abundance (HiRISE)
+access,moon_base,Moon,Shackleton connecting ridge,0,12,km,Crew traverse limit
+access,mars_landing,Mars,Jezero crater floor,0,12,km,Crew traverse limit
+access,mars_science,Mars,Jezero delta front,0,12,km,Crew traverse limit

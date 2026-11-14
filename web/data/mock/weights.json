@@ -1,0 +1,34 @@
+{
+  "mock": true,
+  "weights": {
+    "moon_base": {
+      "terrain": 0.3,
+      "dryness": 0.05,
+      "minerals": 0.1,
+      "thermal": 0.25,
+      "radar": 0.1,
+      "access": 0.2
+    },
+    "mars_landing": {
+      "terrain": 0.35,
+      "dryness": 0.05,
+      "minerals": 0.05,
+      "thermal": 0.1,
+      "radar": 0.25,
+      "access": 0.2
+    },
+    "mars_science": {
+      "terrain": 0.1,
+      "dryness": 0.15,
+      "minerals": 0.4,
+      "thermal": 0.1,
+      "radar": 0.05,
+      "access": 0.2
+    }
+  },
+  "cr": {
+    "moon_base": 0.041,
+    "mars_landing": 0.058,
+    "mars_science": 0.036
+  }
+}

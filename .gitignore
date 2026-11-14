@@ -1,0 +1,20 @@
+# secrets and local env
+.env
+*.pem
+*.key
+# raw downloads stay out of the repo (multi-GB)
+raw/
+*.hdf
+*.nc
+*.SAFE/
+*.laz
+*.las
+# python
+__pycache__/
+*.pyc
+.venv/
+# OS
+.DS_Store
+Thumbs.db
+# local QA harness (screenshots only, never published)
+web/_qa.html
