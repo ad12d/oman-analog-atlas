@@ -138,7 +138,7 @@ export default {
         <button type="button" class="panel-head sheet-head" id="rankHead" aria-expanded="true"><span class="panel-title">Check &amp; sites</span><span class="eyebrow" id="rankMission"></span></button>
         <div class="scroll" id="rankScroll">
           <div class="vmeter" id="vmeter"></div>
-          <div class="seg-tabs" role="tablist"><button type="button" class="tab" data-list="official" aria-selected="true">Official ranking</button><button type="button" class="tab" data-list="live" aria-selected="false">Your picks</button></div>
+          <div class="seg-tabs" role="tablist"><button type="button" class="tab" data-list="official" aria-selected="true">Official top 10</button><button type="button" class="tab" data-list="live" aria-selected="false">Your top 10</button></div>
           <div id="ranks"></div>
         </div>
       </div></aside>
@@ -191,7 +191,7 @@ export default {
       if (!G) { $r("#tuneBody").innerHTML = `<p class="note">Loading the map data…</p>`; return; }
       const Wn = normalise(W);
       $r("#tuneBody").innerHTML = `
-        <p class="note">Change how much each criterion matters and the map, the check and your picks update at once.</p>
+        <p class="note">Change how much each criterion matters and the map, the check and your top 10 update at once.</p>
         <div class="tune-top"><button type="button" class="btn" id="tuneReset">Back to the experts' choice</button><span class="note" title="Analytic Hierarchy Process; consistency ratio ${(data.cr[store.mission] ?? 0).toFixed(3)} (under 0.10 is consistent)">set with AHP</span></div>
         <h4 class="tune-h">How much each one matters</h4>
         ${CRITERIA.map(c => `<div class="trow"><label for="w_${c.k}"><i style="background:var(--c-${c.k})"></i>${c.name}</label><output id="o_${c.k}">${Math.round(Wn[c.k] * 100)}%</output>
@@ -268,12 +268,12 @@ export default {
         $r("#ranks").innerHTML = picks.length ? picks.map((p, i) => `
           <button type="button" class="rank live-pick" data-pick="${i}">
             <span class="n">L${i + 1}</span><span><b>${p.lat.toFixed(3)}° N, ${p.lon.toFixed(3)}° E</b><small>3 × 3 km area · ${nearOnly ? `within ${HACK.km} km of ${HACK.name}` : "anywhere in Oman"}</small><span class="bar"><i style="width:${Math.min(100, p.asi * 100)}%"></i></span></span>
-            <span class="v">${score100(p.asi)}</span></button>`).join("") + `<p class="note" style="padding:8px 16px">Your picks use your priorities on the quick 1 km map. The official ranking uses the detailed 90 m analysis.</p>`
+            <span class="v">${score100(p.asi)}</span></button>`).join("") + `<p class="note" style="padding:8px 16px">Your top 10 is ranked with your own priorities on the quick 1 km map. The official ranking uses the detailed 90 m analysis.</p>`
           : `<p class="note" style="padding:12px 16px">${G ? "No usable land matches these settings. Try relaxing a keep-away distance." : "Loading the map data…"}</p>`;
         return;
       }
       const list = data.top(store.mission);
-      $r("#ranks").innerHTML = `<p class="note rank-note">The ${TOP_N} best sites for ${esc(MISSIONS[store.mission].label)}, from the 90 m analysis of ${data.sites[store.mission].length} candidates.</p>` + list.map(s => `
+      $r("#ranks").innerHTML = `<p class="note rank-note">The ${TOP_N} best sites for ${esc(MISSIONS[store.mission].label)}, from the team's detailed 90 m analysis.</p>` + list.map(s => `
         <button type="button" class="rank" data-id="${s.id}">
           <span class="n">${String(s.rank).padStart(2, "0")}</span>
           <span><b>${esc(s.name)}${s.benchmark ? '<span class="bench-tag">B</span>' : ""}${(s.group || []).includes("drone_range") ? '<span class="bench-tag drone">80 km</span>' : ""}</b><small>${esc(s.aoi)}</small><span class="bar"><i style="width:${s.asi * 100}%"></i></span></span>
@@ -319,7 +319,7 @@ export default {
         markers.push(new window.maplibregl.Marker({ element: el, anchor: "center" }).setLngLat(s.lonlat).addTo(map));
       }
     }
-    /* live picks: ring markers, shown while the "Your picks" list is open */
+    /* live picks: ring markers, shown while the "Your top 10" list is open */
     function paintPicks() {
       pickMarkers.splice(0).forEach(m => m.remove());
       if (listMode !== "live") return;

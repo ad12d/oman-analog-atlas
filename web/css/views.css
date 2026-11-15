@@ -586,3 +586,5 @@ i.onote,.onote{font-style:normal;color:var(--moho);font-size:11.5px}
   .vr-hud{top:calc(100px + env(safe-area-inset-top,0px));right:8px;min-width:0;padding:8px 10px}
   .vr.vr-mission .vr-card{top:calc(100px + env(safe-area-inset-top,0px));max-height:30vh}
 }
+/* the fade overlay must never catch clicks or drags (the global .live rule re-enables pointer events on descendants) */
+#view .live .vr-fade{pointer-events:none}
