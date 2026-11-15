@@ -60,7 +60,7 @@ function buildShip() {
   const white = new THREE.MeshStandardMaterial({ color: 0xeceae4, roughness: .6, metalness: .1 });
   const foil = new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: .35, metalness: .9 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x2a2e35, roughness: .6, metalness: .3 });
-  const cell = new THREE.MeshStandardMaterial({ color: 0x1b2c5e, roughness: .3, metalness: .6, emissive: 0x050a18 });
+  const cell = new THREE.MeshStandardMaterial({ color: 0x2a4688, roughness: .25, metalness: .5, emissive: 0x0a1630 });
   const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
   add(new THREE.ConeGeometry(.5, .55, 32, 1, true), white, 0, .55, 0);                       // crew capsule
   add(new THREE.CylinderGeometry(.5, .5, .06, 32), dark, 0, .26, 0);                          // heat shield
@@ -80,6 +80,8 @@ function buildShip() {
 export function createJourney() {
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(55, 1, .005, 900);
   const universe = new THREE.Group(); scene.add(universe);
+  // a soft fill light riding with the screen camera, so the ship reads even when the Sun is behind it
+  const fill = new THREE.DirectionalLight(0xc4d0e4, 1.4); fill.position.set(.4, .6, .5); fill.target.position.set(0, 0, -1); camera.add(fill, fill.target); scene.add(camera);
   universe.add(new THREE.AmbientLight(0x30384a, .55));
   const sun = new THREE.DirectionalLight(0xffffff, 3.4); sun.position.set(40, 14, 30); universe.add(sun);
   // stars + a bright Sun sprite far away
@@ -91,6 +93,12 @@ export function createJourney() {
     gr.addColorStop(0, "rgba(255,250,235,1)"); gr.addColorStop(.25, "rgba(255,230,180,.6)"); gr.addColorStop(1, "rgba(255,200,120,0)"); x.fillStyle = gr; x.fillRect(0, 0, 128, 128);
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, depthWrite: false })); s.scale.set(60, 60, 1); s.position.copy(sun.position).normalize().multiplyScalar(380); return s; })();
   universe.add(sunSpr);
+  // a few hundred bright stars with a hint of colour, over the faint field
+  { const n = 420, pp = new Float32Array(n * 3), cc = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const u = Math.random() * 2 - 1, a = Math.random() * 6.283, r = Math.sqrt(1 - u * u); pp.set([r * Math.cos(a) * 390, u * 390, r * Math.sin(a) * 390], i * 3);
+      const w = Math.random(), b = .7 + Math.random() * .3; cc.set(w > .8 ? [b, b * .85, b * .65] : w < .25 ? [b * .75, b * .85, b] : [b, b, b], i * 3); }
+    const g2 = new THREE.BufferGeometry(); g2.setAttribute("position", new THREE.BufferAttribute(pp, 3)); g2.setAttribute("color", new THREE.BufferAttribute(cc, 3));
+    universe.add(new THREE.Points(g2, new THREE.PointsMaterial({ size: 2.6, sizeAttenuation: false, vertexColors: true }))); }
 
   const loader = new THREE.TextureLoader(), bodies = {};
   function body(w, r, glow) {
@@ -103,6 +111,10 @@ export function createJourney() {
     g.userData = { r, mesh }; universe.add(g); bodies[w] = g; return g;
   }
   const earth = body("earth", 1, 0x6aa8ff);
+  // drifting clouds over Earth
+  const cloudTex = loader.load("assets/textures/earth_clouds.jpg");
+  const clouds = new THREE.Mesh(new THREE.SphereGeometry(1.012, 96, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, alphaMap: cloudTex, transparent: true, depthWrite: false, roughness: 1 }));
+  earth.add(clouds);
   const ship = buildShip(); ship.scale.setScalar(.08); universe.add(ship);
   // route line, revealed as the ship flies it
   const routeGeo = new THREE.BufferGeometry(), RN = 400;
@@ -193,7 +205,7 @@ export function createJourney() {
       burning = s.phase === "burn";
       // chase camera: behind, above and a little to the side of the ship, looking past it toward the destination
       const back = p.clone().sub(a).normalize();
-      camPos.copy(p).addScaledVector(back, .9).add(tmp.set(0, .3, 0)).addScaledVector(new THREE.Vector3().crossVectors(back, up).normalize(), .25);
+      camPos.copy(p).addScaledVector(back, .75).add(tmp.set(0, .38, 0)).addScaledVector(new THREE.Vector3().crossVectors(back, up).normalize(), .5);
       camTgt.copy(curve.at(u + .06));                         // look along the path just ahead of the ship
       if (s.phase === "burn" && s.t >= DUR.burn) { s.phase = "cruise"; s.t = 0; }
       if (s.phase === "cruise") {
@@ -231,6 +243,7 @@ export function createJourney() {
     ship.userData.plume.scale.y = burning ? 1 + .3 * Math.sin(performance.now() / 55) : 1;
     zr.material.opacity = .6 + .4 * Math.sin(performance.now() / 300);
     if (s.home && s.home !== s.goal) s.home.userData.mesh.rotation.y += dt * .01;
+    clouds.rotation.y += dt * .004;
     // the camera eases toward its target pose (smooth for the screen; gentle for the cockpit)
     // follow tightly while the ship flies a smooth path; ease more gently through the phase changes
     const rate = s.phase === "cruise" || s.phase === "orbit" ? 18 : s.phase === "burn" ? 6 : 5;
@@ -239,6 +252,14 @@ export function createJourney() {
     const look = camera.userData.look || (camera.userData.look = camTgt.clone()); look.lerp(camTgt, kf);
     mtx.lookAt(camera.position, look, up); camera.quaternion.setFromRotationMatrix(mtx);
     paintDash();
+  }
+  /** reflections for metal, foil and gold: a soft starfield environment with a bright Sun */
+  function setRenderer(renderer) {
+    const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
+    es.add(new THREE.Mesh(new THREE.SphereGeometry(50, 32, 16), new THREE.MeshBasicMaterial({ color: 0x0b1018, side: THREE.BackSide })));
+    const s = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 8), new THREE.MeshBasicMaterial({ color: 0xfff4e0 })); s.position.copy(sun.position).normalize().multiplyScalar(40); es.add(s);
+    const e = new THREE.Mesh(new THREE.SphereGeometry(10, 16, 8), new THREE.MeshBasicMaterial({ color: 0x2a4a78 })); e.position.set(0, -38, 0); es.add(e);
+    scene.environment = pm.fromScene(es, .04).texture; pm.dispose();
   }
   function finish() { const r = st.res.done; st = null; cockpit.visible = false; r?.(); }
 
@@ -277,13 +298,16 @@ export function createJourney() {
     universe.matrixAutoUpdate = false; universe.matrix.copy(headM).multiply(inv); universe.matrixWorldNeedsUpdate = true;
     cockpit.visible = true; cockpit.matrixAutoUpdate = false; cockpit.matrix.copy(rig.matrixWorld); cockpit.matrixWorldNeedsUpdate = true;
   }
-  function placeForScreen(aspect) {
+  /** shiftX / shiftY: fraction of the view to move the picture right / up, so panels do not cover the planet */
+  function placeForScreen(aspect, w = 1, h = 1, shiftX = 0, shiftY = 0) {
     universe.matrixAutoUpdate = true; universe.position.set(0, 0, 0); universe.quaternion.identity(); cockpit.visible = false;
-    camera.aspect = aspect; camera.updateProjectionMatrix();
+    camera.aspect = aspect;
+    if (shiftX || shiftY) camera.setViewOffset(w, h, -shiftX * w, shiftY * h, w, h); else camera.clearViewOffset();
+    camera.updateProjectionMatrix();
   }
 
   return {
-    scene, camera, cockpit, ship, start, update, clock, placeForXR, placeForScreen,
+    scene, camera, cockpit, ship, setRenderer, start, update, clock, placeForXR, placeForScreen,
     descend() { if (st && st.phase === "orbit") { st.phase = "descend"; st.t = 0; } },
     skip() { if (st && (st.phase === "launch" || st.phase === "burn" || st.phase === "cruise")) { st.phase = "capture"; st.t = 0; st.onCaption("capture", ...st.leg.capture); } },
     setSpeed(v) { if (st) st.speed = v; }, get speed() { return st?.speed || 1; },

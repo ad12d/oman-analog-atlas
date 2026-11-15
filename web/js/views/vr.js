@@ -106,7 +106,11 @@ export default {
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType("local-floor"); renderer.xr.setFoveation(1);
     const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(70, 1, .05, 7000);
-    const sky = createSky(scene, renderer), journey = createJourney();
+    const sky = createSky(scene, renderer), journey = createJourney(); journey.setRenderer(renderer);
+    // sharp real-time shadows: a tight shadow box that follows you (baked terrain shading covers the distance)
+    sky.sun.shadow.mapSize.set(fx.level === "high" ? 4096 : 2048, fx.level === "high" ? 4096 : 2048);
+    { const sc = sky.sun.shadow.camera; sc.left = -70; sc.right = 70; sc.top = 70; sc.bottom = -70; sc.updateProjectionMatrix(); }
+    sky.sun.shadow.normalBias = .15; let sunDir = new THREE.Vector3(0, 1, 0);
     function resize() { renderer.setPixelRatio(Math.min(devicePixelRatio, fx.level === "high" ? 2 : 1.25)); renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
     resize(); addEventListener("resize", resize);
     const unFx = fx.subscribe(resize);
@@ -710,7 +714,7 @@ export default {
       lander = createLander(scene, terrain, rules); lander.onTouchdown = onTouchdown;
       camp = createCamp(scene, terrain, rules, w);
       overlay = false; terrain.setOverlay(false);
-      const sk = applySkin(w, { scene, renderer, sky, terrain });
+      const sk = applySkin(w, { scene, renderer, sky, terrain }); sunDir = sk.dir.clone();
       camp.setSky(sk.dir, w === "moon" ? sky.earth.userData.offset : null, w === "moon" ? 0x8a8884 : w === "mars" ? 0x8a4e32 : 0x7a6a58);
       buildPads();
       const best = pads[0] || { x: 0, z: 0 };
@@ -789,7 +793,13 @@ export default {
         const c = journey.clock(); if (c) { $r("#hudClock").textContent = c.text; $r("#hudBar").style.width = Math.round(c.f * 100) + "%"; $r("#hudDist").textContent = c.dist;
           const gc = $r("#gB .g-clock"); if (gc) { gc.querySelector("b").textContent = c.text; gc.querySelector("i").style.width = Math.round(c.f * 100) + "%"; } }
         if (renderer.xr.isPresenting) { journey.placeForXR(controls.rig); renderer.render(journey.scene, camera); }
-        else { journey.placeForScreen(innerWidth / innerHeight); renderer.render(journey.scene, journey.camera); }
+        else {
+          // keep the planet clear of the panels: move the picture right of the guide (wide screens) or above it (phones)
+          const gOn = guideOn && !$r("#vrGuide").hidden, wide = innerWidth > 760;
+          journey.placeForScreen(innerWidth / innerHeight, innerWidth, innerHeight, gOn && wide ? .14 : 0, gOn && !wide ? .2 : 0);
+          renderer.render(journey.scene, journey.camera);
+        }
+        $r("#vrHud").hidden = ch === "orbit" || journey.phase === "orbit" || journey.phase === "descend";
         if (renderer.xr.isPresenting && menu && consoleDue > 0 && (consoleDue -= dt) <= 0) placeConsole();
         return;
       }
@@ -808,6 +818,8 @@ export default {
         holo?.update(dt);
         if (mannequin?.visible) { mannequin.rotation.y += dt * .15; mannequinMarks.markers.forEach((m, i) => m.children[0].lookAt(camera.getWorldPosition(tmpV))); }
         terrain.updatePebbles(controls.rig.position.x, controls.rig.position.z);
+        { const rp = controls.rig.position, snap = 140 / sky.sun.shadow.mapSize.x, cx = Math.round(rp.x / snap) * snap, cz = Math.round(rp.z / snap) * snap;   // snapped: no shimmering
+          sky.sun.target.position.set(cx, rp.y, cz); sky.sun.position.set(cx, rp.y, cz).addScaledVector(sunDir, 700); sky.sun.target.updateMatrixWorld(); }
         hover();
         lander.update(dt * (step === "descent" ? speed : 1), now / 1000);
         camp.update(dt, now / 1000);
