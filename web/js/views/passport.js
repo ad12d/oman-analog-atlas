@@ -147,7 +147,7 @@ export function drawCurve(box, data, mission, k, earth, sOfficial) {
     <rect class="chit" x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent"/>`;
   box.querySelector("[data-ctitle]").textContent = `How the match is scored · ${c.name}`;
   const onWorld = k === "access" ? "Field logistics (Earth only): not a property of the Moon or Mars." : t.world ? `${t.body === "Moon" ? "On the Moon" : "On Mars"}: ${t.world}${t.worldSrc ? ` (${t.worldSrc})` : ""}.` : "";
-  box.querySelector("[data-csrc]").innerHTML = `<b>What it measures:</b> ${esc(c.what)} <b>Why it matters:</b> ${esc(c.why)}<br><b>Scoring:</b> ${esc(RULE_PLAIN[t.kind] || RULE_PLAIN.linear)} Full marks at ${fmt(t.value, c.dp)}${c.unit}. ${esc(onWorld)}${t.omanNote ? ` <i class="onote">Earth can't reach this; Oman's own best counts as 100%.</i>` : ""}
+  box.querySelector("[data-csrc]").innerHTML = `<b>What it measures:</b> ${esc(c.what)} <b>Why it matters:</b> ${esc(c.why)}<br><b>Scoring:</b> ${esc(RULE_PLAIN[t.kind] || RULE_PLAIN.linear)} Full marks at ${fmt(t.value, c.dp)}${c.unit}${t.omanNote ? ", Oman's own largest value (top 2%), because Earth can't reach the real one" : ""}. ${esc(onWorld)}${t.omanNote ? ` <i class="onote">Earth can't reach this; Oman's own best counts as 100%.</i>` : ""}
     <details class="experts"><summary>For experts</summary><span class="tech">Data: ${esc(c.src)} (Oman) · ${esc(t.source)} (target)${t.rule ? ` · rule: ${esc(t.rule)}` : ""}</span></details>`;
   const hit = svg.querySelector(".chit"), cx = svg.querySelector(".cx");
   hit.addEventListener("pointermove", e => {

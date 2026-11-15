@@ -37,7 +37,7 @@ export const CRITERIA = [
     why: "Hills cast shadows, block radio links and limit how far a crew can see, which shapes how a base is laid out." },
   { k: "dT_diurnal", name: "Day–night swing", tech: "day − night land surface temperature", word: "Climate", unit: " °C", dp: 1, min: 0, max: 25, src: "MODIS MOD11A2 LST 2025",
     what: "How much the ground cools between day and night.",
-    why: "On the Moon and Mars the surface swings by 100 °C or more. No place on Earth comes close, so Oman sites with the biggest swings test equipment best." },
+    why: "At Jezero the air swings 50–60 °C between day and night (Perseverance weather station); at the lunar south pole sunlit rims sit near −50 °C while shadows stay below −170 °C. No place on Earth comes close, so Oman sites with the biggest swings test equipment best." },
   { k: "dT_annual", name: "Seasonal swing", tech: "annual land surface temperature range", word: "Climate", unit: " °C", dp: 1, min: 0, max: 45, src: "MODIS MOD11A2 LST 2025",
     what: "How much the ground temperature changes over the year.",
     why: "Big seasonal swings stress seals, batteries and materials, as a long mission would." },

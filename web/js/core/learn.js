@@ -13,7 +13,7 @@ export const WORLD_FACTS = {
   mars: [
     { k: "Gravity", v: "38% of Earth", d: "3.71 m/s². Everything weighs about a third of what it does on Earth, so walking is bouncy." },
     { k: "Air", v: "under 1% of Earth's", d: "Thin carbon dioxide. Enough for wind and dust storms, too thin to breathe or to stop radiation." },
-    { k: "Cold", v: "about −60 °C average", d: "Days can feel mild near the equator, nights drop far below freezing." },
+    { k: "Cold", v: "about −55 °C average", d: "At Jezero (Perseverance weather station). The air swings 50–60 °C between day and night." },
     { k: "Day", v: "24 h 39 min", d: "A Mars day, called a sol, is only a little longer than ours." },
     { k: "Trip", v: "about 7 months", d: "Radio takes 4 to 24 minutes each way, so the crew and robots must act on their own." },
   ],
