@@ -613,3 +613,6 @@ i.onote,.onote{font-style:normal;color:var(--moho);font-size:11.5px}
 .vr.vr-mission .vr-caption #vrCapK{display:inline-block;background:rgba(242,196,109,.14);color:var(--moho);border-radius:999px;padding:4px 10px;justify-self:start}
 .vr.vr-mission .vr-bar .vr-row{background:linear-gradient(180deg, rgba(28,33,42,.82), rgba(10,12,16,.86));border:1px solid rgba(242,196,109,.2);border-radius:999px;padding:5px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .vr.vr-mission .vr-guide-show{border-radius:999px}
+.vr-guide .g-tools{display:flex;gap:4px;align-items:center}
+.vr-guide .snd{font-size:14px;line-height:1}
+.vr-guide .snd[aria-pressed="false"]{opacity:.45}

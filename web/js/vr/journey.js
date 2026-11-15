@@ -135,13 +135,16 @@ export function createJourney() {
     const frameM = new THREE.MeshStandardMaterial({ color: 0x23272e, roughness: .7, metalness: .3 });
     const ring = new THREE.Mesh(new THREE.TorusGeometry(1.25, .07, 10, 64), frameM); ring.position.set(0, 1.55, -1.6); cockpit.add(ring);
     for (const a of [Math.PI / 4, 3 * Math.PI / 4]) { const s = new THREE.Mesh(new THREE.BoxGeometry(.05, 2.4, .05), frameM); s.position.set(0, 1.55, -1.6); s.rotation.z = a; s.scale.y = .02; cockpit.add(s); }
-    const dash = new THREE.Mesh(new THREE.BoxGeometry(1.6, .08, .6), frameM); dash.position.set(0, .95, -.75); dash.rotation.x = -.35; cockpit.add(dash);
+    const dash = new THREE.Mesh(new THREE.BoxGeometry(1.6, .08, .55), frameM); dash.position.set(0, .7, -.85); dash.rotation.x = -.22; cockpit.add(dash);   // a low deck, below the console
     cockpit.add(new THREE.HemisphereLight(0xb8c4d8, 0x202428, .9));
   }
-  const dashCv = document.createElement("canvas"); dashCv.width = 1024; dashCv.height = 300;
-  const dashTex = new THREE.CanvasTexture(dashCv); dashTex.colorSpace = THREE.SRGBColorSpace;
-  const dashPanel = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .35), new THREE.MeshBasicMaterial({ map: dashTex, transparent: true, toneMapped: false }));
-  dashPanel.position.set(0, 1.0, -.72); dashPanel.rotation.x = -.35; cockpit.add(dashPanel);
+  // the mission screen stands on its own bezel at the back of the deck, clear of every other surface
+  const dashCv = document.createElement("canvas"); dashCv.width = 1024; dashCv.height = 348;
+  const dashTex = new THREE.CanvasTexture(dashCv); dashTex.colorSpace = THREE.SRGBColorSpace; dashTex.anisotropy = 8;
+  const screenG = new THREE.Group(); screenG.position.set(0, .98, -1.12); screenG.rotation.x = -.16; cockpit.add(screenG);
+  const bezel = new THREE.Mesh(new THREE.BoxGeometry(1.32, .5, .03), new THREE.MeshStandardMaterial({ color: 0x15181d, roughness: .5, metalness: .5 })); screenG.add(bezel);
+  const dashPanel = new THREE.Mesh(new THREE.PlaneGeometry(1.24, .42), new THREE.MeshBasicMaterial({ map: dashTex, toneMapped: false }));
+  dashPanel.position.z = .017; screenG.add(dashPanel);
 
   const curve = { p: [], at: t => curve.p[0] };
   let st = null;
@@ -274,17 +277,23 @@ export function createJourney() {
   let dashLast = "";
   function paintDash() {
     if (!cockpit.visible) return;
-    const c = clock(), key = (c?.text || "") + st?.phase + (st?.cap || "");
+    const c = clock(), key = (c?.text || "") + st?.phase + (st?.cap || "") + (st?.capTitle || "");
     if (key === dashLast) return; dashLast = key;
-    const x = dashCv.getContext("2d"), W = dashCv.width, H = dashCv.height;
-    x.clearRect(0, 0, W, H); x.fillStyle = "rgba(8,10,14,.9)"; x.beginPath(); x.roundRect(0, 0, W, H, 24); x.fill();
-    x.fillStyle = "#f2c46d"; x.font = "600 44px 'Space Grotesk', sans-serif"; x.fillText(c ? c.text : "", 32, 70);
-    x.fillStyle = "#9ba3ad"; x.font = "500 26px 'IBM Plex Mono', monospace"; x.fillText(c ? `DISTANCE ${c.dist.toUpperCase()}` : "", 32, 116);
-    x.fillStyle = "rgba(255,255,255,.12)"; x.fillRect(32, 150, W - 64, 16); x.fillStyle = "#f2c46d"; x.fillRect(32, 150, (W - 64) * (c ? c.f : 0), 16);
-    x.fillStyle = "#e9e6df"; x.font = "400 30px 'IBM Plex Sans', sans-serif";
-    const words = (st?.cap || "").split(" "); let line = "", y = 222;
-    for (const w of words) { const t = line ? line + " " + w : w; if (x.measureText(t).width > W - 64) { x.fillText(line, 32, y); y += 38; line = w; if (y > H - 10) break; } else line = t; }
-    if (line && y <= H - 10) x.fillText(line, 32, y);
+    const x = dashCv.getContext("2d"), W = dashCv.width, H = dashCv.height, P = 34;
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#161b23"); g.addColorStop(1, "#090b0f");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    x.strokeStyle = "rgba(242,196,109,.5)"; x.lineWidth = 3; x.strokeRect(1.5, 1.5, W - 3, H - 3);
+    x.fillStyle = "#f2c46d"; x.font = "600 40px 'Space Grotesk', sans-serif"; x.fillText(c ? c.text : "", P, 58);
+    x.fillStyle = "#9ba3ad"; x.font = "500 22px 'IBM Plex Mono', monospace"; x.textAlign = "right"; x.fillText(c ? c.dist.toUpperCase() : "", W - P, 56); x.textAlign = "left";
+    x.fillStyle = "rgba(255,255,255,.12)"; x.fillRect(P, 78, W - 2 * P, 10); x.fillStyle = "#f2c46d"; x.fillRect(P, 78, (W - 2 * P) * (c ? c.f : 0), 10);
+    x.fillStyle = "#f3f1ec"; x.font = "700 30px 'Space Grotesk', sans-serif"; x.fillText(st?.capTitle || "", P, 134);
+    // caption: wrapped to the screen width, at most five lines, an ellipsis if it runs longer
+    x.fillStyle = "#d9dde2"; x.font = "400 25px 'IBM Plex Sans', sans-serif";
+    const words = (st?.cap || "").split(" "), lines = []; let line = "";
+    for (const w of words) { const t = line ? line + " " + w : w; if (x.measureText(t).width > W - 2 * P && line) { lines.push(line); line = w; } else line = t; }
+    if (line) lines.push(line);
+    const shown = lines.slice(0, 5); if (lines.length > 5) shown[4] = shown[4].replace(/\s*\S*$/, "") + "…";
+    shown.forEach((l, k) => x.fillText(l, P, 174 + k * 33));
     dashTex.needsUpdate = true;
   }
 
@@ -311,7 +320,7 @@ export function createJourney() {
     descend() { if (st && st.phase === "orbit") { st.phase = "descend"; st.t = 0; } },
     skip() { if (st && (st.phase === "launch" || st.phase === "burn" || st.phase === "cruise")) { st.phase = "capture"; st.t = 0; st.onCaption("capture", ...st.leg.capture); } },
     setSpeed(v) { if (st) st.speed = v; }, get speed() { return st?.speed || 1; },
-    setCaption(t) { if (st) st.cap = t; },
+    setCaption(t, title = "") { if (st) { st.cap = t; st.capTitle = title; } },
     get active() { return !!st; }, get phase() { return st?.phase || null; },
     dispose() { sg.dispose(); routeGeo.dispose(); dashTex.dispose(); scene.traverse(o => { o.geometry?.dispose?.(); const m = o.material; (Array.isArray(m) ? m : m ? [m] : []).forEach(x => { x.map?.dispose?.(); x.dispose?.(); }); }); },
   };
