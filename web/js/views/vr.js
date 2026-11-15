@@ -1,3 +1,6 @@
+// VR MISSION: a guided, interactive story. Seven chapters on a track you can follow or jump around:
+//   Mission (holo-table atlas: where we go, where Oman rehearses it) · Suit up (your suit, part by part) ·
+//   Journey (launch, transfer, mission clock) · Orbit (circling the landing zone) · Landing · Base · Debrief.
 // VR: land on real terrain and establish a base, taught step by step.
 //   Worlds: Oman (Samail ophiolite, Copernicus DEM + Sentinel-2), Moon (Shackleton connecting ridge, LOLA 5 m),
 //   Mars (Jezero crater floor, HiRISE 1 m). Switching worlds flies you through space (screen) or fades (headset).
@@ -12,7 +15,12 @@ import { createSky, applySkin } from "../vr/skins.js";
 import { createLander } from "../vr/lander.js";
 import { createCamp } from "../vr/camp.js";
 import { createControls } from "../vr/controls.js";
-import { createTravel } from "../vr/travel.js";
+import { createJourney, LEGS } from "../vr/journey.js";
+import { createBody, buildSuit, partMarkers, SUIT_PARTS } from "../vr/suit.js";
+import { createHolo } from "../vr/holo.js";
+import { MISSIONS, MISSION_KEYS, CRITERIA, score100 } from "../core/data.js";
+import { LEARN, WORLD_FACTS } from "../core/learn.js";
+import { getGrid } from "../core/grid.js";
 
 const LEVEL = ["SAFE", "MARGINAL", "HAZARD"], LEVEL_COL = ["#46c37a", "#f0b040", "#e04a3a"], LEVEL_HEX = [0x46c37a, 0xf0b040, 0xe04a3a];
 const WORLDS = {
@@ -27,6 +35,10 @@ const CRITERION_LINK = {
   drill: "Ancient riverbeds and Mars-like minerals: where the science and resources are", path: "Road access: a marked, gentle walking route",
 };
 const wait = ms => new Promise(r => setTimeout(r, ms));
+const CH = [{ id: "brief", label: "Mission" }, { id: "suit", label: "Suit up" }, { id: "journey", label: "Journey" }, { id: "orbit", label: "Orbit" },
+  { id: "landing", label: "Landing" }, { id: "base", label: "Base" }, { id: "debrief", label: "Debrief" }];
+const DEST3D = { moon_base: "moon_shackleton", mars_landing: "mars_jezero_floor", mars_science: "mars_jezero_delta", mars_sedimentary: "mars_jezero_delta" };
+const cssColor = k => getComputedStyle(document.documentElement).getPropertyValue("--c-" + k).trim() || "#f2c46d";
 
 /* canvas-texture panel used for the headset console and the info board */
 function panel(wm, hm, pw, ph) {
@@ -56,7 +68,7 @@ export default {
     space.setActive(false);
     let alive = true, world = "oman";
 
-    const root = h("section", { class: "vr live", "aria-label": "VR landing and base building" });
+    const root = h("section", { class: "vr live vr-mission", "aria-label": "VR mission: from Oman to the Moon or Mars" });
     root.innerHTML = `
       <canvas class="vr-canvas" aria-label="3D view of the landing site"></canvas>
       <div class="vr-fade" id="vrFade"></div>
@@ -72,6 +84,15 @@ export default {
       <aside class="vr-card panel ticks" id="vrCard" hidden></aside>
       <div class="vr-caption panel" id="vrCap" hidden><p class="eyebrow" id="vrCapK"></p><h3 id="vrCapT"></h3><div id="vrCapB"></div><button type="button" class="btn" id="vrCapSkip">Skip</button></div>
       <div class="vr-bar" id="vrBar" role="toolbar" aria-label="VR controls" hidden></div>
+      <nav class="vr-track" id="vrTrack" aria-label="Mission track">${CH.map((c, i) => `<button type="button" data-ch="${c.id}"><i>${i + 1}</i><span>${c.label}</span></button>`).join("")}</nav>
+      <aside class="vr-guide panel ticks" id="vrGuide" aria-live="polite">
+        <div class="g-head"><span class="eyebrow" id="gK"></span><button type="button" class="vr-x" id="gHide" aria-label="Hide the guide" title="Hide the guide (explore freely)">–</button></div>
+        <h3 id="gT"></h3><div class="g-body" id="gB"></div>
+        <div class="g-acts" id="gActs"></div>
+        <div class="g-nav"><button type="button" class="btn" data-a="ch:prev">◂ Back</button><button type="button" class="btn primary" data-a="ch:next" id="gNext">Next ▸</button></div>
+      </aside>
+      <button type="button" class="btn vr-guide-show" id="gShow" hidden>Show the guide</button>
+      <div class="vr-hud" id="vrHud" hidden><b id="hudClock"></b><div class="hud-bar"><i id="hudBar"></i></div><span id="hudDist"></span></div>
       <button type="button" class="btn primary vr-enter" id="vrEnter" hidden>Enter VR</button>`;
     view.appendChild(root);
     const $r = s => root.querySelector(s);
@@ -85,7 +106,7 @@ export default {
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.xr.enabled = true; renderer.xr.setReferenceSpaceType("local-floor"); renderer.xr.setFoveation(1);
     const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(70, 1, .05, 7000);
-    const sky = createSky(scene, renderer), travel = createTravel();
+    const sky = createSky(scene, renderer), journey = createJourney();
     function resize() { renderer.setPixelRatio(Math.min(devicePixelRatio, fx.level === "high" ? 2 : 1.25)); renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
     resize(); addEventListener("resize", resize);
     const unFx = fx.subscribe(resize);
@@ -95,9 +116,16 @@ export default {
 
     let terrain = null, lander = null, camp = null, controls, rules, menu, board, pads = [], padMarker, padHover, moveMarker, chosen = null;
     let step = "pad", tool = "pad", overlay = false, speed = 1, lastMsg = "", boardT = 0, loading = false, touring = false, flying = false, skipTour = false;
+    // mission track
+    let ch = null, mission = store.mission, siteId = route.id && data.site(route.id, store.mission) ? route.id : data.sites[store.mission][0].id;
+    let part = null, guideOn = true, G = null, journeyOn = false, jCap = { title: "", text: "" }, groundWorld = null, baseDone = false, busy = false;
+    const doneCh = new Set();
+    const dest = () => MISSIONS[mission].world;
+    const site = () => data.site(siteId, mission) || data.sites[mission][0];
+    let body, holo, mannequin, mannequinMarks;
     const tmpV = new THREE.Vector3();
 
-    function msg(t) { lastMsg = t; const m = $r("#vrMsg"); if (m) m.textContent = t; drawMenu(); }
+    function msg(t) { lastMsg = t; const m = $r("#vrMsg"); if (m) m.textContent = t; drawMenu(); if (ch === "landing" || ch === "base") paintGuide(); }
 
     /* ---------- ground picking: march along the ray against the height field (cheap on Quest) ---------- */
     function rayGround(ray, max = 400) {
@@ -117,8 +145,26 @@ export default {
     }
 
     /* ---------- actions (shared by the screen buttons and the headset console) ---------- */
+    function missionActions() {
+      const A = [], xr = renderer.xr.isPresenting;
+      if (ch === "brief") for (const m of MISSION_KEYS) A.push({ id: "m:mission:" + m, label: MISSIONS[m].label, on: m === mission, group: "m" });
+      if (ch === "suit") { for (const p of SUIT_PARTS) A.push({ id: "m:part:" + p.id, label: p.name.split(" and ")[0], on: part === p.id, group: "m" }); }
+      if (ch === "journey") A.push({ id: "m:speed", label: journey.speed > 1 ? "Time ×4" : "Time ×1", on: journey.speed > 1, group: "m" }, { id: "m:skip", label: "Skip to orbit", group: "m" });
+      if (ch === "orbit") A.push({ id: "m:descend", label: "Begin descent ▸", primary: true, group: "m" });
+      if (ch === "landing" && step === "pad") A.push({ id: "land", label: "Start landing ▸", primary: true, off: !chosen, group: "m" });
+      if (ch === "base" && !touring) A.push({ id: "tour", label: "Build the recommended base ▸", primary: true, group: "m" });
+      if (ch === "debrief") A.push({ id: "m:home", label: "Fly home & rehearse in Oman", primary: true, group: "m" }, { id: "m:other", label: dest() === "moon" ? "Now try Mars" : "Now try the Moon", group: "m" },
+        { id: "m:passport", label: "Open the site passport", group: "m" }, { id: "m:dest3d", label: "See the destination in 3D", group: "m" });
+      if (!xr && ch !== "journey" && ch !== "orbit") A.push({ id: "m:view", label: body?.mode === "third" ? "First-person view" : "See yourself (3rd person)", on: body?.mode === "third", group: "m" });
+      return A;
+    }
     function actions() {
       const A = [];
+      if (renderer.xr.isPresenting && ch) {                 // the headset console leads with the chapter's own buttons and Back / Next
+        A.push(...missionActions().map(a => ({ ...a, group: "main" })));
+        A.push({ id: "ch:prev", label: "◂ Back", off: chIndex() <= 0 }, { id: "ch:next", label: nextLabel(), primary: !A.some(a => a.primary), off: !canNext() });
+        if (ch !== "landing" && ch !== "base") return A;
+      }
       if (touring) A.push({ id: "skip", label: "Skip tour", primary: true });
       else {
         if (step === "pad") A.push({ id: "tool:pad", label: "Pick pad", on: tool === "pad" }, { id: "land", label: "Start landing ▸", primary: true, off: !chosen });
@@ -133,6 +179,7 @@ export default {
       return A;
     }
     function run(id) {
+      if (id.startsWith("ch:") || id.startsWith("m:")) { missionRun(id); return; }
       if (loading || flying) return;
       const [k, v] = id.split(":");
       if (k === "tool") {
@@ -155,7 +202,9 @@ export default {
       const bar = $r("#vrBar"); if (!bar) return;
       const A = actions();
       const grp = g => A.filter(a => (a.group || "main") === g).map(a => `<button type="button" class="btn${a.primary ? " primary" : ""}" data-a="${a.id}" aria-pressed="${!!a.on}" ${a.off ? "disabled" : ""}>${esc(a.label)}</button>`).join("");
-      bar.innerHTML = `<div class="vr-row">${grp("main")}</div>${step === "camp" && !touring ? `<div class="vr-row">${grp("mod")}</div>` : ""}<div class="vr-row vr-skins"><span class="eyebrow">World</span>${grp("world")}</div>`;
+      const ground = ch === "landing" || ch === "base" || !guideOn;
+      bar.innerHTML = `${ground ? `<div class="vr-row">${grp("main")}</div>` : ""}${step === "camp" && !touring && ground ? `<div class="vr-row">${grp("mod")}</div>` : ""}<div class="vr-row vr-skins"><span class="eyebrow">Fly to</span>${grp("world")}</div>`;
+      bar.hidden = journeyOn || loading;
       root.querySelectorAll(".vr-steps li").forEach(li => li.classList.toggle("on", li.dataset.s === step));
       drawMenu();
     }
@@ -271,11 +320,13 @@ export default {
         ${row("Ground slope", r.slope.toFixed(1) + "°", L.slope_safe_deg + "°", L.slope_hazard_deg + "°", r.grades[1])}
         ${row("Surface bumps", Math.round(r.roughness * 100) + " cm", Math.round(L.roughness_safe_m * 100) + " cm", Math.round(L.roughness_hazard_m * 100) + " cm", r.grades[2])}
         </tbody></table>
-        <p class="note">Why it matters: a lander leaning more than about 8° could tip over or be unable to take off again, and rocks under a foot can puncture it. Measured on the ${L.pad_radius_m} m pad from ${esc(terrain.meta.source || "the terrain tile")}. Limits set by our team from published Moon and Mars landing practice.</p>
+        <p class="note">Why it matters: a lander leaning more than about 8° could tip over or be unable to take off again, and rocks under a foot can puncture it. Measured on the ${L.pad_radius_m} m pad from the real satellite height map. Limits set by our team from published Moon and Mars landing practice.</p>
+        <details class="experts"><summary>For experts</summary><p class="tech">Terrain: ${esc(terrain.meta.source || "terrain tile")}. Small rocks, pebbles and the sky are illustrated.</p></details>
         <div class="vr-card-acts"><button type="button" class="btn primary" data-a="tour">Build the recommended base ▸</button><button type="button" class="btn" data-a="tool:habitat">Place modules myself</button></div>`;
       $r("#vrCard").hidden = false;
       showBoard(`Touchdown · ${LEVEL[r.level]}`, [`Leaning ${r.tilt.toFixed(1)}°, slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm.`, "Next: build the base from the console."], col);
       msg(`Touchdown ${LEVEL[r.level].toLowerCase()}. Now establish the base: place each module where the rules allow, or watch the recommended base being built.`);
+      if (ch === "landing") setTimeout(() => { if (alive && ch === "landing") enterCh("base"); }, 2500);
       paint();
     }
     $r("#vrCard").addEventListener("click", e => {
@@ -331,6 +382,9 @@ export default {
     let lastHoverMsg = "";
     function onSelect(ray) {
       if (renderer.xr.isPresenting) { const m = menuHit(ray); if (m) { if (m.i >= 0 && !menuBtns[m.i].off) run(menuBtns[m.i].id); return; } }
+      if (ch === "brief" && holo?.group.visible) { const hit = ray.intersectObject(holo.screen, false)[0]; if (hit) { const id = holo.pick(hit.uv); if (id) { siteId = id; drawHolo(); paintGuide(); toast(`Rehearsal site: ${site().name}`); } return; } }
+      if (ch === "suit" && mannequin?.visible) { const hit = ray.intersectObjects(mannequinMarks.markers, false)[0]; if (hit) { showPart(hit.object.userData.part); return; } }
+      if (ch !== "landing" && ch !== "base" && guideOn && tool !== "move") return;
       if (!terrain || loading || flying || touring) return;
       const p = rayGround(ray); if (!p) return;
       if (tool === "move") { if (terrain.inNear(p.x, p.z, 4) && Math.hypot(p.x - controls.rig.position.x, p.z - controls.rig.position.z) < 120) { controls.teleport(p.x, p.y, p.z); if (renderer.xr.isPresenting && menu.mesh.visible) consoleDue = .3; } else toast("Stay inside the landing area"); return; }
@@ -443,6 +497,7 @@ export default {
       touring = false; paint();
       if (cine) cine.interruptible = true;        // the overview keeps turning until you drag or press a key
       msg("The base is established. Drag or press a key to take back the camera; place more modules or switch worlds to compare.");
+      baseDone = true; paintGuide();
     }
     const linkFor = id => id === "comms" && world !== "moon" ? (world === "mars" ? "Road access: the link runs through orbiting relay satellites, so the mast stays close to the habitat" : "Road access: a short cable run to the habitat") : CRITERION_LINK[id] || "";
     function baseReport() {
@@ -458,7 +513,186 @@ export default {
       showBoard("Base established", ["Every module stands where the rules allow.", "Switch worlds from the console to compare the same steps on the Moon, Mars and Oman."], LEVEL_COL[0], 16);
     }
 
-    /* ---------- worlds ---------- */
+    /* ================= MISSION TRACK ================= */
+    const chIndex = () => CH.findIndex(c => c.id === ch);
+    const canNext = () => ch === "landing" ? step === "camp" : ch === "journey" || ch === "orbit" || ch !== "debrief";
+    const nextLabel = () => ({ brief: "Suit up ▸", suit: "Launch ▸", journey: "Skip to orbit ▸", orbit: "Begin descent ▸", landing: step === "camp" ? "Build the base ▸" : "Land first", base: "Debrief ▸", debrief: "—" })[ch] || "Next ▸";
+    function holoCard() {
+      const M = MISSIONS[mission], s = site(), w = dest(), L = LEARN[mission], leg = LEGS[w], W = data.weights[mission];
+      const matches = CRITERIA.map(c => ({ c, pts: W[c.k] * s["s_" + c.k], sv: +s["s_" + c.k] })).filter(x => x.sv >= .5).sort((a, b) => b.pts - a.pts).slice(0, 3)
+        .map(x => ({ name: x.c.name, pct: Math.round(x.sv * 100), color: cssColor(x.c.k) }));
+      return { dest: M.target, world: w, worldLine: `${w === "moon" ? "The Moon" : "Mars"} · ${M.label}`, journey: `About ${leg.total} ${leg.unit}s in space · ${leg.dist}`, why: L.why[0], matches };
+    }
+    function drawHolo() { if (!holo) return; const M = MISSIONS[mission]; holo.draw({ G, mission, label: M.label, ramp: M.ramp.slice(1), sites: data.top(mission), site: site(), card: holoCard() }); }
+    function placeAhead(obj, dist) {
+      headPose(); const x = headPos.x + headDir.x * dist, z = headPos.z + headDir.z * dist, y = terrain ? terrain.heightAt(x, z) : 0;
+      if (obj === holo) holo.place(x, y, z, headPos.x, headPos.z);
+      else { obj.position.set(x, y, z); obj.rotation.set(0, Math.atan2(headPos.x - x, headPos.z - z), 0); }
+    }
+    function showPart(id) {
+      part = id; const P = SUIT_PARTS.find(p => p.id === id);
+      mannequinMarks.markers.forEach(m => { const on = m.userData.part === id; m.material.color.setHex(on ? 0x46c37a : 0xf2c46d); m.scale.setScalar(on ? 1.5 : 1); });
+      paintGuide(); if (P) showBoard(P.name, [P.text], "#f2c46d", 20);
+    }
+    function narration() {
+      const M = MISSIONS[mission], w = dest(), L = LEARN[mission], s = site(), leg = LEGS[w], xr = renderer.xr.isPresenting;
+      const rehearsal = groundWorld === "oman" && (ch === "landing" || ch === "base");
+      switch (ch) {
+        case "brief": return { k: "1 · Where are we going?", t: M.target, plain: `${M.target}. ${L.place} About ${leg.total} ${leg.unit}s in space. Rehearse first in Oman at ${s.name} (score ${score100(s.asi)}/100).`,
+          html: `<p class="lead">${esc(L.place)}</p><p>${esc(L.why[0])}</p>
+            <div class="g-facts"><div><span>Time in space</span><b>about ${leg.total} ${leg.unit}s</b></div><div><span>Distance</span><b>${esc(leg.dist)}</b></div>
+            <div class="wide"><span>Where crews rehearse it in Oman</span><b>${esc(s.name)} · ${score100(s.asi)}/100</b></div></div>
+            <p class="note">The holo-table is the atlas: Oman's best places for this mission, top sites numbered. ${xr ? "Point at one and pull the trigger" : "Click one"} to choose where to rehearse; change the mission below.</p>` };
+        case "suit": { const P = SUIT_PARTS.find(p => p.id === part);
+          return { k: "2 · Suit up", t: P ? P.name : "Your space suit", plain: P ? P.text : "Outside the base the suit is your personal spacecraft. Point at a gold marker to learn what each part does.",
+            html: `<p class="lead">${P ? esc(P.text) : "Outside the base you never take it off: the suit is your own small spacecraft, with air, pressure, cooling and radio. Point at a gold marker or pick a part below."}</p>
+              <p class="note">${xr ? "Look down: that is your suit. Your gloves follow your hands." : "You are wearing the same suit: look down, or press “See yourself” to watch yourself walk in it (WASD)."}</p>` }; }
+        case "journey": { const c = journey.clock();
+          return { k: "3 · How we get there", t: jCap.title || "Launch", plain: jCap.text,
+            html: `<p class="lead">${esc(jCap.text)}</p>${c ? `<div class="g-clock"><b>${c.text}</b><div><i style="width:${Math.round(c.f * 100)}%"></i></div><span>${esc(c.dist)}</span></div>` : ""}
+              <p class="note">The gold dashes are the ship's path. Distances are squeezed so the whole trip fits on screen; times and facts are real.</p>` }; }
+        case "orbit": return { k: "4 · In orbit", t: LEGS[w].orbit[0], plain: LEGS[w].orbit[1],
+          html: `<p class="lead">${esc(LEGS[w].orbit[1])}</p><div class="g-facts">${WORLD_FACTS[w].slice(0, 4).map(f => `<div><span>${esc(f.k)}</span><b>${esc(f.v)}</b></div>`).join("")}</div>` };
+        case "landing": return { k: `5 · Landing${rehearsal ? " · Oman rehearsal" : ""}`, t: "Pick a safe landing pad", plain: lastMsg,
+          html: `<p class="lead">${rehearsal ? "The same check on real Omani ground: this is how crews rehearse it. " : ""}A lander needs flat, firm ground: leaning more than about 8° it could tip over or fail to take off again. The rings are pads checked against the real height map: green safe, amber marginal, red hazard.</p><p class="g-msg">${esc(lastMsg)}</p><p class="note">The ground's shape is real satellite elevation data; small rocks, pebbles and the sky are illustrated.</p>` };
+        case "base": return { k: `6 · Build the base${rehearsal ? " · Oman rehearsal" : ""}`, t: "Where can each module stand?", plain: lastMsg,
+          html: `<p class="lead">Each module has rules: level ground for the habitat, sunlight for the solar array${groundWorld === "moon" ? ", a clear view of Earth for the antenna" : ""}, and a safe distance from the pad's rocket blast. These are the same terrain properties our atlas measures across Oman.</p><p class="g-msg">${esc(lastMsg)}</p>` };
+        case "debrief": return { k: "7 · Debrief", t: baseDone ? "Mission complete" : "What we learned",
+          plain: `${L.oman} Earth can't copy: ${L.cant.join(", ")}.`,
+          html: `<p class="lead">You flew about ${leg.total} ${leg.unit}s to ${esc(M.target)}, landed on real terrain${baseDone ? " and built a base where the rules allow" : ""}.</p>
+            <h4>How Oman helps crews rehearse</h4><p>${esc(L.oman)}</p>
+            <p class="cant"><span>What Earth can't copy:</span> ${L.cant.map(c => `<i>${esc(c)}</i>`).join("")}</p>
+            <div class="didyou"><b>Did you know?</b> ${esc(L.did)}</div>
+            <p class="note">Rehearsal site: ${esc(s.name)}, analog score ${score100(s.asi)}/100 for ${esc(M.label)}.</p>` };
+      }
+      return { k: "", t: "", html: "", plain: "" };
+    }
+    function paintGuide() {
+      if (!ch) return;
+      const n = narration(), gd = $r("#vrGuide");
+      $r("#gK").textContent = n.k; $r("#gT").textContent = n.t; $r("#gB").innerHTML = n.html;
+      $r("#gActs").innerHTML = missionActions().map(a => `<button type="button" class="btn${a.primary ? " primary" : ""}" data-a="${a.id}" aria-pressed="${!!a.on}" ${a.off ? "disabled" : ""}>${esc(a.label)}</button>`).join("");
+      const nx = $r("#gNext"); nx.textContent = nextLabel(); nx.disabled = !canNext(); nx.hidden = ch === "debrief";
+      gd.querySelector('[data-a="ch:prev"]').disabled = chIndex() <= 0;
+      gd.hidden = !guideOn; $r("#gShow").hidden = guideOn;
+      root.querySelectorAll("#vrTrack [data-ch]").forEach(b => { b.classList.toggle("on", b.dataset.ch === ch); b.classList.toggle("done", doneCh.has(b.dataset.ch) && b.dataset.ch !== ch); });
+      if (renderer.xr.isPresenting) { lastMsg = n.plain || lastMsg; drawMenu(); }
+      paint();
+    }
+    root.addEventListener("click", e => {
+      const c = e.target.closest("#vrTrack [data-ch]"); if (c) { enterCh(c.dataset.ch); return; }
+      const b = e.target.closest("#vrGuide [data-a]"); if (b && !b.disabled) { run(b.dataset.a); return; }
+    });
+    $r("#gHide").addEventListener("click", () => { guideOn = false; tool = "move"; paintGuide(); msg("Free exploring: walk around, use the tools below, or fly to another world. The track at the top takes you back into the story."); });
+    $r("#gShow").addEventListener("click", () => { guideOn = true; paintGuide(); });
+
+    function missionRun(id) {
+      const [k, v, w] = id.split(":");
+      if (k === "ch") { const i = chIndex();
+        if (v === "next") { if (ch === "journey") { journey.skip(); return; } if (ch === "orbit") { descendNow(); return; } if (canNext() && CH[i + 1]) enterCh(CH[i + 1].id); }
+        else if (v === "prev" && i > 0) enterCh(CH[i - 1].id);
+        return; }
+      if (v === "mission") { store.setMission(w); return; }
+      if (v === "part") { showPart(w); return; }
+      if (v === "view") { body.setMode(body.mode === "third" ? "first" : "third"); paintGuide(); return; }
+      if (v === "speed") { journey.setSpeed(journey.speed > 1 ? 1 : 4); paintGuide(); return; }
+      if (v === "skip") { journey.skip(); return; }
+      if (v === "descend") { descendNow(); return; }
+      if (v === "home") { flyHome(); return; }
+      if (v === "other") { const to = dest() === "moon" ? "mars_science" : "moon_base"; store.setMission(to); enterCh("journey"); return; }
+      if (v === "passport") { go("#site-" + site().id); return; }
+      if (v === "dest3d") { go("#destination-" + DEST3D[mission]); return; }
+    }
+
+    /* the journey: Earth → destination (or back home), rendered instead of the ground while it runs */
+    let jRun = null, preload = null;
+    function startJourney(to, from) {
+      journeyOn = true; $r("#vrCard").hidden = true; caption(null); endCine(); hideGroundExtras();
+      xrInJourney(true);
+      jRun = journey.start(to === "oman" ? "earth" : to, { from: from === "oman" ? "earth" : from, onCaption: (kind, title, text) => {
+        jCap = { title, text }; journey.setCaption(text); paintGuide(); } });
+      $r("#vrHud").hidden = false; paint();
+      return jRun;
+    }
+    // headset: while flying, your controllers, gloves and the console move into the cockpit so you can still see and use them
+    function xrInJourney(on) {
+      const rig = controls.rig, ck = journey.cockpit;
+      if (on) { rig.children.filter(o => o !== camera).forEach(o => ck.add(o)); if (menu) journey.scene.add(menu.mesh); if (renderer.xr.isPresenting) consoleDue = .8; }
+      else { ck.children.filter(o => o.userData.xrPart).forEach(o => rig.add(o)); if (menu) scene.add(menu.mesh); }
+    }
+    function hideGroundExtras() { if (holo) holo.group.visible = false; if (mannequin) mannequin.visible = false; }
+    async function groundArrival() {
+      // from the journey's last frame down onto the landing area (screen); a short fade in the headset
+      journeyOn = false; $r("#vrHud").hidden = true; xrInJourney(false);
+      if (renderer.xr.isPresenting) { xrFade.material.opacity = 1; xrFade.visible = true; await fadeXR(0); paint(); return; }
+      const target = new THREE.Vector3(); camera.getWorldPosition(target);
+      const lx = pads[0]?.x ?? 0, lz = pads[0]?.z ?? 0, look = new THREE.Vector3(lx, terrain.heightAt(lx, lz), lz);
+      const away = new THREE.Vector3(target.x - lx, 0, target.z - lz).normalize(); let t = 0; fadeEl.style.opacity = 1;
+      await new Promise(res => setCine({ update(dt) {
+        t += dt; const e = Math.min(1, t / 3), k = 1 - Math.pow(1 - e, 3);
+        const p = target.clone().addScaledVector(away, (1 - k) * 160); p.y += (1 - k) * 650;
+        controls.look(p, look); fadeEl.style.opacity = Math.max(0, 1 - t / .8);
+        if (e >= 1) res();
+      } }));
+      setCine(null); controls.teleport(target.x, terrain.heightAt(target.x, target.z), target.z); controls.face(lx, lz);
+      fadeEl.style.opacity = 0; paint();
+    }
+    async function descendNow() {
+      if (busy || !jRun || journey.phase !== "orbit") return;
+      busy = true; journey.descend(); await jRun.done;
+      if (preload) await preload; if (!alive) return;
+      busy = false; await groundArrival(); flying = false; enterCh("landing", { arrived: true });
+    }
+    async function flyHome() {
+      if (busy) return; busy = true; const from = world;
+      ch = "journey"; paintGuide();
+      const run = startJourney("oman", from); groundWorld = "oman"; preload = loadWorld("oman", { quiet: true });
+      await run.done; await preload; if (!alive) return;
+      busy = false; await groundArrival(); enterCh("landing", { arrived: true });
+      msg("Back in Oman. Rehearse the same steps on real Omani ground: choose a pad, land, build the base.");
+    }
+
+    /** go to a chapter: sets up the world, the camera and the guide; any chapter can be reached from any other */
+    async function enterCh(id, { arrived = false } = {}) {
+      if (busy || loading) return;
+      if (ch && ch !== id) doneCh.add(ch);
+      const prev = ch; ch = id; part = id === "suit" ? part : null;
+      if (renderer.xr.isPresenting) consoleDue = .4;
+      if (id === "brief" || id === "suit") {
+        if (journeyOn) { journey.setSpeed(1); journeyOn = false; $r("#vrHud").hidden = true; xrInJourney(false); }
+        if (world !== "oman") { busy = true; await fadeXR(1); fadeEl.style.opacity = 1; await loadWorld("oman", { quiet: true }); fadeEl.style.opacity = 0; await fadeXR(0); busy = false; }
+        groundWorld = "oman"; pads.forEach(p => p.g.visible = false); padMarker.visible = false; tool = "move"; camp.setTool(null);
+        hideGroundExtras();
+        if (id === "brief") { holo.group.visible = true; placeAhead(holo, 3.6); drawHolo(); }
+        else { mannequin.visible = true; placeAhead(mannequin, 2.4); }
+        showBoard(narration().t, [narration().plain], "#f2c46d", 18);
+      }
+      if (id === "journey") {
+        groundWorld = dest();
+        const run = startJourney(dest(), "oman"); preload = loadWorld(dest(), { quiet: true });
+        run.orbit.then(() => { if (alive && ch === "journey") enterCh("orbit"); });
+      }
+      if (id === "orbit" && (!journeyOn || journey.phase !== "orbit")) {
+        groundWorld = dest();
+        const run = startJourney(dest(), "oman"); preload = loadWorld(dest(), { quiet: true }); journey.skip(); ch = "orbit";
+        run.orbit.then(() => paintGuide());
+      }
+      if (id === "landing" || id === "base") {
+        if (journeyOn) { journeyOn = false; $r("#vrHud").hidden = true; xrInJourney(false); }
+        const want = groundWorld || dest();
+        if (world !== want && !arrived) { busy = true; await fadeXR(1); fadeEl.style.opacity = 1; await loadWorld(want, { quiet: true }); fadeEl.style.opacity = 0; await fadeXR(0); busy = false; }
+        hideGroundExtras();
+        if (id === "landing" && (step !== "pad" || !pads.some(p => p.g.visible))) restart();
+        if (id === "base" && step !== "camp") {               // reaching the base chapter directly: land on the best pad first, fast
+          if (step === "pad") { restart(); if (pads[0]) choosePad(pads[0], pads[0].name); speed = 4; startLanding(); }
+          ch = "landing"; msg("Landing first on the safest pad, then the base.");
+        }
+        if (id === "landing" && pads[0] && !chosen) choosePad(pads[0], pads[0].name);
+      }
+      if (id === "debrief") { hideGroundExtras(); $r("#vrCard").hidden = true; showBoard("Mission debrief", [narration().plain], "#46c37a", 24); }
+      paintGuide(); drawMenu();
+      if (prev !== id && id !== "journey" && id !== "orbit") paint();
+    }
     async function loadWorld(w, { quiet = false } = {}) {
       loading = true; world = w; drawMenu(); paint();
       const load = $r("#vrLoad"); if (!quiet) { load.hidden = false; $r("#vrLoadW").textContent = `VR · ${WORLDS[w].label} · ${WORLDS[w].place}`; }
@@ -487,48 +721,23 @@ export default {
       controls.teleport(start.x, terrain.heightAt(start.x, start.z), start.z); controls.face(best.x, best.z);
       const m = terrain.meta;
       $r("#vrPlace").textContent = `${WORLDS[w].label} · ${WORLDS[w].place}`;
-      $r("#vrSrc").innerHTML = m.placeholder ? `Ground: a <b>placeholder</b> made-up terrain.` : `Ground: <b>real</b> satellite height map (${esc(m.source)}). ${esc(m.note || "")}`;
-      load.hidden = true; root.querySelector(".vr-brief").hidden = false; $r("#vrBar").hidden = false;
+      $r("#vrSrc").innerHTML = m.placeholder ? `Ground: a <b>placeholder</b> made-up terrain.` : `Ground shape: <b>real</b> satellite height map. Small rocks and the sky are illustrated.`;
+      load.hidden = true; $r("#vrBar").hidden = false;
       loading = false; if (renderer.xr.isPresenting && menu?.mesh.visible) consoleDue = .5;
       restart();
       msg(`${WORLDS[w].label}: ${WORLDS[w].place}. ${rules.worlds[w].gravity} m/s² gravity. Choose a landing pad.`);
+      if (ch === "brief" || ch === "suit") { pads.forEach(p => p.g.visible = false); padMarker.visible = false; tool = "move"; }
     }
 
-    /* spectator flight between worlds: lift off, cross space, close in, descend to the site */
+    /* switching worlds from the toolbar is a real journey too: lift off, cross space, orbit, descend (screen and headset) */
     async function switchWorld(w) {
-      if (flying || loading) return;
-      const from = world;
-      if (renderer.xr.isPresenting) {                       // headset: fade through black (no camera flight)
-        flying = true; await fadeXR(1); await loadWorld(w, { quiet: true }); await fadeXR(0); flying = false; paint(); return;
-      }
-      flying = true; paint(); $r("#vrCard").hidden = true; caption(null);
-      // 1. lift-off: the camera climbs away from the ground and whites out
-      const p0 = new THREE.Vector3(); camera.getWorldPosition(p0); let t = 0;
-      await new Promise(res => setCine({ update(dt) {
-        t += dt; const e = Math.min(1, t / 1.6), up = Math.pow(e, 2.2) * 900;
-        controls.look(new THREE.Vector3(p0.x, p0.y + up, p0.z + up * .3), new THREE.Vector3(p0.x, p0.y - 80, p0.z - 200 + up * .2));
-        fadeEl.style.opacity = Math.max(0, (e - .6) / .4);
-        if (e >= 1) res();
-      } }));
-      // 2. the flight through space (while the new terrain loads)
-      const flight = travel.start(from, w, { duration: 6.4 });
-      const loadP = loadWorld(w, { quiet: true });
-      await Promise.all([flight, loadP]);
-      if (!alive) return;
-      // 3. descent onto the landing area from high above, ending where you stand
-      const target = new THREE.Vector3(); camera.getWorldPosition(target);
-      const lx = pads[0]?.x ?? 0, lz = pads[0]?.z ?? 0, look = new THREE.Vector3(lx, terrain.heightAt(lx, lz), lz);
-      const away = new THREE.Vector3(target.x - lx, 0, target.z - lz).normalize();
-      t = 0; fadeEl.style.opacity = 1;
-      await new Promise(res => setCine({ update(dt) {
-        t += dt; const e = Math.min(1, t / 3.4), k = 1 - Math.pow(1 - e, 3);
-        const p = target.clone().addScaledVector(away, (1 - k) * 160); p.y += (1 - k) * 650;
-        controls.look(p, look);
-        fadeEl.style.opacity = Math.max(0, 1 - t / .8);
-        if (e >= 1) res();
-      } }));
-      setCine(null); controls.teleport(target.x, terrain.heightAt(target.x, target.z), target.z); controls.face(lx, lz);
-      fadeEl.style.opacity = 0; flying = false; paint();
+      if (flying || loading || busy || w === world) return;
+      flying = true; busy = true; const from = world;
+      groundWorld = w; ch = w === "oman" ? "journey" : "journey"; paintGuide();
+      const run = startJourney(w, from); preload = loadWorld(w, { quiet: true });
+      if (w !== "oman") { await run.orbit; await wait(2500); journey.descend(); }
+      await run.done; await preload; if (!alive) return;
+      busy = false; flying = false; await groundArrival(); enterCh("landing", { arrived: true });
     }
     function fadeXR(to) {
       return new Promise(res => { const m = xrFade.material, from = m.opacity; let t = 0;
@@ -561,25 +770,43 @@ export default {
       padMarker.visible = padHover.visible = moveMarker.visible = false; scene.add(padMarker, padHover, moveMarker);
       menu = panel(.58, .59, 1024, 1040); menu.mesh.visible = false; menu.mesh.renderOrder = 5; scene.add(menu.mesh);
       board = panel(.8, .36, 880, 400); board.mesh.visible = false; scene.add(board.mesh);
+      body = createBody(scene, renderer, camera); body.setMode("first");
+      holo = createHolo(scene);
+      mannequin = buildSuit(); mannequin.visible = false; mannequinMarks = partMarkers(mannequin); scene.add(mannequin);
+      getGrid().then(g => { if (!alive) return; G = g; drawHolo(); }).catch(() => {});
       await loadWorld("oman");
-      if (new URLSearchParams(location.search).has("debug")) window.__vr = { get terrain() { return terrain; }, get lander() { return lander; }, get camp() { return camp; }, controls, run, get step() { return step; }, choosePad, get pads() { return pads; }, rules, get world() { return world; }, get loading() { return loading; }, get flying() { return flying; }, get touring() { return touring; }, placeConsole, menuHit, get menuBtns() { return menuBtns; }, get menu() { return menu; }, onSelect, switchWorld, buildTour, skip() { skipTour = true; }, endCine };   // QA only
+      if (!alive) return;
+      enterCh("brief");
+      if (new URLSearchParams(location.search).has("debug")) window.__vr = { get terrain() { return terrain; }, get lander() { return lander; }, get camp() { return camp; }, controls, run, get step() { return step; }, choosePad, get pads() { return pads; }, rules, get world() { return world; }, get loading() { return loading; }, get flying() { return flying; }, get touring() { return touring; }, scene, renderer, camera, get holo() { return holo; }, get ch() { return ch; }, enterCh, get journeyOn() { return journeyOn; }, journey, get body() { return body; }, get site() { return site(); }, placeConsole, menuHit, get menuBtns() { return menuBtns; }, get menu() { return menu; }, onSelect, switchWorld, buildTour, skip() { skipTour = true; }, endCine };   // QA only
     })();
 
     /* ---------- frame loop ---------- */
     let last = performance.now();
     renderer.setAnimationLoop(() => {
       const now = performance.now(), dt = Math.min(.05, (now - last) / 1000); last = now;
-      if (travel.active && !renderer.xr.isPresenting) {                 // spectator flight through space
-        travel.update(dt, innerWidth / innerHeight); fadeEl.style.opacity = travel.fade;
-        renderer.render(travel.scene, travel.camera); return;
+      if (journeyOn) {                                                  // the journey replaces the ground scene while it runs
+        journey.update(dt);
+        const c = journey.clock(); if (c) { $r("#hudClock").textContent = c.text; $r("#hudBar").style.width = Math.round(c.f * 100) + "%"; $r("#hudDist").textContent = c.dist;
+          const gc = $r("#gB .g-clock"); if (gc) { gc.querySelector("b").textContent = c.text; gc.querySelector("i").style.width = Math.round(c.f * 100) + "%"; } }
+        if (renderer.xr.isPresenting) { journey.placeForXR(controls.rig); renderer.render(journey.scene, camera); }
+        else { journey.placeForScreen(innerWidth / innerHeight); renderer.render(journey.scene, journey.camera); }
+        if (renderer.xr.isPresenting && menu && consoleDue > 0 && (consoleDue -= dt) <= 0) placeConsole();
+        return;
       }
       if (terrain && controls && !loading) {
         const lim = terrain.near / 2 - 3, clampN = v => Math.max(-lim, Math.min(lim, v));
+        const xrOn = renderer.xr.isPresenting, third = body?.mode === "third" && !xrOn && !cine;
+        if (!xrOn) camera.position.set(0, third ? 2.7 : 1.65, third ? 4.6 : 0);
+        const rp0 = controls.rig.position.clone();
         if (cine && !renderer.xr.isPresenting) cine.update(dt);
         else {
           controls.update(dt, (x, z) => terrain.heightAt(clampN(x), clampN(z)));
           if (!renderer.xr.isPresenting) { const rp = controls.rig.position; rp.x = clampN(rp.x); rp.z = clampN(rp.z); }
         }
+        if (third) camera.rotation.x -= .24;
+        if (body) { body.suit.userData.speed = rp0.distanceTo(controls.rig.position) / Math.max(dt, 1e-3) / 3; body.update(controls.rig, xrOn); body.suit.visible = !cine || body.mode === "third"; }
+        holo?.update(dt);
+        if (mannequin?.visible) { mannequin.rotation.y += dt * .15; mannequinMarks.markers.forEach((m, i) => m.children[0].lookAt(camera.getWorldPosition(tmpV))); }
         terrain.updatePebbles(controls.rig.position.x, controls.rig.position.z);
         hover();
         lander.update(dt * (step === "descent" ? speed : 1), now / 1000);
@@ -593,16 +820,21 @@ export default {
       renderer.render(scene, camera);
     });
 
+    const unsub = store.subscribe(() => {
+      if (store.mission === mission) return;
+      mission = store.mission; if (!data.site(siteId, mission)) siteId = data.sites[mission][0].id;
+      drawHolo(); paintGuide();
+    });
     const onKey = e => { if (e.key === "Escape" && !renderer.xr.isPresenting) { if (touring) skipTour = true; else go(route.id ? "#site-" + route.id : "#oman"); } };
     addEventListener("keydown", onKey);
     setKeys([["Drag", "Look"], ["WASD", "Walk"], ["Click", "Select"], ["Esc", "Back"]]);
 
     return {
       cleanup() {
-        alive = false; skipTour = true; unFx(); removeEventListener("resize", resize); removeEventListener("keydown", onKey);
+        alive = false; skipTour = true; unFx(); unsub(); body?.dispose(); holo?.dispose(); removeEventListener("resize", resize); removeEventListener("keydown", onKey);
         renderer.xr.getSession?.()?.end().catch(() => {});
         renderer.setAnimationLoop(null);
-        controls?.dispose(); lander?.dispose(); camp?.dispose(); terrain?.dispose(); clearPads(); sky.dispose(); travel.dispose();
+        controls?.dispose(); lander?.dispose(); camp?.dispose(); terrain?.dispose(); clearPads(); sky.dispose(); journey.dispose();
         scene.traverse(o => { o.geometry?.dispose?.(); const m = o.material; (Array.isArray(m) ? m : m ? [m] : []).forEach(x => { x.map?.dispose?.(); x.dispose?.(); }); });
         renderer.dispose(); space.setActive(true);
       },

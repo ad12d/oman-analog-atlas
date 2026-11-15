@@ -23,7 +23,7 @@ export function createControls({ renderer, camera, scene, dom, onSelect, onSquee
     ctrl.addEventListener("disconnected", () => { line.visible = false; h.hand = ""; });
     ctrl.addEventListener("select", () => onSelect(rayFrom(h), h.hand || "right"));
     ctrl.addEventListener("squeezestart", () => onSqueeze(h.hand));
-    rig.add(ctrl, grip); hands.push(h);
+    ctrl.userData.xrPart = grip.userData.xrPart = true; rig.add(ctrl, grip); hands.push(h);
   }
   const m4 = new THREE.Matrix4();
   function rayFrom(h) {

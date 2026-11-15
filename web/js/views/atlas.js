@@ -1,11 +1,12 @@
 // OMAN DESTINATION: the working map. Live ASI from the team's 1 km grids (js/core/live.js): tune the AHP
 // weights, keep-away distances and filters, see the validation meter and your own top sites, click any place
 // to see why it scores as it does. Official ranked sites (90 m analysis) open the Analog Passport drawer.
-import { h, esc, setKeys, hexRgb, cssVar, reduceMotion, toast } from "../core/ui.js";
-import { MISSIONS, CRITERIA, CRIT, VALIDATION, score100, pctOf, betterThan } from "../core/data.js";
+import { h, esc, fmt, setKeys, hexRgb, cssVar, reduceMotion, toast, showTip, hideTip } from "../core/ui.js";
+import { MISSIONS, CRITERIA, CRIT, VALIDATION, TOP_N, score100, pctOf, betterThan } from "../core/data.js";
 import { computeASI, render, topSites, benchmarks, defaultWeights, normalise, CONSTRAINTS } from "../core/live.js";
 import { getGrid } from "../core/grid.js";
 import { renderPassport } from "./passport.js";
+import { enterSite3D, exitSite3D, site3DOn, DRONE } from "./site3d.js";
 
 const BASEMAP = {
   version: 8,
@@ -53,17 +54,38 @@ const whenLoaded = (fn, key) => {
   queue.push(fn);
 };
 
-/** one criterion's similarity layer as an image: criterion colour, opacity grows with similarity */
+// weak match → strong match (perceptually ordered, colour-blind safe) — team brief 2, B1
+const CRIT_RAMP = [[40,24,64],[87,42,110],[163,65,122],[224,112,91],[246,178,107],[251,229,160]];
+function rampAt(s) {
+  const f = Math.max(0, Math.min(1, s)) * (CRIT_RAMP.length - 1), i = Math.min(CRIT_RAMP.length - 2, Math.floor(f)), t = f - i;
+  return CRIT_RAMP[i].map((v, k) => Math.round(v + (CRIT_RAMP[i + 1][k] - v) * t));
+}
+const RAMP_CSS = `linear-gradient(90deg, ${CRIT_RAMP.map(c => `rgb(${c.join(",")})`).join(", ")})`;
+/** one criterion's match layer as an image: a 0–1 colour ramp; minerals not measured from space are hatched grey */
 function criterionImage(G, mission, k) {
   const key = mission + "|" + k; if (critImg.has(key)) return critImg.get(key);
   const pr = G.meta.profiles[mission], L = G.layer(k === "minerals" ? pr.minerals_layer : `${pr.criteria_prefix}.${k}`);
-  const [r, g, b] = hexRgb(cssVar(`--c-${k}`));
+  const cov = k === "minerals" ? G.layer("emit_coverage") : null;          // 1 measured · 0 not measured
   const c = document.createElement("canvas"); c.width = G.W; c.height = G.H;
   const ctx = c.getContext("2d"), img = ctx.createImageData(G.W, G.H), d = img.data;
-  for (let i = 0; i < G.N; i++) { const v = L[i]; if (v === 255) continue; const s = v / 254; if (s < .12) continue; const o = i * 4; d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = Math.round(30 + s * 200); }
+  for (let i = 0; i < G.N; i++) {
+    const v = L[i]; if (v === 255) continue;                                 // sea / outside Oman
+    const o = i * 4, x = i % G.W, y = (i / G.W) | 0;
+    if (cov && cov[i] !== 1) {                                               // not measured → grey hatch
+      if ((x + y) % 6 < 2) { d[o] = d[o + 1] = d[o + 2] = 170; d[o + 3] = 150; }
+      continue;
+    }
+    const [r, g, b] = rampAt(v / 254); d[o] = r; d[o + 1] = g; d[o + 2] = b; d[o + 3] = 205;
+  }
   ctx.putImageData(img, 0, 0);
   const url = c.toDataURL("image/png"); critImg.set(key, url); return url;
 }
+// B3: map-list subtitles where the data needs a caveat; road access is not offered as a map
+const SUBTITLE = {
+  wind: m => m === "mars_science" ? "Regional climate data (≈50 km cells), broad pattern only. For Mars science stronger wind counts as better: wind-blown sand is part of what makes Mars, Mars." : "Regional climate data (≈50 km cells) – broad pattern only",
+  channels: () => "How far the site is from old, dry river channels. Dune corridors in the Rub' al Khali are being removed from this layer.",
+};
+const HIDDEN_LAYERS = new Set(["access"]);
 const ord = p => { const n = Math.round(p), s = n % 100 >= 11 && n % 100 <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"); return n + s; };
 
 let hideTimer = 0;
@@ -106,7 +128,7 @@ export default {
       <aside class="rail left live"><div class="panel ticks">
         <div class="panel-head tabs" role="tablist"><button type="button" role="tab" class="tab" data-tab="layers" aria-selected="true">Layers</button><button type="button" role="tab" class="tab" data-tab="tune" aria-selected="false">Your priorities</button></div>
         <div class="scroll" id="strata"></div>
-        <div class="legend-ramp"><span class="eyebrow" id="legName"></span><div class="bar" id="legBar"></div><div class="ends"><span id="legLo">no match</span><span id="legHi">1 · very alike</span></div></div>
+        <div class="legend-ramp"><span class="eyebrow" id="legName"></span><div class="bar" id="legBar"></div><div class="ends"><span id="legLo">no match</span><span id="legHi">1 · very alike</span></div><div class="leg-hatch" id="legHatch" hidden><i></i>not measured from space</div></div>
       </div></aside>
       <aside class="tune live" id="tune" hidden><div class="panel ticks">
         <div class="panel-head"><span class="panel-title">Try your own priorities</span><button type="button" class="vr-x tune-x" id="tuneClose" aria-label="Close">×</button></div>
@@ -142,13 +164,15 @@ export default {
         <button type="button" class="strat chip-tune" data-tune aria-pressed="${tuneOpen}"><span class="band" style="--rc:var(--moho)"></span><span><b>Your priorities</b><small>What matters most, what to avoid</small></span><span class="w">⚙</span></button>
         <button type="button" class="strat asi" data-l="asi" aria-pressed="${layer === "asi"}" style="--r0:${R[1]};--r1:${R[2]};--r2:${R[3]};--r3:${R[4]}">
           <span class="band"></span><span><b><span class="long">Analog score</span><span class="short">Score</span></b><small>All ten criteria together · best ${topPct}% of Oman shown</small></span><span class="w">all</span></button>
-        ${CRITERIA.map(c => `<button type="button" class="strat" data-l="${c.k}" aria-pressed="${layer === c.k}" style="--rc:var(--c-${c.k})">
-          <span class="band"></span><span><b>${c.name}</b><small>${esc(c.what)}</small><span class="wb" style="width:${Wn[c.k] * 100}%"></span></span><span class="w">${Math.round(Wn[c.k] * 100)}%</span></button>`).join("")}`;
+        ${CRITERIA.filter(c => !HIDDEN_LAYERS.has(c.k)).map(c => `<button type="button" class="strat" data-l="${c.k}" aria-pressed="${layer === c.k}" style="--rc:var(--c-${c.k})">
+          <span class="band"></span><span><b>${c.name}</b><small>${esc(SUBTITLE[c.k] ? SUBTITLE[c.k](store.mission) : c.what)}</small><span class="wb" style="width:${Wn[c.k] * 100}%"></span></span><span class="w">${Math.round(Wn[c.k] * 100)}%</span></button>`).join("")}
+        <p class="note strat-note" title="Almost all of Oman is within reach of a track, so this map would be one flat colour.">Road access still counts ${Math.round(Wn.access * 100)}% in the score but has no map: almost all of Oman is within reach of a track, so it would be one flat colour.</p>`;
       const L = layer === "asi" ? null : CRIT[layer];
       $r("#legName").textContent = L ? `${L.name}: how well Oman matches` : `Analog score · ${MISSIONS[store.mission].label} · best ${topPct}%`;
-      $r("#legBar").style.background = L ? `linear-gradient(90deg, transparent, var(--c-${L.k}))` : `linear-gradient(90deg, ${R.slice(2).join(", ")})`;
-      $r("#legLo").textContent = L ? "no match" : (st ? `score ${score100(st.cut)}` : "cut-off");
-      $r("#legHi").textContent = L ? "perfect match" : "best";
+      $r("#legBar").style.background = L ? RAMP_CSS : `linear-gradient(90deg, ${R.slice(2).join(", ")})`;
+      $r("#legLo").textContent = L ? "0 · nothing like the target" : (st ? `score ${score100(st.cut)}` : "cut-off");
+      $r("#legHi").textContent = L ? "1 · same as the target" : "best";
+      $r("#legHatch").hidden = !(L && L.k === "minerals");
     }
     $r("#strata").addEventListener("click", e => {
       if (e.target.closest("[data-tune]")) { setTune(!tuneOpen); return; }
@@ -218,10 +242,12 @@ export default {
       if (!G || !alive) return;
       const url = layer === "asi" ? st?.url : criterionImage(G, store.mission, layer); if (!url) return;
       const img = { url, coordinates: G.meta.corners_lonlat }, src = map.getSource("lay-OMAN");
-      if (src) { src.updateImage(img); return; }
+      if (src) { src.updateImage(img); setResampling(); return; }
       map.addSource("lay-OMAN", { type: "image", ...img });
-      map.addLayer({ id: "lay-OMAN", type: "raster", source: "lay-OMAN", paint: { "raster-opacity": 0.85, "raster-fade-duration": 200, "raster-resampling": "nearest" } });
+      map.addLayer({ id: "lay-OMAN", type: "raster", source: "lay-OMAN", paint: { "raster-opacity": 0.85, "raster-fade-duration": 200, "raster-resampling": layer === "asi" ? "nearest" : "linear" } });
     }
+    // crisp cells for the score, smooth for the criterion ramps (brief 2, B1)
+    function setResampling() { if (map.getLayer("lay-OMAN")) map.setPaintProperty("lay-OMAN", "raster-resampling", layer === "asi" ? "nearest" : "linear"); }
 
     /* ---------- validation meter ---------- */
     function paintMeter() {
@@ -246,8 +272,8 @@ export default {
           : `<p class="note" style="padding:12px 16px">${G ? "No usable land matches these settings. Try relaxing a keep-away distance." : "Loading the map data…"}</p>`;
         return;
       }
-      const list = data.sites[store.mission];
-      $r("#ranks").innerHTML = list.map(s => `
+      const list = data.top(store.mission);
+      $r("#ranks").innerHTML = `<p class="note rank-note">The ${TOP_N} best sites for ${esc(MISSIONS[store.mission].label)}, from the 90 m analysis of ${data.sites[store.mission].length} candidates.</p>` + list.map(s => `
         <button type="button" class="rank" data-id="${s.id}">
           <span class="n">${String(s.rank).padStart(2, "0")}</span>
           <span><b>${esc(s.name)}${s.benchmark ? '<span class="bench-tag">B</span>' : ""}${(s.group || []).includes("drone_range") ? '<span class="bench-tag drone">80 km</span>' : ""}</b><small>${esc(s.aoi)}</small><span class="bar"><i style="width:${s.asi * 100}%"></i></span></span>
@@ -278,7 +304,7 @@ export default {
     }
     function paintNodes() {
       markers.splice(0).forEach(m => m.remove());
-      for (const s of data.sites[store.mission].slice().reverse()) {
+      for (const s of data.top(store.mission).slice().reverse()) {
         const el = h("button", { type: "button", class: `node ${s.rank <= 3 ? "top" : ""} ${s.benchmark ? "bench" : ""}`, "data-id": s.id, "aria-label": `${s.name}, rank ${s.rank}, ASI ${s.asi.toFixed(2)}` },
           `<span class="dia"><b>${s.rank}</b></span><span class="nlab"><b>${esc(s.name)}</b><i>score ${Math.round(s.asi * 100)}</i></span>`);
         el.addEventListener("pointerenter", () => {
@@ -304,6 +330,32 @@ export default {
       });
     }
 
+    /* ---------- B2: the measured value as well as the match, for the active criterion layer ---------- */
+    const kmApart = (a, b) => Math.hypot((a[0] - b[0]) * 111.32 * Math.cos(a[1] * Math.PI / 180), (a[1] - b[1]) * 110.57);
+    function measuredLine(k, lon, lat, i) {
+      const c = CRIT[k], m = store.mission, pr = G.meta.profiles[m], t = data.target(k, m);
+      if (k === "minerals" && G.layer("emit_coverage")[i] !== 1) return `${c.name}: not measured from space here`;
+      const s = G.layer(k === "minerals" ? pr.minerals_layer : `${pr.criteria_prefix}.${k}`)[i];
+      if (s === 255) return null;
+      let near = null, best = 6;                       // nearest analysed site within 6 km gives the measured value
+      for (const x of data.sites[m]) { const d = kmApart([lon, lat], x.lonlat); if (d < best && Number.isFinite(+x["raw_" + k])) { best = d; near = x; } }
+      const where = MISSIONS[m].world === "moon" ? "Moon" : "Mars", tv = t.world || `${fmt(t.value, c.dp)}${c.unit}`;
+      const here = near ? `${fmt(+near["raw_" + k], c.dp)}${c.unit}${best > 1 ? ` (at ${near.name}, ${best.toFixed(1)} km away)` : ""}` : "match only (1 km grid)";
+      return `${c.name} here: ${here} · ${where}: ${tv} · match ${Math.round(s / 254 * 100)}%`;
+    }
+    let hoverRaf = 0;
+    const onMapMove = e => {
+      if (layer === "asi" || drawerId || !G || site3DOn()) { hideTip(); return; }
+      cancelAnimationFrame(hoverRaf);
+      hoverRaf = requestAnimationFrame(() => {
+        const [px, py] = G.toPx(e.lngLat.lng, e.lngLat.lat), col = Math.floor(px), row = Math.floor(py);
+        if (col < 0 || row < 0 || col >= G.W || row >= G.H) { hideTip(); return; }
+        const t = measuredLine(layer, e.lngLat.lng, e.lngLat.lat, row * G.W + col);
+        if (t) showTip(`<span class="mono">${esc(t)}</span>`, e.originalEvent.clientX, e.originalEvent.clientY); else hideTip();
+      });
+    };
+    map.on("mousemove", onMapMove); map.on("mouseout", hideTip);
+
     /* ---------- click a place: why does it score this way? ---------- */
     function explainAt(lon, lat) {
       const ex = $r("#explain"); if (!G || !st) return;
@@ -319,6 +371,7 @@ export default {
         return `<tr><td><i class="chip-dot" style="--rc:var(--c-${c.k})"></i>${c.name}</td><td class="v">${Math.round(s * 100)}%</td><td class="v mut">${Math.round(Wn[c.k] * 100)}%</td></tr>`; }).join("");
       ex.innerHTML = `<button type="button" class="vr-x" data-close aria-label="Close">×</button>
         <p class="eyebrow">${lat.toFixed(3)}° N, ${lon.toFixed(3)}° E · 1 km square</p>
+        ${layer !== "asi" ? `<p class="ex-measured">${esc(measuredLine(layer, lon, lat, i) || "")}</p>` : ""}
         <p class="ex-asi">Analog score <b>${score100(v)}</b> / 100${st.allowed[i] ? (v >= st.cut ? ` <span class="ok">among your best ${topPct}%</span>` : "") : ` <span class="bad">left out${why.length ? ": " + esc(why.join(", ")) : ""}</span>`}</p>
         <table class="ex-table"><thead><tr><th>Criterion</th><th>Match</th><th>Matters</th></tr></thead><tbody>${rows}</tbody></table>
         <p class="note">Score = each match × how much it matters, added up.</p>`;
@@ -332,6 +385,7 @@ export default {
     const drawer = $r("#drawer");
     function openSite(id) {
       const s = data.site(id, store.mission); if (!s) { go("#oman"); return; }
+      if (site3DOn() && drawerId !== id) exit3D(true);
       drawerId = id; drawer.classList.add("on"); $r("#rankRail").style.visibility = "hidden"; $r("#explain").hidden = true; setTune(false);
       const pp = $r("#pp");
       renderPassport(pp, { data, mission: store.mission, id }); pp.scrollTop = 0;
@@ -339,10 +393,34 @@ export default {
       map.flyTo({ center: s.lonlat, zoom: 9, duration: 1500, essential: true, padding: { top: 80, bottom: 80, left: wide ? 320 : 0, right: wide ? Math.min(660, innerWidth * .5) : 0 } });
     }
     function closeSite() {
+      if (site3DOn()) { exit3D(true); map.jumpTo({ pitch: 0, bearing: 0 }); }
       drawerId = null; drawer.classList.remove("on"); $r("#rankRail").style.visibility = "";
       map.fitBounds(VIEW_BOUNDS, { padding: pad(), duration: 1300 });
     }
     $r("#closeDrawer").addEventListener("click", () => go("#oman"));
+
+    /* ---------- C: 3D site view (Esri imagery on AWS terrain, team brief 2) ---------- */
+    function exit3D(quiet) {
+      exitSite3D(map, quiet); markers.forEach(m => { m.getElement().style.visibility = ""; }); pickMarkers.forEach(m => { m.getElement().style.visibility = ""; });
+      root.querySelector("#exag")?.remove(); const b = $r("#pp #site3dBtn"); if (b) b.textContent = "View site in 3D";
+    }
+    $r("#pp").addEventListener("click", e => {
+      const b = e.target.closest("#site3dBtn"); if (!b || !drawerId) return;
+      if (site3DOn()) { exit3D(false); return; }
+      const s = data.site(drawerId, store.mission), wide = innerWidth > 980;
+      markers.forEach(m => { m.getElement().style.visibility = "hidden"; }); pickMarkers.forEach(m => { m.getElement().style.visibility = "hidden"; });
+      enterSite3D(map, s, {
+        mission: store.mission,
+        sites: data.top(store.mission),            // nearby top-10 sites within 15 km get pins
+        drone: DRONE[s.id],                        // S05 has the 15 Nov drone survey box
+        padding: { top: 60, bottom: 60, left: wide ? 320 : 0, right: wide ? Math.min(660, innerWidth * .5) : 0 },
+      });
+      b.textContent = "Back to the 2D map";
+      const ex = h("div", { class: "exag panel live", id: "exag" }, `<label for="exagR">Height exaggeration <b id="exagV">1.5×</b></label><input type="range" id="exagR" min="1" max="2.5" step="0.1" value="1.5">`);
+      root.appendChild(ex);
+      ex.querySelector("#exagR").addEventListener("input", ev => { const v = +ev.target.value; ex.querySelector("#exagV").textContent = v.toFixed(1) + "×"; if (map.getSource("dem3d")) map.setTerrain({ source: "dem3d", exaggeration: v }); });
+      toast("3D view: drag to move, right-drag or Ctrl-drag to tilt and turn");
+    });
 
     function onMission() {
       if (G) W = defaultWeights(G, store.mission);
@@ -366,7 +444,8 @@ export default {
     return {
       update(r) { if (r.name === "site") openSite(r.id); else if (drawerId) closeSite(); },
       cleanup() {
-        alive = false; unsub(); clearTimeout(layerTimer); clearTimeout(compTimer); map.off("click", onMapClick);
+        alive = false; unsub(); clearTimeout(layerTimer); clearTimeout(compTimer); map.off("click", onMapClick); map.off("mousemove", onMapMove); map.off("mouseout", hideTip); hideTip();
+        if (site3DOn()) exit3D(true);
         removeEventListener("keydown", onKey); markers.forEach(m => m.remove()); pickMarkers.forEach(m => m.remove()); timers.forEach(clearTimeout);
         document.body.classList.remove("map-on"); scene.setActive(true);
         // climb back out: the map fades while the next view moves the globe camera away from Oman

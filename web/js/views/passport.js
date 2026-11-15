@@ -48,7 +48,7 @@ export function renderPassport(el, { data, mission, id }) {
           <div class="pp-meta"><span>${esc(s.aoi)}</span><span class="mono">≈ ${fmt(s.lonlat[1], 2)}° N, ${fmt(s.lonlat[0], 2)}° E</span>${s.km_from_hackathon != null ? `<span>${fmt(s.km_from_hackathon, 0)} km from Al Bidiyah</span>` : ""}</div>
           <div class="pp-tags">${benchTag}${groupTags}${emitTag}<span data-twinchip></span></div>
         </div>
-        <div class="asi-big"><div class="num">${score100(s.asi)}</div><div class="lab">Analog score / 100</div><div class="lab tech">${MISSIONS[mission].label}</div></div>
+        <div class="asi-big"><button type="button" class="btn site3d-btn" id="site3dBtn">View site in 3D</button><div class="num">${score100(s.asi)}</div><div class="lab">Analog score / 100</div><div class="lab tech">${MISSIONS[mission].label}</div></div>
       </div>
       <div class="pp-sec pp-lead"><p class="lead">${esc(lead)}</p>
         <div class="strong">${strong.map(x => `<div class="sitem" style="--rc:var(--c-${x.c.k})"><span class="ic" aria-hidden="true">${ICON[x.c.k]}</span><span><b>${esc(x.c.name)}</b><small>${pctOf(x.sv)} match</small></span></div>`).join("")}</div></div>

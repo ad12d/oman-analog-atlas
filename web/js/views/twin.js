@@ -89,8 +89,8 @@ export default {
           <div>
             <div class="lens" id="lens" style="--y:${y}%">
               <canvas id="cT"></canvas><canvas id="cE" class="earthc"></canvas>
-              <span class="lab t">${esc(body)} · ${esc(tMap.name)} · ${esc(tMap.source)}</span>
-              <span class="lab b">Oman · ${esc(oMap.name)} · Copernicus DEM ${oMap.native_res_m} m</span>
+              <span class="lab t" title="${esc(tMap.source)}">${esc(body)} · ${esc(tMap.name)}</span>
+              <span class="lab b" title="Copernicus DEM ${oMap.native_res_m} m">Oman · ${esc(oMap.name)}</span>
               <div class="scale"><i style="width:${Math.round(5 / tMap.width_km * 100)}%"></i><span>5 km · both sides</span></div>
               <div class="handle"><span class="grip" aria-hidden="true">⇕</span></div>
             </div>
@@ -106,7 +106,7 @@ export default {
                 <p class="note">Closest Oman ground: ${tw.oman_twins.map(o => `<a href="#" data-twin="${o.id}">${esc(friendlyName(o.id, o.name))}</a> ${Math.round(o.terrain_similarity * 100)}%`).join(" · ")}</p>` : `<p class="note">No terrain statistics for this target.</p>`}
               <div class="legend"><span><i style="background:var(--earth)"></i>Oman</span><span><i style="background:var(--accent)"></i>${esc(body)}</span></div>
               <svg class="chart" id="hist" viewBox="0 0 380 220" role="img" aria-label="Slope distribution, Oman versus target"></svg>
-              <p class="note">How much of each area is flat or steep: the share of ground in each 2.5° slope band.${body === "Mars" ? " The Mars height map is coarser (463 m), so it shows landforms, not boulders." : ""}</p>
+              <p class="note">How much of each area is flat or steep: the share of ground in each 2.5° slope band.${body === "Mars" ? " The Mars height map is coarser (463 m), so it shows landforms, not boulders." : ""}</p><details class="experts"><summary>For experts</summary><p class="tech">Heights: ${esc(tMap.source)} (${esc(body)}); Copernicus DEM GLO-90, ${oMap.native_res_m} m (Oman). Both clips resampled to a common grid over 24 × 13.5 km.</p></details>
               ${site ? `<a class="btn" href="#site-${esc(omanId)}">Open ${esc(site.name)} passport</a>` : ""}
             </div></div>
         </div></div>`;

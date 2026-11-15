@@ -82,6 +82,9 @@ export function friendlyName(id, name) {
   return m ? `Near ${m[1]} · candidate ${m[2] || 1}` : name;
 }
 
+/** how many sites per mission the website lists and maps */
+export const TOP_N = 10;
+
 export const AOIS = [{ id: "OMAN", name: "Sultanate of Oman", bbox: [51.73, 16.63, 59.94, 26.39] }];
 
 // Validation, from the 90 m analysis (team hand-off, MAZIN_INTEGRATION.md §4), in plain words
@@ -161,7 +164,7 @@ export async function loadData() {
   for (const m of MISSION_KEYS) byMission[m].sort((a, b) => a.rank - b.rank);
 
   const tgt = {};
-  for (const r of parseCSV(targets.body)) (tgt[r.profile] ??= {})[r.criterion] = { value: +r.value, tol: +r.tolerance, unit: r.unit, body: r.body, site: r.site, source: r.source, rule: r.rule || "", world: r.world_value || "", worldSrc: r.world_source || "", omanNote: r.oman_note || "", kind: ruleKind(r.rule) };
+  for (const r of parseCSV(targets.body)) (tgt[r.profile] ??= {})[r.criterion] = { value: +r.value, tol: +r.tolerance, unit: r.unit, body: r.body, site: r.site, source: r.source, rule: r.rule || "", world: (r.world_value || "").replace(/ deg\b/g, "°"), worldSrc: r.world_source || "", omanNote: r.oman_note || "", kind: ruleKind(r.rule) };
 
   const W = weights.body.weights, CRv = weights.body.cr || {};
   /** display-only similarity curve; the s_* values in sites.geojson are the official ones (computed at 90 m) */
@@ -191,6 +194,8 @@ export async function loadData() {
     isMock,
     sites: byMission,
     site: (id, m) => byId[id]?.[m],
+    /** the sites shown in lists and on maps: the best TOP_N for a mission (every site keeps its passport) */
+    top: m => byMission[m].slice(0, TOP_N),
     siteIds: Object.keys(byId),
     weights: W, weightsTier1: weights.body.weights_tier1 || null, groups: weights.body.groups || null, cr: CRv, method: weights.body.method || "",
     target: (k, m) => tgt[m]?.[k],

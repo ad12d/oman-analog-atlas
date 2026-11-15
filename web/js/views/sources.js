@@ -19,6 +19,8 @@ const ROWS = [
   ["NASA Black Marble 2016", "NASA", "https://earthobservatory.nasa.gov/features/NightLights", "City lights on the globe's night side (3 km product)", "Visuals", false],
   ["AppEEARS (LP DAAC)", "NASA", "https://appeears.earthdatacloud.nasa.gov/", "MODIS NDVI and LST subsets for Oman", "Dryness · Thermal", false],
   ["Sentinel-2 cloudless by EOX", "EOX / ESA data", "https://s2maps.eu/", "Basemap of Oman", "Basemap", false],
+  ["Esri World Imagery", "Esri, Maxar, Earthstar Geographics", "https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9", "Imagery in the 3D site view (\"View site in 3D\" on each passport)", "3D site view", false],
+  ["AWS Terrain Tiles (Mapzen)", "Amazon Web Services · Mapzen", "https://registry.opendata.aws/terrain-tiles/", "Elevation under the 3D site view", "3D site view", false],
   ["OpenStreetMap (Overpass, 2026)", "OSM contributors", "https://www.openstreetmap.org/copyright", "Roads for the access criterion; towns, villages, farms and oil & gas sites for the keep-away filters", "Access · filters", false],
   ["NASA POWER", "NASA LaRC", "https://power.larc.nasa.gov/", "WS10M mean 10 m wind climatology", "Wind", false],
   ["SAGA GIS channel network", "SAGA (open source)", "https://saga-gis.sourceforge.io/", "Paleo-channel network from the DEM (order ≥ 3, incised ≥ 25 m)", "Ancient channels", false],

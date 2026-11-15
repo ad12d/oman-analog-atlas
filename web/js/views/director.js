@@ -67,7 +67,7 @@ export default {
       root.querySelector("#bBody").innerHTML = `
         <div class="cell"><span>Astronauts are going to</span><b>${esc(M.target)}</b></div>
         <div class="cell c-world"><span>World</span><b>${esc(WORLD_INFO[M.world].title)}</b></div>
-        <div class="cell c-field"><span>Rehearsal ground</span><b>Oman · ${data.sites[store.mission].length} sites</b></div>
+        <div class="cell c-field"><span>Rehearsal ground</span><b>Oman · top 10 sites</b></div>
         <div class="cell"><span>Best match in Oman</span><b><a href="#site-${t.id}">${esc(t.name)}</a> · ${score100(t.asi)}/100</b></div>
         <a class="btn go" href="#director-${M.world}">Fly to ${esc(WORLD_INFO[M.world].title)} <span aria-hidden="true">▸</span></a>`;
     }
