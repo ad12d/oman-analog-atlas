@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UBAR · Oman Analog Atlas — presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;600&display=swap">
+<style>
+html,body{margin:0;background:#06090E;height:100%}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;scroll-behavior:smooth}
+.page{height:100vh;width:100vw;scroll-snap-align:start;scroll-snap-stop:always;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0B1018}
+.stage{width:1920px;height:1080px;flex:none;position:relative;overflow:hidden;transform-origin:center center;transform:scale(var(--k,1))}
+:root{--night:#0B1018;--night2:#131B27;--sand:#F3EDE2;--sand2:#E7DECF;--mars:#E07A4F;--gold:#F2C46D;--teal:#62D394;--blue:#3EA8FF;--ink:#0E1622;--soft:#C3CCD8;--softd:#3D4656;--line:#2A3646}
+body{font-family:'Inter',Arial,sans-serif;color:var(--soft)}
+.stage{padding:128px;box-sizing:border-box;background:var(--night);counter-increment:page}
+.stage.light{background:var(--sand);color:var(--softd)}
+.stage.alt{background:var(--night2)}
+.stage.statement{background:var(--mars);color:var(--ink)}
+h1,h2,h3{font-family:'Space Grotesk',Arial,sans-serif;color:#F4F1EA;margin:0}
+.stage.light h1,.stage.light h2,.stage.light h3,.stage.statement h1,.stage.statement h2,.stage.statement h3{color:var(--ink)}
+h1{font-size:200px;font-weight:700;letter-spacing:-4px;line-height:1}
+h2{font-size:72px;font-weight:600;line-height:1.08;letter-spacing:-1px}
+h3{font-size:32px;font-weight:600;line-height:1.2}
+p{font-size:32px;line-height:1.4;margin:0}
+.eyebrow{font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:var(--gold);font-weight:600}
+.stage.light .eyebrow{color:#A4502D}
+.stage.statement .eyebrow{color:var(--ink)}
+.lead{font-size:44px;line-height:1.3;color:#E9E4DA}
+.stage.light .lead{color:var(--ink)}
+.small{font-size:24px;line-height:1.4}
+.stack{display:flex;flex-direction:column;gap:28px}
+.row{display:flex;gap:32px}
+.col{display:flex;flex-direction:column;gap:24px}
+.card{background:#172131;border:2px solid var(--line);border-radius:18px;padding:32px;display:flex;flex-direction:column;gap:14px}
+.stage.light .card{background:#FBF8F2;border-color:#D9CFBD}
+.card p{font-size:28px;line-height:1.35}
+.big{font-family:'Space Grotesk',Arial,sans-serif;font-size:120px;font-weight:700;line-height:1;color:var(--ink)}
+.bignum{display:flex;flex-direction:column;gap:6px}
+.bignum p{font-size:28px;color:#2A1A12}
+.pill{background:var(--gold);color:var(--ink);border-radius:999px;padding:8px 20px;font-size:24px;font-weight:600}
+.footer{position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7D8898;display:flex;justify-content:space-between}
+.stage.light .footer{color:#8A7F6E}
+.shot{border-radius:16px;border:2px solid var(--line);object-fit:cover}
+.cap{font-size:24px;line-height:1.4;color:var(--soft)}
+.hl{color:var(--gold)}
+.mars{color:var(--mars)}
+/* motion */
+@keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.r{animation:rise 600ms cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0) * 140ms)}
+.f{animation:fadein 700ms ease both;animation-delay:calc(var(--i,0) * 140ms)}
+/* workflow */
+.flow{display:flex;align-items:stretch;gap:0}
+.step{width:236px;background:#172131;border:2px solid var(--line);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:10px;box-sizing:border-box}
+.step .n{font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:var(--gold)}
+.step h3{font-size:28px}
+.step p{font-size:24px;line-height:1.32;color:var(--soft)}
+.step.hot{border-color:var(--mars);background:#2A1A16}
+.arrowbox{width:50px;display:flex;align-items:center;justify-content:center}
+.arrowbox x-shape{width:34px;height:18px;background:var(--gold)}
+/* bars */
+.bars{display:flex;flex-direction:column;gap:22px}
+.bar{display:flex;align-items:center;gap:24px}
+.bar .lbl{width:430px;font-size:28px;color:var(--ink)}
+.bar .track{width:860px;height:44px;background:#E2D8C6;border-radius:10px;overflow:hidden;display:flex}
+.bar .fill{height:44px;border-radius:10px;background:#A4502D;animation:fadein 900ms ease both}
+.bar .val{width:200px;font-family:'Space Grotesk',Arial,sans-serif;font-size:32px;font-weight:700;color:var(--ink)}
+table.t{font-size:28px;color:#E9E4DA}
+
+.stage p,.stage h1,.stage h2,.stage h3{margin:0}
+.stage a{color:#F2C46D}
+table.t th,table.t td,.stage table th,.stage table td{text-align:left;padding:10px 14px;border-bottom:1px solid #2A3646}
+.page:not(.in) .r,.page:not(.in) .f{animation:none;opacity:0}
+/* workflow column: one continuous line through the steps as you scroll */
+.wf .wfl{position:absolute;left:517px;width:6px;background:#F2C46D;opacity:.55}
+.wf .wfcard{z-index:1}
+/* live sections */
+.page.live{display:block;background:#0B1018}
+.page.live iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* controls */
+#nav{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;gap:9px}
+#nav button{width:12px;height:12px;border-radius:50%;border:2px solid #8A97A8;background:transparent;padding:0;cursor:pointer;opacity:.7}
+#nav button.on{background:#F2C46D;border-color:#F2C46D;opacity:1}
+#nav button.lv{border-color:#E07A4F}
+#arrows{position:fixed;right:18px;bottom:18px;z-index:10;display:flex;gap:8px}
+#arrows button,#arrows a{width:48px;height:48px;border-radius:12px;border:1px solid #2A3646;background:rgba(11,16,24,.85);color:#F2C46D;font-size:24px;cursor:pointer;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-decoration:none;font-family:Inter,Arial,sans-serif}
+#arrows a{font-size:15px;font-weight:600;width:auto;padding:0 14px;letter-spacing:.5px}
+#notes{position:fixed;left:0;right:0;bottom:0;z-index:11;background:rgba(6,9,14,.95);color:#E9E4DA;font:20px/1.45 Inter,Arial,sans-serif;padding:18px 28px;display:none;border-top:2px solid #F2C46D}
+body.shownotes #notes{display:block}
+
+/* icon cards */
+.ic{color:var(--mars);flex:none}
+.stage.light .ic{color:#A4502D}
+.icard{gap:12px}
+.icard p{font-size:30px}
+/* Ubar timeline */
+.tl{position:relative;display:flex;flex-direction:column;gap:34px;padding-left:44px}
+.tl:before{content:"";position:absolute;left:11px;top:16px;bottom:16px;width:4px;background:#F2C46D;opacity:.45;border-radius:2px}
+.tli{position:relative;display:flex;gap:28px;align-items:baseline}
+.tli:before{content:"";position:absolute;left:-44px;top:12px;width:26px;height:26px;border-radius:50%;background:#131B27;border:4px solid #F2C46D;box-sizing:border-box}
+.tli.now:before{background:#F2C46D}
+.tli .yr{font-family:'Space Grotesk',Arial,sans-serif;font-size:52px;font-weight:700;color:#F2C46D;width:150px;flex:none}
+.tli p{font-size:34px;color:#E9E4DA}
+.tli.now p{color:#F4F1EA;font-weight:600}
+/* weights tabs */
+.wtabs{display:flex;gap:10px;flex-wrap:wrap}
+.wtabs button{font:600 22px 'Space Grotesk',Arial,sans-serif;color:#C3CCD8;background:#172131;border:2px solid #2A3646;border-radius:999px;padding:10px 20px;cursor:pointer}
+.wtabs button[aria-selected="true"]{background:#F2C46D;border-color:#F2C46D;color:#0E1622}
+.wrow{display:flex;align-items:center;gap:20px}
+.wrow .wl{flex:none;width:330px;font-size:28px;color:#E9E4DA}
+.wrow .wb{flex:none;height:36px;border-radius:8px;background:#F2C46D;transition:width .7s cubic-bezier(.2,.7,.2,1),background .4s}
+.wrow .wb.top{background:#E07A4F}
+.wrow .wp{font-size:28px;font-weight:600;color:#F4F1EA;min-width:70px}
+/* percentile scale */
+.pscale{position:relative;width:872px;height:372px}
+.pscale .trk{position:absolute;left:0;right:0;top:180px;height:14px;border-radius:7px;background:linear-gradient(90deg,#2A3646,#5C4A2E 60%,#F2C46D)}
+.pscale .ax{position:absolute;top:202px;font-size:20px;color:#7D8898}
+.pm{position:absolute;width:0}
+.pm .dot{position:absolute;left:-11px;top:176px;width:22px;height:22px;border-radius:50%;background:#F2C46D;border:3px solid #0B1018}
+.pm .stem{position:absolute;left:-1px;width:2px;background:#8A97A8}
+.pm .lab{position:absolute;white-space:nowrap}
+.pm .lab b{display:block;font:700 40px/1 'Space Grotesk',Arial,sans-serif;color:#F2C46D}
+.pm .lab span{font-size:22px;color:#C3CCD8}
+.pm.pr .lab{right:0;text-align:right}.pm.pl .lab{left:0}
+.chips{display:flex;gap:20px}
+.chip{flex:1;background:#172131;border:2px solid #2A3646;border-radius:16px;padding:16px 22px;display:flex;flex-direction:column;gap:4px}
+.chip b{font:700 40px/1.1 'Space Grotesk',Arial,sans-serif;color:#F2C46D}
+.chip span{font-size:22px;line-height:1.3;color:#C3CCD8}
+/* target badges */
+.shotw{position:relative}
+.badge{position:absolute;left:22px;top:92px;background:rgba(11,16,24,.86);border:2px solid #F2C46D;border-radius:16px;padding:12px 22px;text-align:left}
+.badge b{display:block;font:700 64px/1 'Space Grotesk',Arial,sans-serif;color:#F2C46D}
+.badge span{font-size:20px;color:#E9E4DA;letter-spacing:1px;text-transform:uppercase}
+.badge.weak{border-color:#E07A4F}.badge.weak b{color:#E07A4F}
+/* field flip cards */
+.flips{display:grid;grid-template-columns:340px 340px;gap:24px 40px}
+.flip{height:176px;perspective:1200px;cursor:pointer;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit}
+.flip .fi{position:relative;width:100%;height:100%;transition:transform .7s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+.flip.on .fi{transform:rotateY(180deg)}
+.flip .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:16px;padding:20px 24px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between}
+.flip .front{background:#172131;border:2px solid #2A3646}
+.flip .back{background:#1E3326;border:2px solid #62D394;transform:rotateY(180deg)}
+.flip .k{font-size:20px;letter-spacing:2px;text-transform:uppercase;color:#7D8898}
+.flip .back .k{color:#62D394}
+.flip .v{font:700 52px/1 'Space Grotesk',Arial,sans-serif;color:#F2C46D}
+.flip .back .v{font-size:34px;color:#F4F1EA;line-height:1.15}
+.flip .d{font-size:22px;color:#C3CCD8}
+.flip:focus-visible .face{outline:3px solid #F2C46D;outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.flip .fi,.wrow .wb{transition:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.r,.f{animation:none!important}}
+</style></head><body>
+<section class="page" data-id="cover"><div class="stage " style="padding:128px 128px 160px">
+<svg aria-label="Map of Oman with the lost city of Ubar in Dhofar" viewBox="0 0 671 889" width="604" height="800" style="position:absolute;left:1188px;top:140px;width:604px;height:800px"><path d="M332 800 L330 801 L332 802 L333 803 L334 802 L332 800 Z M372 800 L371 801 L373 801 L372 800 Z M348 796 L340 800 L344 802 L351 801 L352 800 L349 799 L348 796 Z M580 519 L579 520 L579 527 L577 528 L572 535 L571 542 L569 544 L565 543 L566 542 L559 550 L559 561 L560 567 L567 562 L568 559 L572 557 L571 554 L575 544 L586 535 L585 534 L584 530 L582 529 L583 520 L580 519 Z M348 144 L341 140 L337 144 L332 144 L329 149 L331 170 L327 173 L329 175 L325 178 L325 182 L330 193 L330 200 L324 206 L324 208 L330 211 L340 209 L341 214 L345 223 L336 225 L330 228 L328 227 L326 224 L322 224 L302 234 L306 242 L306 250 L309 253 L309 262 L299 277 L297 282 L296 283 L295 282 L281 307 L279 322 L281 335 L279 343 L317 405 L262 581 L16 669 L80 814 L77 819 L83 820 L107 876 L114 872 L126 869 L138 866 L146 867 L149 866 L153 864 L154 861 L160 856 L177 853 L183 849 L180 850 L182 849 L179 850 L180 848 L184 846 L207 842 L231 842 L236 844 L236 847 L237 848 L244 849 L245 850 L248 848 L254 848 L255 846 L256 847 L259 846 L261 843 L264 843 L264 845 L269 841 L274 834 L278 832 L279 828 L283 824 L282 820 L287 810 L284 805 L281 804 L281 798 L284 791 L293 785 L293 781 L296 778 L297 773 L314 767 L325 765 L335 766 L342 763 L353 764 L358 762 L373 764 L373 760 L379 756 L380 752 L389 746 L388 741 L393 730 L394 722 L396 717 L395 710 L398 704 L395 709 L396 707 L409 692 L415 687 L428 682 L446 677 L459 675 L483 674 L494 670 L495 669 L491 662 L492 655 L489 654 L487 648 L488 633 L483 622 L486 608 L484 611 L484 609 L483 610 L482 609 L485 608 L482 608 L481 607 L482 603 L486 598 L492 582 L494 570 L493 567 L493 563 L497 558 L504 553 L506 550 L503 549 L504 545 L513 540 L514 532 L516 528 L522 526 L523 527 L526 525 L526 528 L531 530 L530 533 L533 533 L532 534 L529 533 L529 537 L528 538 L528 536 L526 542 L527 543 L525 544 L526 540 L524 543 L525 546 L531 548 L537 547 L544 550 L550 544 L554 530 L552 527 L554 523 L557 521 L556 523 L558 522 L558 520 L557 521 L558 519 L559 520 L562 519 L560 517 L560 513 L564 516 L568 515 L568 511 L568 514 L562 515 L563 513 L561 513 L562 511 L567 506 L568 505 L568 506 L569 503 L573 498 L573 494 L577 487 L591 472 L605 461 L618 455 L618 451 L627 436 L630 426 L643 410 L645 399 L649 393 L656 385 L657 379 L656 371 L658 368 L655 358 L652 358 L653 359 L650 358 L649 359 L652 361 L650 362 L648 361 L649 358 L634 355 L630 352 L629 353 L629 352 L621 345 L617 339 L613 338 L606 321 L595 313 L594 309 L590 304 L589 298 L584 294 L582 295 L584 293 L583 289 L572 280 L569 271 L567 271 L567 272 L567 270 L565 270 L565 271 L565 270 L564 270 L562 268 L561 269 L560 267 L558 266 L557 262 L554 262 L554 261 L550 261 L548 260 L543 263 L534 263 L529 261 L523 256 L515 254 L498 254 L492 251 L491 248 L487 249 L479 248 L470 245 L468 244 L469 244 L451 239 L439 234 L420 218 L405 195 L396 187 L396 184 L395 185 L394 183 L395 184 L394 183 L395 182 L392 184 L393 183 L383 166 L383 163 L375 142 L370 143 L372 147 L371 150 L367 151 L365 153 L361 154 L360 160 L354 164 L348 163 L347 157 L342 152 L342 150 L349 152 L347 151 L349 145 L347 145 L348 144 Z M367 113 L365 112 L363 113 L364 117 L361 118 L363 121 L366 121 L372 118 L373 114 L370 115 L369 113 L367 113 Z M387 19 L386 21 L387 21 L388 20 L387 19 Z M375 19 L374 25 L370 26 L374 28 L375 30 L372 31 L370 28 L369 35 L371 35 L374 32 L374 34 L376 31 L378 35 L377 36 L373 34 L372 37 L371 36 L369 36 L369 37 L368 34 L367 35 L367 33 L365 34 L365 36 L363 34 L362 36 L361 30 L359 33 L358 39 L356 40 L351 48 L354 48 L356 47 L359 51 L360 55 L357 58 L358 62 L355 68 L358 73 L355 76 L356 81 L360 84 L360 87 L365 88 L367 81 L366 78 L370 73 L369 76 L371 75 L372 70 L373 71 L374 70 L373 67 L375 67 L374 65 L377 64 L376 59 L380 60 L381 58 L379 58 L379 56 L377 56 L379 54 L379 51 L376 51 L375 50 L380 49 L380 46 L383 45 L380 45 L378 46 L376 43 L375 45 L374 44 L375 43 L374 41 L371 44 L372 40 L371 41 L371 39 L374 38 L373 37 L375 35 L377 36 L375 37 L375 40 L378 36 L377 40 L379 41 L384 41 L382 38 L380 39 L379 36 L382 34 L382 36 L384 36 L383 33 L384 32 L382 31 L380 33 L379 32 L379 31 L376 30 L378 29 L376 27 L379 28 L379 26 L387 25 L385 24 L385 21 L383 22 L385 24 L381 24 L381 23 L380 24 L380 22 L377 23 L378 20 L377 22 L376 20 L375 21 L376 20 L374 21 L375 19 Z" fill="#1A2330" stroke="#46566E" stroke-width="2"/><circle cx="151" cy="734" r="22" fill="#F2C46D" opacity="0.25"><animate attributeName="r" values="14;46" dur="2.4s" begin="0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle><circle cx="151" cy="734" r="10" fill="#F2C46D"/></svg>
+<div class="stack" style="width:1000px;margin-top:40px">
+<p class="eyebrow r" style="--i:0">NASA Space Apps 2026 · Al Bidiyah, Oman</p>
+<h1 class="r" style="--i:1">UBAR</h1>
+<p class="lead r" style="--i:2">Oman Analog Atlas — finding where Earth rehearses the Moon and Mars</p>
+<p class="small r" style="--i:3;color:#9AA6B6;margin-top:30px">Adil Al-Kalbani · GIS analysis&#160;&#160;|&#160;&#160;Mazin · Web platform&#160;&#160;|&#160;&#160;Luqman · Drone &amp; team lead</p>
+</div>
+<p class="small f" style="--i:5;position:absolute;left:1350px;top:785px;width:260px;color:#F2C46D">Ubar, 1992</p>
+
+</div></section>
+<section class="page" data-id="ubar"><div class="stage alt" style="padding:128px 128px 160px">
+<svg aria-label="Map of Oman with the lost city of Ubar in Dhofar" viewBox="0 0 671 889" width="604" height="800" style="position:absolute;left:1188px;top:140px;width:604px;height:800px"><path d="M332 800 L330 801 L332 802 L333 803 L334 802 L332 800 Z M372 800 L371 801 L373 801 L372 800 Z M348 796 L340 800 L344 802 L351 801 L352 800 L349 799 L348 796 Z M580 519 L579 520 L579 527 L577 528 L572 535 L571 542 L569 544 L565 543 L566 542 L559 550 L559 561 L560 567 L567 562 L568 559 L572 557 L571 554 L575 544 L586 535 L585 534 L584 530 L582 529 L583 520 L580 519 Z M348 144 L341 140 L337 144 L332 144 L329 149 L331 170 L327 173 L329 175 L325 178 L325 182 L330 193 L330 200 L324 206 L324 208 L330 211 L340 209 L341 214 L345 223 L336 225 L330 228 L328 227 L326 224 L322 224 L302 234 L306 242 L306 250 L309 253 L309 262 L299 277 L297 282 L296 283 L295 282 L281 307 L279 322 L281 335 L279 343 L317 405 L262 581 L16 669 L80 814 L77 819 L83 820 L107 876 L114 872 L126 869 L138 866 L146 867 L149 866 L153 864 L154 861 L160 856 L177 853 L183 849 L180 850 L182 849 L179 850 L180 848 L184 846 L207 842 L231 842 L236 844 L236 847 L237 848 L244 849 L245 850 L248 848 L254 848 L255 846 L256 847 L259 846 L261 843 L264 843 L264 845 L269 841 L274 834 L278 832 L279 828 L283 824 L282 820 L287 810 L284 805 L281 804 L281 798 L284 791 L293 785 L293 781 L296 778 L297 773 L314 767 L325 765 L335 766 L342 763 L353 764 L358 762 L373 764 L373 760 L379 756 L380 752 L389 746 L388 741 L393 730 L394 722 L396 717 L395 710 L398 704 L395 709 L396 707 L409 692 L415 687 L428 682 L446 677 L459 675 L483 674 L494 670 L495 669 L491 662 L492 655 L489 654 L487 648 L488 633 L483 622 L486 608 L484 611 L484 609 L483 610 L482 609 L485 608 L482 608 L481 607 L482 603 L486 598 L492 582 L494 570 L493 567 L493 563 L497 558 L504 553 L506 550 L503 549 L504 545 L513 540 L514 532 L516 528 L522 526 L523 527 L526 525 L526 528 L531 530 L530 533 L533 533 L532 534 L529 533 L529 537 L528 538 L528 536 L526 542 L527 543 L525 544 L526 540 L524 543 L525 546 L531 548 L537 547 L544 550 L550 544 L554 530 L552 527 L554 523 L557 521 L556 523 L558 522 L558 520 L557 521 L558 519 L559 520 L562 519 L560 517 L560 513 L564 516 L568 515 L568 511 L568 514 L562 515 L563 513 L561 513 L562 511 L567 506 L568 505 L568 506 L569 503 L573 498 L573 494 L577 487 L591 472 L605 461 L618 455 L618 451 L627 436 L630 426 L643 410 L645 399 L649 393 L656 385 L657 379 L656 371 L658 368 L655 358 L652 358 L653 359 L650 358 L649 359 L652 361 L650 362 L648 361 L649 358 L634 355 L630 352 L629 353 L629 352 L621 345 L617 339 L613 338 L606 321 L595 313 L594 309 L590 304 L589 298 L584 294 L582 295 L584 293 L583 289 L572 280 L569 271 L567 271 L567 272 L567 270 L565 270 L565 271 L565 270 L564 270 L562 268 L561 269 L560 267 L558 266 L557 262 L554 262 L554 261 L550 261 L548 260 L543 263 L534 263 L529 261 L523 256 L515 254 L498 254 L492 251 L491 248 L487 249 L479 248 L470 245 L468 244 L469 244 L451 239 L439 234 L420 218 L405 195 L396 187 L396 184 L395 185 L394 183 L395 184 L394 183 L395 182 L392 184 L393 183 L383 166 L383 163 L375 142 L370 143 L372 147 L371 150 L367 151 L365 153 L361 154 L360 160 L354 164 L348 163 L347 157 L342 152 L342 150 L349 152 L347 151 L349 145 L347 145 L348 144 Z M367 113 L365 112 L363 113 L364 117 L361 118 L363 121 L366 121 L372 118 L373 114 L370 115 L369 113 L367 113 Z M387 19 L386 21 L387 21 L388 20 L387 19 Z M375 19 L374 25 L370 26 L374 28 L375 30 L372 31 L370 28 L369 35 L371 35 L374 32 L374 34 L376 31 L378 35 L377 36 L373 34 L372 37 L371 36 L369 36 L369 37 L368 34 L367 35 L367 33 L365 34 L365 36 L363 34 L362 36 L361 30 L359 33 L358 39 L356 40 L351 48 L354 48 L356 47 L359 51 L360 55 L357 58 L358 62 L355 68 L358 73 L355 76 L356 81 L360 84 L360 87 L365 88 L367 81 L366 78 L370 73 L369 76 L371 75 L372 70 L373 71 L374 70 L373 67 L375 67 L374 65 L377 64 L376 59 L380 60 L381 58 L379 58 L379 56 L377 56 L379 54 L379 51 L376 51 L375 50 L380 49 L380 46 L383 45 L380 45 L378 46 L376 43 L375 45 L374 44 L375 43 L374 41 L371 44 L372 40 L371 41 L371 39 L374 38 L373 37 L375 35 L377 36 L375 37 L375 40 L378 36 L377 40 L379 41 L384 41 L382 38 L380 39 L379 36 L382 34 L382 36 L384 36 L383 33 L384 32 L382 31 L380 33 L379 32 L379 31 L376 30 L378 29 L376 27 L379 28 L379 26 L387 25 L385 24 L385 21 L383 22 L385 24 L381 24 L381 23 L380 24 L380 22 L377 23 L378 20 L377 22 L376 20 L375 21 L376 20 L374 21 L375 19 Z" fill="#1A2330" stroke="#46566E" stroke-width="2"/><circle cx="151" cy="734" r="22" fill="#F2C46D" opacity="0.25"><animate attributeName="r" values="14;46" dur="2.4s" begin="0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle><circle cx="151" cy="734" r="10" fill="#F2C46D"/></svg>
+<div class="stack" style="width:980px;gap:44px">
+<p class="eyebrow r" style="--i:0">Why we are called UBAR</p>
+<h2 class="r" style="--i:1">NASA helped find a lost city in Oman — from space</h2>
+<div class="tl">
+<div class="tli r" style="--i:2"><span class="yr">1984</span><p>Space Shuttle radar looks under the Dhofar sand</p></div>
+<div class="tli r" style="--i:3"><span class="yr">1992</span><p>Landsat caravan tracks lead to Ubar, at Shisr</p></div>
+<div class="tli now r" style="--i:4"><span class="yr">2026</span><p>UBAR uses NASA data again: to find Oman’s Moon and Mars twins</p></div>
+</div>
+</div>
+<p class="small f" style="--i:4;position:absolute;left:1350px;top:785px;width:300px;color:#F2C46D">Ubar (Shisr), Dhofar</p>
+<div class="footer"><span>UBAR · Oman Analog Atlas</span><span>Source: NASA JPL, 5 Feb 1992 – shuttle radar & Landsat in the discovery of Ubar</span></div>
+
+</div></section>
+<section class="page" data-id="challenge"><div class="stage light" style="padding:128px 128px 160px">
+<div class="stack">
+<p class="eyebrow r" style="--i:0">The challenge</p>
+<h2 class="r" style="--i:1;width:1500px">Find the places on Earth that are true analogs for a Moon base and for Mars</h2>
+<div class="row" style="margin-top:20px">
+<div class="card icard r" style="--i:3;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 40 L17 18 L25 30 L31 22 L44 40 Z"/></svg><h3>Terrain</h3><p>Slope · roughness · relief</p></div>
+<div class="card icard r" style="--i:4;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="8"/><path d="M24 6v5M24 37v5M6 24h5M37 24h5M11 11l3.5 3.5M33.5 33.5 37 37M11 37l3.5-3.5M33.5 14.5 37 11"/></svg><h3>Environment</h3><p>Heat swings · wind · bare ground</p></div>
+<div class="card icard r" style="--i:5;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 5 40 14v20L24 43 8 34V14Z"/><path d="M24 5v38M8 14l32 20M40 14 8 34"/></svg><h3>Rock chemistry</h3><p>Water-formed minerals</p></div>
+<div class="card icard r" style="--i:6;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 43s13-12 13-23a13 13 0 0 0-26 0c0 11 13 23 13 23Z"/><circle cx="24" cy="20" r="4.5"/></svg><h3>Logistics</h3><p>Reachable · safe · remote</p></div>
+</div>
+<p class="lead r" style="--i:7;margin-top:10px">A real analog must match <b>all of these at once</b> — nobody had scored all of Oman.</p>
+</div>
+<div class="footer"><span>UBAR · Oman Analog Atlas</span><span>NASA Space Apps 2026 challenge: Earth analogs for permanent Moon base locations and Mars</span></div>
+
+</div></section>
+<section class="page" data-id="wf1"><div class="stage wf" style=""><div class="wfl" style="top:640px;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 1 / 6</p><h3 style="font-size:40px">NASA data</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Moon, Mars and Oman measured from orbit</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><h2 class="r" style="--i:1;font-size:56px">Seven datasets, three worlds</h2><div class="r" style="--i:3"><table style="font-size:28px;color:#E9E4DA;width:872px"><tr><th style="width:45%">Source</th><th style="width:55%">What it measures</th></tr><tr><td>LRO · LOLA</td><td>Moon terrain, 80 m</td></tr><tr><td>MGS · MOLA</td><td>Mars terrain, 463 m</td></tr><tr><td>Copernicus DEM</td><td>Oman terrain, 90 m</td></tr><tr><td>Terra/Aqua · MODIS</td><td>Day–night heat, plant cover</td></tr><tr><td>ISS · EMIT</td><td>Surface minerals</td></tr><tr><td>NASA POWER</td><td>Wind</td></tr><tr><td>OpenStreetMap</td><td>Roads and villages</td></tr></table></div></div></div></section>
+<section class="page" data-id="wf2"><div class="stage wf" style=""><div class="wfl" style="top:0;height:440px"></div><div class="wfl" style="top:640px;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 2 / 6</p><h3 style="font-size:40px">10 criteria maps</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Everything an analog must match, mapped across Oman</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><h2 class="r" style="--i:1;font-size:56px">Ten maps of all Oman</h2><div class="col" style="gap:16px"><div class="card r" style="--i:3;padding:22px 28px;gap:6px"><h3 style="font-size:32px;color:#F2C46D">Terrain</h3><p style="font-size:28px">Slope · Roughness · Relief</p></div><div class="card r" style="--i:4;padding:22px 28px;gap:6px"><h3 style="font-size:32px;color:#F2C46D">Climate</h3><p style="font-size:28px">Day–night ΔT · Yearly ΔT · Wind</p></div><div class="card r" style="--i:5;padding:22px 28px;gap:6px"><h3 style="font-size:32px;color:#F2C46D">Dryness &amp; water</h3><p style="font-size:28px">Plant cover · Old riverbeds</p></div><div class="card r" style="--i:6;padding:22px 28px;gap:6px"><h3 style="font-size:32px;color:#F2C46D">Chemistry</h3><p style="font-size:28px">Minerals (EMIT)</p></div><div class="card r" style="--i:7;padding:22px 28px;gap:6px"><h3 style="font-size:32px;color:#F2C46D">Logistics</h3><p style="font-size:28px">Access, away from villages</p></div></div></div></div></section>
+<section class="page" data-id="wf3"><div class="stage wf" style=""><div class="wfl" style="top:0;height:440px"></div><div class="wfl" style="top:640px;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 3 / 6</p><h3 style="font-size:40px">Compare with the target</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Each Oman cell vs the real landing site → match 0–100%</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><h2 class="r" style="--i:1;font-size:56px">The closer to the real site, the higher the match</h2><div style="position:relative;width:872px;height:420px"><svg viewBox="0 0 872 420" width="872" height="420"><path d="M40 380 H832" stroke="#46566E" stroke-width="3"/><path d="M40 378 C220 378 300 60 436 60 C572 60 652 378 832 378" fill="none" stroke="#F2C46D" stroke-width="6"/><path d="M436 60 V380" stroke="#E07A4F" stroke-width="4" stroke-dasharray="10 8"/><circle cx="380" cy="86" r="16" fill="#62D394"/><circle cx="690" cy="330" r="16" fill="#8A97A8"/></svg><p class="small" style="position:absolute;left:452px;top:10px;width:400px;color:#E07A4F">Target: Jezero floor, 1.5° slope</p><p class="small" style="position:absolute;left:60px;top:110px;width:280px;color:#62D394;text-align:right">Close → near 100%</p><p class="small" style="position:absolute;left:640px;top:260px;width:230px;color:#9AA6B6">Far → near 0%</p></div><p class="r" style="--i:4;font-size:28px">Targets are measured on the real Moon and Mars sites, at the same scale as Oman.</p></div></div></section>
+<section class="page" data-id="wf4"><div class="stage wf" style=""><div class="wfl" style="top:0;height:440px"></div><div class="wfl" style="top:640px;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 4 / 6</p><h3 style="font-size:40px">Weigh per mission</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Experts decide what matters most for each mission</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><h2 class="r" style="--i:1;font-size:56px">Each mission weighs things differently</h2><div class="wtabs r" style="--i:2" role="tablist" aria-label="Mission profile" id="wtabs"><button role="tab" data-m="moon_base">Moon base</button><button role="tab" data-m="mars_landing">Mars landing</button><button role="tab" data-m="mars_science">Mars science</button><button role="tab" data-m="mars_sedimentary">Mars sedimentary</button></div>
+<div class="col r" style="--i:3;gap:18px" id="wbars"></div>
+<p class="r small" style="--i:4;color:#9AA6B6" id="wcap"></p>
+<p class="r" style="--i:5;font-size:30px;color:#F2C46D;font-weight:600" id="wline"></p></div></div></section>
+<section class="page" data-id="wf5"><div class="stage wf" style=""><div class="wfl" style="top:0;height:440px"></div><div class="wfl" style="top:640px;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 5 / 6</p><h3 style="font-size:40px">Analog score</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Weighted matches added up for every 90 m cell</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><div class="row" style="gap:36px;align-items:center"><img class="f" style="--i:2;width:470px;height:620px;object-fit:contain" src="img/asi_mars_science_north.png" alt="Mars science analog score map of northern Oman"><div class="col" style="width:366px"><h2 class="r" style="--i:1;font-size:52px">One score per cell</h2><p class="r" style="--i:3;font-size:30px;color:#F2C46D;font-weight:600">Score = Σ weight × match</p><p class="r" style="--i:4;font-size:28px">38 million cells, 4 missions. The brightest places are Oman’s best twins — along the ophiolite.</p></div></div></div></div></section>
+<section class="page" data-id="wf6"><div class="stage wf" style=""><div class="wfl" style="top:0;height:440px"></div><div class="wfcard r" style="position:absolute;left:200px;top:440px;width:640px;height:200px;box-sizing:border-box;padding:26px 32px;border-radius:18px;background:#1C2A3E;border:3px solid #F2C46D;opacity:1;display:flex;flex-direction:column;gap:8px;--i:2"><p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:24px;font-weight:700;color:#F2C46D;letter-spacing:3px">STEP 6 / 6</p><h3 style="font-size:40px">Prove it</h3><p style="font-size:26px;line-height:1.3;color:#C3CCD8">Known analogs, Utah MDRS and a drone flight</p></div><div style="position:absolute;left:920px;top:128px;width:872px;height:824px;display:flex;flex-direction:column;gap:28px;justify-content:center"><p class="eyebrow r" style="--i:0">How we did it</p><h2 class="r" style="--i:1;font-size:52px">Known analogs land near the top</h2><p class="r small" style="--i:2;color:#9AA6B6">Where each one ranks among all of Oman · Mars science score</p><div class="pscale"><div class="trk"></div><p class="ax" style="left:0">50th · an average place in Oman</p><p class="ax" style="right:0">100th</p><div class="pm pr r" style="--i:3;left:828px"><div class="stem" style="top:64px;height:116px"></div><div class="dot"></div><div class="lab" style="top:0px"><b>97.5th</b><span>OmanDP outcrop</span></div></div><div class="pm pr r" style="--i:4;left:624px"><div class="stem" style="top:148px;height:32px"></div><div class="dot"></div><div class="lab" style="top:84px"><b>85.8th</b><span>Wadi Laywani · never used for tuning</span></div></div><div class="pm pl r" style="--i:5;left:344px"><div class="stem" style="top:198px;height:34px"></div><div class="dot"></div><div class="lab" style="top:232px"><b>69.7th</b><span>Wadi Mansah</span></div></div><div class="pm pr r" style="--i:6;left:677px"><div class="stem" style="top:198px;height:102px"></div><div class="dot"></div><div class="lab" style="top:300px"><b>88.8th</b><span>Utah MDRS · scored blind</span></div></div></div><div class="chips"><div class="chip r" style="--i:7"><b>AUC 0.84</b><span>Real analogs beat random places 84 times in 100</span></div><div class="chip r" style="--i:8"><b>0.78 vs 0.54</b><span>Jezero-type science: Oman ophiolite beats Utah MDRS</span></div></div></div></div></section>
+<section class="page" data-id="targets"><div class="stage alt" style="padding:128px 128px 160px">
+<div class="stack" style="gap:36px">
+<p class="eyebrow r" style="--i:0">Real targets, real terrain</p>
+<h2 class="r" style="--i:1">We compare Oman with the actual landing sites</h2>
+<div class="row" style="gap:40px">
+<div class="col r" style="--i:2;width:812px"><div class="shotw"><img class="shot" src="img/jezero_vs_oman.png" alt="3D terrain of Jezero crater floor beside its Oman twin at the same 24 km scale" style="width:812px;height:510px;display:block"><div class="badge"><b>90%</b><span>alike · Mizayra</span></div></div>
+<p class="cap"><b class="hl">Jezero floor</b>, where Perseverance landed · slope 1.5°, relief 33 m per km</p></div>
+<div class="col r" style="--i:3;width:812px"><div class="shotw"><img class="shot" src="img/shackleton_3d.png" alt="3D terrain of Shackleton crater at the lunar south pole from LOLA data" style="width:812px;height:510px;display:block"><div class="badge weak"><b>32%</b><span>alike · best in Oman</span></div></div>
+<p class="cap"><b class="hl">Shackleton crater</b>, lunar south pole · 4 km deep walls. Oman can’t copy it, and the site says so.</p></div>
+</div>
+</div>
+<div class="footer"><span>UBAR · Oman Analog Atlas</span><span>Terrain: LRO LOLA 80 m · MGS MOLA 463 m · Copernicus DEM 90 m — every tile 24 × 13.5 km</span></div>
+
+</div></section>
+<section class="page" data-id="minerals"><div class="stage " style="padding:128px 128px 160px">
+<div class="row" style="gap:64px;align-items:center">
+<div class="stack" style="width:760px">
+<p class="eyebrow r" style="--i:0">Rock chemistry from orbit</p>
+<h2 class="r" style="--i:1">From the Space Station, we can see Mars-like rock in Oman</h2>
+<p class="r" style="--i:2">NASA’s EMIT spectrometer maps surface minerals from the ISS. We read 68 EMIT scenes over Oman.</p>
+<p class="r" style="--i:3">Serpentine, magnesite and Fe-Mg clays — minerals that form when water meets rock, the chemistry Perseverance hunts at Jezero — light up the Samail ophiolite.</p>
+<p class="small r" style="--i:4;color:#9AA6B6">Green: water-formed minerals detected · hatched: not imaged by EMIT</p>
+</div>
+<img class="f" style="--i:2;width:840px;height:772px;object-fit:contain" src="img/minerals_jezero_north.png" alt="Map of northern Oman showing EMIT-detected serpentine, carbonate and clay minerals along the Hajar mountains">
+</div>
+<div class="footer"><span>UBAR · Oman Analog Atlas</span><span>Data: NASA EMIT L2B mineral identification, 68 granules, 88% of Oman covered</span></div>
+
+</div></section>
+<section class="page live" data-id="website" data-stops="#orbit #director #oman #site-S05"><iframe title="ubar.space, live" allow="fullscreen; xr-spatial-tracking"></iframe></section>
+<section class="page" data-id="field"><div class="stage " style="padding:128px 128px 160px">
+<div class="row" style="gap:56px;align-items:flex-start">
+<div class="stack" style="width:720px">
+<p class="eyebrow r" style="--i:0">Field check · 15 Nov</p>
+<h2 class="r" style="--i:1">We flew our drone over a high-ranking site</h2>
+<p class="small r" style="--i:2;color:#9AA6B6">Satellite prediction at S05 · click a card to reveal what we found</p><div class="flips"><button class="flip r" style="--i:3" type="button" aria-label="Slope: reveal field result"><div class="fi"><div class="face front"><span class="k">Slope</span><span class="v">1.2°</span><span class="d">Gentle ground</span></div><div class="face back"><span class="k">Field result</span><span class="v">[confirm]</span><span class="d">Slope</span></div></div></button><button class="flip r" style="--i:4" type="button" aria-label="Relief: reveal field result"><div class="fi"><div class="face front"><span class="k">Relief</span><span class="v">27 m/km</span><span class="d">Low hills</span></div><div class="face back"><span class="k">Field result</span><span class="v">[confirm]</span><span class="d">Relief</span></div></div></button><button class="flip r" style="--i:5" type="button" aria-label="EMIT minerals: reveal field result"><div class="fi"><div class="face front"><span class="k">EMIT minerals</span><span class="v">0.91</span><span class="d">Serpentine / carbonate</span></div><div class="face back"><span class="k">Field result</span><span class="v">[rock photos]</span><span class="d">EMIT minerals</span></div></div></button><button class="flip r" style="--i:6" type="button" aria-label="NDVI: reveal field result"><div class="fi"><div class="face front"><span class="k">NDVI</span><span class="v">0.08</span><span class="d">Bare ground</span></div><div class="face back"><span class="k">Field result</span><span class="v">[confirm]</span><span class="d">NDVI</span></div></div></button></div>
+<p class="small r" style="--i:3;color:#9AA6B6">0.47 km² · 1,423 photos · 4.3 cm per pixel</p>
+</div>
+<img class="shot f" style="--i:2;width:888px;height:500px;object-fit:cover" src="img/drone_route.jpg" alt="Drone flight plan over candidate site S05 near Ibra, 22.598 N 58.354 E">
+</div>
+<div class="footer"><span>UBAR · Oman Analog Atlas</span><span>Drone mission: 22.598° N, 58.354° E — site S05 near Ibra, a high-ranking Mars-science site (#4 of 55, score 0.895)</span></div>
+
+</div></section>
+<section class="page" data-id="impact"><div class="stage light" style="padding:128px 128px 160px">
+<div class="stack" style="gap:36px">
+<p class="eyebrow r" style="--i:0">Impact</p>
+<h2 class="r" style="--i:1">Who it helps — and what Earth can’t copy</h2>
+<div class="row" style="gap:32px">
+<div class="card icard r" style="--i:2;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="2" fill="currentColor"/></svg><h3>Mission planners</h3><p>Evidence-based sites, in minutes</p></div>
+<div class="card icard r" style="--i:3;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 4c8 6 11 15 9 27H15C13 19 16 10 24 4Z"/><circle cx="24" cy="18" r="4"/><path d="M15 31l-6 8h9M33 31l6 8h-9M20 36l4 8 4-8"/></svg><h3>Oman’s space sector</h3><p>A shortlist for the next AMADEE-style expedition</p></div>
+<div class="card icard r" style="--i:4;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 24s8-13 21-13 21 13 21 13-8 13-21 13S3 24 3 24Z"/><circle cx="24" cy="24" r="6"/></svg><h3>Schools &amp; public</h3><p>See Mars, then visit its twin</p></div>
+</div>
+<div class="row" style="gap:32px">
+<div class="card icard r" style="--i:5;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 6 44 41H4Z"/><path d="M24 19v10M24 35v.5"/></svg><h3>Honest limits</h3><p>Gravity, thin air, polar cold can’t be copied · Mars terrain data is 463 m</p></div>
+<div class="card icard r" style="--i:6;flex:1"><svg class="ic" viewBox="0 0 48 48" width="56" height="56" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 24h34M28 12l12 12-12 12"/></svg><h3>Next</h3><p>Drone 3D models · cleaner riverbeds · more EMIT · open data</p></div>
+</div>
+</div>
+
+</div></section>
+<section class="page" data-id="close"><div class="stage " style="padding:128px 128px 160px">
+<svg aria-label="Map of Oman with the lost city of Ubar in Dhofar" viewBox="0 0 671 889" width="604" height="800" style="position:absolute;left:1188px;top:140px;width:604px;height:800px"><path d="M332 800 L330 801 L332 802 L333 803 L334 802 L332 800 Z M372 800 L371 801 L373 801 L372 800 Z M348 796 L340 800 L344 802 L351 801 L352 800 L349 799 L348 796 Z M580 519 L579 520 L579 527 L577 528 L572 535 L571 542 L569 544 L565 543 L566 542 L559 550 L559 561 L560 567 L567 562 L568 559 L572 557 L571 554 L575 544 L586 535 L585 534 L584 530 L582 529 L583 520 L580 519 Z M348 144 L341 140 L337 144 L332 144 L329 149 L331 170 L327 173 L329 175 L325 178 L325 182 L330 193 L330 200 L324 206 L324 208 L330 211 L340 209 L341 214 L345 223 L336 225 L330 228 L328 227 L326 224 L322 224 L302 234 L306 242 L306 250 L309 253 L309 262 L299 277 L297 282 L296 283 L295 282 L281 307 L279 322 L281 335 L279 343 L317 405 L262 581 L16 669 L80 814 L77 819 L83 820 L107 876 L114 872 L126 869 L138 866 L146 867 L149 866 L153 864 L154 861 L160 856 L177 853 L183 849 L180 850 L182 849 L179 850 L180 848 L184 846 L207 842 L231 842 L236 844 L236 847 L237 848 L244 849 L245 850 L248 848 L254 848 L255 846 L256 847 L259 846 L261 843 L264 843 L264 845 L269 841 L274 834 L278 832 L279 828 L283 824 L282 820 L287 810 L284 805 L281 804 L281 798 L284 791 L293 785 L293 781 L296 778 L297 773 L314 767 L325 765 L335 766 L342 763 L353 764 L358 762 L373 764 L373 760 L379 756 L380 752 L389 746 L388 741 L393 730 L394 722 L396 717 L395 710 L398 704 L395 709 L396 707 L409 692 L415 687 L428 682 L446 677 L459 675 L483 674 L494 670 L495 669 L491 662 L492 655 L489 654 L487 648 L488 633 L483 622 L486 608 L484 611 L484 609 L483 610 L482 609 L485 608 L482 608 L481 607 L482 603 L486 598 L492 582 L494 570 L493 567 L493 563 L497 558 L504 553 L506 550 L503 549 L504 545 L513 540 L514 532 L516 528 L522 526 L523 527 L526 525 L526 528 L531 530 L530 533 L533 533 L532 534 L529 533 L529 537 L528 538 L528 536 L526 542 L527 543 L525 544 L526 540 L524 543 L525 546 L531 548 L537 547 L544 550 L550 544 L554 530 L552 527 L554 523 L557 521 L556 523 L558 522 L558 520 L557 521 L558 519 L559 520 L562 519 L560 517 L560 513 L564 516 L568 515 L568 511 L568 514 L562 515 L563 513 L561 513 L562 511 L567 506 L568 505 L568 506 L569 503 L573 498 L573 494 L577 487 L591 472 L605 461 L618 455 L618 451 L627 436 L630 426 L643 410 L645 399 L649 393 L656 385 L657 379 L656 371 L658 368 L655 358 L652 358 L653 359 L650 358 L649 359 L652 361 L650 362 L648 361 L649 358 L634 355 L630 352 L629 353 L629 352 L621 345 L617 339 L613 338 L606 321 L595 313 L594 309 L590 304 L589 298 L584 294 L582 295 L584 293 L583 289 L572 280 L569 271 L567 271 L567 272 L567 270 L565 270 L565 271 L565 270 L564 270 L562 268 L561 269 L560 267 L558 266 L557 262 L554 262 L554 261 L550 261 L548 260 L543 263 L534 263 L529 261 L523 256 L515 254 L498 254 L492 251 L491 248 L487 249 L479 248 L470 245 L468 244 L469 244 L451 239 L439 234 L420 218 L405 195 L396 187 L396 184 L395 185 L394 183 L395 184 L394 183 L395 182 L392 184 L393 183 L383 166 L383 163 L375 142 L370 143 L372 147 L371 150 L367 151 L365 153 L361 154 L360 160 L354 164 L348 163 L347 157 L342 152 L342 150 L349 152 L347 151 L349 145 L347 145 L348 144 Z M367 113 L365 112 L363 113 L364 117 L361 118 L363 121 L366 121 L372 118 L373 114 L370 115 L369 113 L367 113 Z M387 19 L386 21 L387 21 L388 20 L387 19 Z M375 19 L374 25 L370 26 L374 28 L375 30 L372 31 L370 28 L369 35 L371 35 L374 32 L374 34 L376 31 L378 35 L377 36 L373 34 L372 37 L371 36 L369 36 L369 37 L368 34 L367 35 L367 33 L365 34 L365 36 L363 34 L362 36 L361 30 L359 33 L358 39 L356 40 L351 48 L354 48 L356 47 L359 51 L360 55 L357 58 L358 62 L355 68 L358 73 L355 76 L356 81 L360 84 L360 87 L365 88 L367 81 L366 78 L370 73 L369 76 L371 75 L372 70 L373 71 L374 70 L373 67 L375 67 L374 65 L377 64 L376 59 L380 60 L381 58 L379 58 L379 56 L377 56 L379 54 L379 51 L376 51 L375 50 L380 49 L380 46 L383 45 L380 45 L378 46 L376 43 L375 45 L374 44 L375 43 L374 41 L371 44 L372 40 L371 41 L371 39 L374 38 L373 37 L375 35 L377 36 L375 37 L375 40 L378 36 L377 40 L379 41 L384 41 L382 38 L380 39 L379 36 L382 34 L382 36 L384 36 L383 33 L384 32 L382 31 L380 33 L379 32 L379 31 L376 30 L378 29 L376 27 L379 28 L379 26 L387 25 L385 24 L385 21 L383 22 L385 24 L381 24 L381 23 L380 24 L380 22 L377 23 L378 20 L377 22 L376 20 L375 21 L376 20 L374 21 L375 19 Z" fill="#1A2330" stroke="#46566E" stroke-width="2"/><circle cx="151" cy="734" r="22" fill="#F2C46D" opacity="0.25"><animate attributeName="r" values="14;46" dur="2.4s" begin="0s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle><circle cx="151" cy="734" r="10" fill="#F2C46D"/></svg>
+<div class="stack" style="width:1000px;margin-top:120px">
+<h2 class="r" style="--i:0;font-size:96px">Ubar was found from space.<br>So were these.</h2>
+<p class="lead r" style="--i:1"><a href="../" style="color:#F2C46D;text-decoration:none">ubar.space</a></p>
+<p class="small r" style="--i:2;color:#9AA6B6">Adil Al-Kalbani · Mazin · Luqman — thank you</p>
+</div>
+<p class="small f" style="--i:3;position:absolute;left:1350px;top:785px;width:260px;color:#F2C46D">Ubar, 1992</p>
+
+</div></section>
+<nav id="nav" aria-label="Slides"></nav>
+<div id="arrows"><a id="home" href="../" title="Open the website" aria-label="Open the website">← Website</a><button id="up" aria-label="Previous slide">↑</button><button id="down" aria-label="Next slide">↓</button></div>
+<div id="notes" aria-live="polite"></div>
+<script>
+const NOTES=["Luqman (45 s). Open with the map and the single gold dot: a lost city in Oman that NASA helped find from space. Don't explain it yet; the next slide does. Introduce the team in one line each.", "Luqman (45 s). Tell the Ubar story briefly: a filmmaker asked JPL whether shuttle radar could see a buried city; the images showed old caravan tracks converging at Shisr. That is the spirit of our project: satellites reveal what the ground hides. Then hand over to Adil.", "Adil (75 s). Read the challenge in one sentence. Then the four boxes: every analog is a compromise between terrain, environment, chemistry and logistics. Most analog sites were chosen by expert judgement and logistics, not by scoring a whole country.", "Adil (20 s). We start from NASA orbiters: the same instruments that mapped the Moon and Mars landing sites also see Oman.", "Adil (20 s). Ten criteria in five groups; every one is a full map of Oman.", "Adil (25 s). The key idea: we compare with the REAL target, measured by orbiters, at the same scale.", "Adil (20 s). Weights come from AHP, a structured expert method with a consistency check. Click the mission buttons: Moon base is mostly terrain, Mars science mostly minerals.", "Adil (20 s). Add it up and you get the analog score map. Point at the bright belt along the ophiolite — that is where the best Mars-science twins are.", "Adil (60 s). Our strongest point. Known analog outcrops come out on top; Wadi Laywani was never used for tuning and still ranks high. Then the outside test: the famous Utah station (Mars Society), scored blind, lands in our top 11% — and for Jezero-type astrobiology Oman beats it.", "Adil (60 s). Real data both sides. Jezero shows the method works: the real landing site matches the target we derived. Shackleton shows honesty: Oman cannot copy a 4 km-deep polar crater, so the site says “weak twin”.", "Adil (45 s). This is what makes Oman special: the mantle rock exposed in the ophiolite reacts with water today, like Mars did billions of years ago. A satellite on the ISS sees it.", "Mazin. The live website.", "Luqman (60 s). Show the plan, then click each prediction card to reveal what you actually saw: slope feel, colour of the rock, white veins. Next: the 4 cm 3D model goes into ubar.space and is compared with the 90 m prediction.", "Adil (60 s). Impact for three audiences. Then say the limits yourself before the judges ask. Close on next steps.", "All. One line, then invite questions. Have the website open for questions."];
+const pages=[...document.querySelectorAll('.page')];
+let cur=0;
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);document.documentElement.style.setProperty('--k',k);}
+addEventListener('resize',fit);fit();
+const nav=document.getElementById('nav');
+pages.forEach((p,i)=>{const b=document.createElement('button');b.setAttribute('aria-label','Slide '+(i+1));if(p.classList.contains('live'))b.classList.add('lv');b.onclick=()=>go(i);nav.appendChild(b);});
+function go(i){i=Math.max(0,Math.min(pages.length-1,i));pages[i].scrollIntoView({behavior:'smooth'});}
+// The website slide: one live copy of ubar.space, loaded while you are on it or next to it.
+// PageDown/PageUp step it through STOPS by changing its hash, so the site plays its own transitions;
+// after the last stop the deck moves on. Coming back up from below starts at the last stop.
+const LIVE=pages.findIndex(p=>p.classList.contains('live')),liveP=pages[LIVE],liveF=liveP.querySelector('iframe');
+const STOPS=liveP.dataset.stops.split(' ');
+const STOP_NOTES=["Mazin. The website's home: Earth from orbit with Oman marked. PageDown flies to the mission picker.",
+ "Mazin. Pick a destination: stand on Jezero or the lunar pole, then meet its Oman twin.",
+ "Mazin. Set your priorities: move a slider and watch the map and the reality check update.",
+ "Mazin. Zoom into a site: S05's passport, why it scores, what Earth can't copy. PageDown moves on to the field check."];
+let stop=0,liveReady=false,liveTimer=0;
+function syncLive(){const want=Math.abs(cur-LIVE)<=1;
+  if(want&&!liveF.dataset.on){liveF.dataset.on='1';liveReady=false;liveF.src='../'+STOPS[stop];}
+  else if(!want&&liveF.dataset.on){delete liveF.dataset.on;liveReady=false;liveF.src='about:blank';}}
+function setStop(s){stop=Math.max(0,Math.min(STOPS.length-1,s));showNotes();
+  if(liveReady){try{const w=liveF.contentWindow;if(w.location.hash!==STOPS[stop])w.location.hash=STOPS[stop];}catch(_){}}}
+function showNotes(){document.getElementById('notes').textContent=(cur+1)+'/'+pages.length+' · '+
+  (cur===LIVE?'Website '+(stop+1)+'/'+STOPS.length+' · '+STOP_NOTES[stop]:(NOTES[cur]||''));}
+function next(){if(cur===LIVE&&stop<STOPS.length-1)setStop(stop+1);else go(cur+1);}
+function prev(){if(cur===LIVE&&stop>0)setStop(stop-1);else go(cur-1);}
+function setCur(i){cur=i;[...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+  if(i<LIVE&&stop!==0)setStop(0);else if(i>LIVE&&stop!==STOPS.length-1)setStop(STOPS.length-1);
+  showNotes();
+  clearTimeout(liveTimer);liveTimer=setTimeout(syncLive,i===LIVE?0:350);
+  history.replaceState(null,'','#'+(pages[i].dataset.id||i));}
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.6){e.target.classList.add('in');setCur(pages.indexOf(e.target));} else if(!e.isIntersecting)e.target.classList.remove('in');}),{threshold:[0,.6]});
+pages.forEach(p=>io.observe(p));
+function key(e){const k=e.key;
+  if(k==='PageDown'||(k===' '&&!e.target.closest?.('input,textarea'))){e.preventDefault();next();}
+  else if(k==='PageUp'){e.preventDefault();prev();}
+  else if(k==='ArrowDown'&&!inLive()){e.preventDefault();go(cur+1);}
+  else if(k==='ArrowUp'&&!inLive()){e.preventDefault();go(cur-1);}
+  else if(k==='n'||k==='N'){document.body.classList.toggle('shownotes');}
+  else if(k==='f'||k==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}}
+function inLive(){return pages[cur].classList.contains('live');}
+addEventListener('keydown',key);
+// same-origin iframes: let the clicker (PageUp/PageDown) and N/F keep working while the live site has focus
+// Capture phase + stopImmediatePropagation: the site has its own Esc handlers (they navigate back a view),
+// so Esc must be swallowed here or the live slide would jump to another page of the site.
+liveF.addEventListener('load',()=>{let w;try{w=liveF.contentWindow;if(w.location.href==='about:blank')return;}catch(_){return;}
+  liveReady=true;
+  w.addEventListener('keydown',e=>{if(['PageDown','PageUp','Escape'].includes(e.key)){e.preventDefault();e.stopImmediatePropagation();if(e.key==='Escape'){liveF.blur();focus();}else key(e);}},true);
+  w.addEventListener('hashchange',()=>{const k=STOPS.indexOf(w.location.hash);if(k>=0&&k!==stop){stop=k;showNotes();}});
+  if(w.location.hash!==STOPS[stop])w.location.hash=STOPS[stop];});
+
+// weights slide: real AHP weights per mission (data/weights.json), grouped like the site's criteria
+const W={moon_base:{slope:.2297,tri:.1264,relief:.0696,dT_diurnal:.1248,dT_annual:.0703,wind:.0158,ndvi:.1208,channels:.0436,minerals:.0722,access:.1267},
+ mars_landing:{slope:.2319,tri:.1327,relief:.0506,dT_diurnal:.0254,dT_annual:.0254,wind:.0508,ndvi:.105,channels:.0612,minerals:.0589,access:.2582},
+ mars_science:{slope:.0266,tri:.0266,relief:.0533,dT_diurnal:.0298,dT_annual:.0298,wind:.0149,ndvi:.1475,channels:.2389,minerals:.3825,access:.0501},
+ mars_sedimentary:{slope:.0549,tri:.0549,relief:.1099,dT_diurnal:.0485,dT_annual:.0485,wind:.0242,ndvi:.1266,channels:.0685,minerals:.3955,access:.0685}};
+const WG=[["Geology & minerals",["minerals"]],["Terrain",["slope","tri","relief"]],["Dryness",["ndvi"]],["Climate",["dT_diurnal","dT_annual","wind"]],["Water history",["channels"]],["Access",["access"]]];
+const WLINE={moon_base:"Moon base: terrain comes first. A lander needs flat, firm ground.",mars_landing:"Mars landing: terrain and access come first.",
+ mars_science:"Mars science: minerals and old riverbeds come first.",mars_sedimentary:"Mars sedimentary: minerals first, then terrain."};
+const wbars=document.getElementById('wbars');
+wbars.innerHTML=WG.map(([l])=>`<div class="wrow"><p class="wl">${l.replace('&','&amp;')}</p><div class="wb" style="width:0"></div><p class="wp"></p></div>`).join('');
+function showW(m){const v=WG.map(([,ks])=>ks.reduce((a,k)=>a+W[m][k],0)),mx=Math.max(...v);
+  [...wbars.children].forEach((r,i)=>{const b=r.querySelector('.wb');b.style.width=Math.round(v[i]*1000)+'px';b.classList.toggle('top',v[i]===mx);r.querySelector('.wp').textContent=Math.round(v[i]*100)+'%';});
+  document.querySelectorAll('#wtabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.m===m)));
+  document.getElementById('wcap').textContent=m==='mars_sedimentary'?'AHP weights · consistency ratio 0.005 (limit 0.10)':'AHP weights from a structured expert comparison';
+  document.getElementById('wline').textContent=WLINE[m];}
+document.getElementById('wtabs').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(b){showW(b.dataset.m);b.blur();}});
+showW('mars_sedimentary');
+// field slide: click a prediction card to flip it to the field result
+document.querySelectorAll('.flip').forEach(c=>c.addEventListener('click',()=>{c.classList.toggle('on');c.blur();}));
+document.getElementById('up').onclick=prev;document.getElementById('down').onclick=next;
+const start=location.hash.slice(1);const si=pages.findIndex(p=>p.dataset.id===start);if(si>0)setTimeout(()=>pages[si].scrollIntoView({behavior:'instant'}),50);
+addEventListener('hashchange',()=>{const j=pages.findIndex(p=>p.dataset.id===location.hash.slice(1));if(j>=0&&j!==cur)pages[j].scrollIntoView({behavior:'instant'});});
+</script></body></html>

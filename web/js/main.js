@@ -43,7 +43,14 @@ function crumbs(route, data) {
   return parts;
 }
 
+// "About" is the team presentation (present/). #about redirects there; inside the presentation's
+// live slides (iframe) the link is removed so the deck never opens inside itself.
+const toAbout = () => { if (location.hash === "#about") { location.replace("present/"); return true; } return false; };
+const framed = (() => { try { return window.self !== window.top; } catch (_) { return true; } })();
+if (framed) { $("#aboutLink")?.remove(); document.documentElement.classList.add("framed"); }
+
 async function start() {
+  if (toAbout()) return;
   const view = $("#view");
   let data;
   try { data = await loadData(); }
@@ -104,7 +111,7 @@ async function start() {
     if (a11yFocus) view.focus({ preventScroll: true });
   }
   let a11yFocus = false;
-  addEventListener("hashchange", () => { a11yFocus = true; route(); });
+  addEventListener("hashchange", () => { if (toAbout()) return; a11yFocus = true; route(); });
   route();
 }
 start();
