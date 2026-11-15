@@ -22,7 +22,8 @@ const D2R = Math.PI / 180;
 // Sun direction in world space. The small negative height keeps the Moon's south pole at
 // grazing light (about 1.7° above the horizon), as it really is there.
 const SUN = new THREE.Vector3(-0.56, -0.03, 0.83).normalize();
-const TEX = "assets/textures/";
+// resolved from this file, so the same scene also works from /present/ (the team deck)
+const TEX = new URL("../../assets/textures/", import.meta.url).href;
 // Sharper Earth imagery over Arabia (NASA Blue Marble Next Generation, 500 m) blended into the globe for the close-ups.
 const PATCH = { lon0: 40, lon1: 76, lat0: 8, lat1: 36 };
 // Texture upgrades by device tier: 0 = phone / small GPU (first-load files only), 1 = desktop, 2 = desktop on high graphics with 8K support.
