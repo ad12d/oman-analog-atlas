@@ -213,32 +213,59 @@ export default {
 
     /* ---------- headset console: waist height, below your line of sight; grip shows / hides it ---------- */
     let menuBtns = [], menuHot = -1;
+    // frosted-glass panel background shared by the console and the info board
+    function glass(c, W, H, accent = "#f2c46d") {
+      c.save(); c.shadowColor = "rgba(0,0,0,.55)"; c.shadowBlur = 24;
+      const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(26,31,40,.96)"); g.addColorStop(1, "rgba(9,11,15,.96)");
+      c.fillStyle = g; c.beginPath(); c.roundRect(6, 6, W - 12, H - 12, 26); c.fill(); c.restore();
+      const b = c.createLinearGradient(0, 0, W, H); b.addColorStop(0, accent); b.addColorStop(.5, "rgba(255,255,255,.12)"); b.addColorStop(1, accent);
+      c.strokeStyle = b; c.lineWidth = 2; c.beginPath(); c.roundRect(7, 7, W - 14, H - 14, 25); c.stroke();
+      c.strokeStyle = "rgba(255,255,255,.08)"; c.lineWidth = 1; c.beginPath(); c.moveTo(34, 12); c.lineTo(W - 34, 12); c.stroke();
+    }
+    function pill(c, x, y, text, bg, fg, font = "600 11px 'IBM Plex Mono', monospace") {
+      c.font = font; const w = c.measureText(text).width + 20;
+      c.fillStyle = bg; c.beginPath(); c.roundRect(x, y, w, 22, 11); c.fill(); c.fillStyle = fg; c.fillText(text, x + 10, y + 15); return w;
+    }
     function drawMenu() {
       if (!menu) return;
       const c = menu.ctx, W = 512, H = 520, A = actions();
       c.setTransform(2, 0, 0, 2, 0, 0); c.clearRect(0, 0, W, H);
-      c.fillStyle = "rgba(10,12,16,.92)"; c.beginPath(); c.roundRect(0, 0, W, H, 22); c.fill();
-      c.fillStyle = "#f2c46d"; c.fillRect(0, 0, W, 6);
-      c.font = "600 26px 'Space Grotesk', sans-serif"; c.fillStyle = "#e9e6df";
-      c.fillText(loading ? "Loading terrain…" : touring ? "Building the base" : { pad: "1 · Choose a pad", descent: "2 · Landing", camp: "3 · Build the base" }[step], 24, 48);
-      c.font = "500 12.5px 'IBM Plex Mono', monospace"; c.fillStyle = "#f2c46d";
-      c.fillText(`${WORLDS[world].label} · ${WORLDS[world].place}`.toUpperCase(), 24, 72);
-      c.font = "400 16px 'IBM Plex Sans', sans-serif"; c.fillStyle = "#c9cdd2";
-      wrapText(c, lastMsg, 24, 98, W - 48, 20, 4);
-      menuBtns = []; let y = 182;
-      const cols = 3, bw = (W - 48 - 16) / cols, bh = 46;
+      glass(c, W, H);
+      // header: chapter pill, title, place
+      const n = ch ? narration() : null, idx = chIndex();
+      pill(c, 26, 24, ch ? `CHAPTER ${idx + 1} / ${CH.length}` : "VR", "#f2c46d", "#0d0f12");
+      c.font = "500 11px 'IBM Plex Mono', monospace"; c.fillStyle = "#9ba3ad"; c.textAlign = "right";
+      c.fillText(`${WORLDS[world].label} · ${WORLDS[world].place}`.toUpperCase(), W - 26, 39); c.textAlign = "left";
+      c.font = "600 24px 'Space Grotesk', sans-serif"; c.fillStyle = "#f3f1ec";
+      const title = loading ? "Loading terrain…" : n?.t || (touring ? "Building the base" : "Mission");
+      c.fillText(title.length > 34 ? title.slice(0, 33) + "…" : title, 26, 76);
+      // chapter progress
+      if (ch) CH.forEach((cc, k) => { const x = 26 + k * ((W - 52) / CH.length);
+        c.fillStyle = k === idx ? "#f2c46d" : doneCh.has(cc.id) ? "#3FB68B" : "rgba(255,255,255,.12)"; c.beginPath(); c.roundRect(x, 88, (W - 52) / CH.length - 6, 5, 3); c.fill(); });
+      // message card
+      c.fillStyle = "rgba(255,255,255,.05)"; c.beginPath(); c.roundRect(22, 104, W - 44, 76, 14); c.fill();
+      c.fillStyle = "#f2c46d"; c.beginPath(); c.roundRect(22, 104, 4, 76, 2); c.fill();
+      c.font = "400 14.5px 'IBM Plex Sans', sans-serif"; c.fillStyle = "#d9dde2"; wrapText(c, lastMsg, 36, 126, W - 72, 18, 3);
+      // buttons: rounded pills; gold for the main action; glow when pointed at
+      menuBtns = [];
+      const cols = A.length > 8 ? 3 : 2, gap = 8, bw = (W - 44 - gap * (cols - 1)) / cols, bh = A.length > 8 ? 40 : 46; let y = 194;
       A.forEach((a, i) => {
-        const col = i % cols, x = 24 + col * (bw + 8); if (col === 0 && i) y += bh + 8;
-        const hot = i === menuHot;
-        c.fillStyle = a.off ? "rgba(255,255,255,.04)" : a.on ? "rgba(242,196,109,.25)" : a.primary ? "#e9e6df" : hot ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.08)";
-        c.beginPath(); c.roundRect(x, y, bw, bh, 10); c.fill();
-        if (a.on || hot) { c.strokeStyle = "#f2c46d"; c.lineWidth = 3; c.stroke(); }
-        c.font = "600 13px 'Space Grotesk', sans-serif"; c.fillStyle = a.primary && !a.on ? "#0d0f12" : a.off ? "#555" : "#e9e6df";
-        c.textAlign = "center"; const lbl = a.label.toUpperCase(); c.fillText(lbl.length > 22 ? lbl.slice(0, 21) + "…" : lbl, x + bw / 2, y + 28); c.textAlign = "left";
+        const col = i % cols, x = 22 + col * (bw + gap); if (col === 0 && i) y += bh + gap;
+        const hot = i === menuHot && !a.off;
+        c.save();
+        if (hot) { c.shadowColor = "rgba(242,196,109,.8)"; c.shadowBlur = 16; }
+        if (a.primary && !a.off) { const g = c.createLinearGradient(x, y, x, y + bh); g.addColorStop(0, "#f7d68e"); g.addColorStop(1, "#e2ab47"); c.fillStyle = g; }
+        else c.fillStyle = a.off ? "rgba(255,255,255,.03)" : a.on ? "rgba(242,196,109,.2)" : hot ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.07)";
+        c.beginPath(); c.roundRect(x, y, bw, bh, bh / 2); c.fill(); c.restore();
+        c.strokeStyle = a.on || hot ? "#f2c46d" : "rgba(255,255,255,.1)"; c.lineWidth = a.on || hot ? 2 : 1; c.beginPath(); c.roundRect(x + .5, y + .5, bw - 1, bh - 1, bh / 2); c.stroke();
+        c.font = `600 ${cols > 2 ? 11.5 : 13}px 'Space Grotesk', sans-serif`; c.fillStyle = a.primary && !a.off ? "#14110a" : a.off ? "#5a6068" : "#eef0f2";
+        c.textAlign = "center"; let lbl = a.label.replace(/ ▸$/, ""); const max = cols > 2 ? 18 : 26; if (lbl.length > max) lbl = lbl.slice(0, max - 1) + "…";
+        c.fillText(lbl + (a.primary ? "  ▸" : ""), x + bw / 2, y + bh / 2 + 4.5); c.textAlign = "left";
         menuBtns.push({ x, y, w: bw, h: bh, id: a.id, off: a.off });
       });
-      c.font = "500 11.5px 'IBM Plex Mono', monospace"; c.fillStyle = "#8a929c";
-      c.fillText("TRIGGER = SELECT   GRIP = SHOW / HIDE THIS CONSOLE   RIGHT STICK = TURN", 24, H - 16);
+      // control hints
+      let hx = 22; const hy = H - 40;
+      for (const t of ["TRIGGER · SELECT", "GRIP · HIDE / SHOW", "L-STICK · WALK", "R-STICK · TURN"]) hx += pill(c, hx, hy, t, "rgba(255,255,255,.06)", "#8f98a3", "500 10px 'IBM Plex Mono', monospace") + 6;
       menu.tex.needsUpdate = true;
     }
     function menuHit(ray) {
@@ -266,11 +293,11 @@ export default {
     function showBoard(title, lines, color, secs = 14) {
       if (!board || !renderer.xr.isPresenting) return;
       const c = board.ctx, W = board.pw, H = board.ph;
-      c.clearRect(0, 0, W, H); c.fillStyle = "rgba(8,10,14,.92)"; c.beginPath(); c.roundRect(0, 0, W, H, 24); c.fill();
-      c.fillStyle = color; c.fillRect(0, 0, W, 10);
-      c.font = "700 40px 'Space Grotesk', sans-serif"; c.fillStyle = color; c.fillText(title, 32, 66);
-      c.font = "400 24px 'IBM Plex Sans', sans-serif"; c.fillStyle = "#e9e6df"; let y = 112;
-      for (const l of lines) y = wrapText(c, l, 32, y, W - 64, 30, 3) + 6;
+      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, W, H); glass(c, W, H, color);
+      c.fillStyle = color; c.beginPath(); c.roundRect(30, 30, 10, 54, 5); c.fill();
+      c.font = "700 38px 'Space Grotesk', sans-serif"; c.fillStyle = "#f3f1ec"; c.fillText(title.length > 30 ? title.slice(0, 29) + "…" : title, 56, 70);
+      c.font = "400 25px 'IBM Plex Sans', sans-serif"; c.fillStyle = "#d9dde2"; let y = 126;
+      for (const l of lines) y = wrapText(c, l, 40, y, W - 80, 33, 7) + 8;
       board.tex.needsUpdate = true;
       headPose(); const right = new THREE.Vector3(-headDir.z, 0, headDir.x);
       board.mesh.position.copy(headPos).addScaledVector(headDir, .75).addScaledVector(right, .62); board.mesh.position.y = headPos.y - .3;
@@ -829,7 +856,7 @@ export default {
       moveMarker = new THREE.Mesh(ringGeo(.35, .5), flat(0xf2c46d));
       padMarker.visible = padHover.visible = moveMarker.visible = false; scene.add(padMarker, padHover, moveMarker);
       menu = panel(.58, .59, 1024, 1040); menu.mesh.visible = false; menu.mesh.renderOrder = 5; scene.add(menu.mesh);
-      board = panel(.8, .36, 880, 400); board.mesh.visible = false; scene.add(board.mesh);
+      board = panel(.82, .42, 900, 460); board.mesh.visible = false; scene.add(board.mesh);
       body = createBody(scene, renderer, camera); body.setMode("first");
       hands = createHands(renderer);
       for (let i = 0; i < 2; i++) { const hd = renderer.xr.getHand(i); hd.userData.xrPart = true; controls.rig.add(hd); }   // tracked hands ride with you

@@ -88,13 +88,76 @@ export function createHands(renderer) {
     st.segs = segs;
     sides.push(st);
   }
-  const BONES = [["wrist", "thumb-metacarpal"], ["thumb-metacarpal", "thumb-phalanx-proximal"], ["thumb-phalanx-proximal", "thumb-phalanx-distal"], ["thumb-phalanx-distal", "thumb-tip"]];
-  for (const f of ["index-finger", "middle-finger", "ring-finger", "pinky-finger"]) {
-    BONES.push([`${f}-metacarpal`, `${f}-phalanx-proximal`], [`${f}-phalanx-proximal`, `${f}-phalanx-intermediate`], [`${f}-phalanx-intermediate`, `${f}-phalanx-distal`], [`${f}-phalanx-distal`, `${f}-tip`]);
-    BONES.push(["wrist", `${f}-metacarpal`]);
+  // tracked-hand suit glove: rounded finger segments with knuckle joints, a solid padded palm, rubber fingertips, a cuff
+  const FINGERS = ["index-finger", "middle-finger", "ring-finger", "pinky-finger"];
+  const CHAINS = [["thumb-metacarpal", "thumb-phalanx-proximal", "thumb-phalanx-distal", "thumb-tip"],
+    ...FINGERS.map(f => [`${f}-phalanx-proximal`, `${f}-phalanx-intermediate`, `${f}-phalanx-distal`, `${f}-tip`])];
+  const MAT = {
+    fabric: new THREE.MeshStandardMaterial({ color: 0xe9e7e2, roughness: .78 }),
+    pad: new THREE.MeshStandardMaterial({ color: 0x6d737c, roughness: .9 }),
+    tip: new THREE.MeshStandardMaterial({ color: 0x3a3f46, roughness: .95 }),
+    metal: new THREE.MeshStandardMaterial({ color: 0xc6cbd2, roughness: .28, metalness: .9 }),
+    blue: new THREE.MeshStandardMaterial({ color: 0x2e63b8, roughness: .45 }),
+  };
+  const CYL = new THREE.CylinderGeometry(1, 1, 1, 14, 1, true), SPH = new THREE.SphereGeometry(1, 16, 12);
+  const PALM = new THREE.BoxGeometry(1, 1, 1, 2, 1, 2); { const pos = PALM.attributes.position;           // soften the box into a padded pillow
+    for (let k = 0; k < pos.count; k++) { const x = pos.getX(k), y = pos.getY(k), z = pos.getZ(k); pos.setY(k, y * (1 - .35 * (x * x * 4 + z * z * 4) / 2)); } PALM.computeVertexNormals(); }
+  const CUFF = new THREE.CylinderGeometry(1, 1.12, 1, 20, 1, false), RING = new THREE.TorusGeometry(1, .14, 8, 24);
+  const mk = (geo, mat, parent) => { const m = new THREE.Mesh(geo, mat); m.castShadow = true; parent.add(m); return m; };
+  function buildTracked(st) {
+    const g = st.segs, parts = { chains: [], palm: null, back: null, cuff: null, ring: null, band: null };
+    for (const ch of CHAINS) {
+      const links = [];
+      for (let k = 0; k < ch.length - 1; k++) links.push({ cyl: mk(CYL, MAT.fabric, g), knuckle: mk(SPH, k === 0 ? MAT.pad : MAT.fabric, g) });
+      links.tip = mk(SPH, MAT.tip, g); parts.chains.push(links);
+    }
+    parts.palm = mk(PALM, MAT.pad, g); parts.back = mk(PALM, MAT.fabric, g);
+    parts.cuff = mk(CUFF, MAT.fabric, g); parts.ring = mk(RING, MAT.metal, g); parts.band = mk(RING, MAT.blue, g);
+    st.parts = parts;
   }
-  const unitCap = new THREE.CapsuleGeometry(1, 1, 3, 8);       // scaled per bone
-  const a = new THREE.Vector3(), b = new THREE.Vector3(), mid = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
+  const fx = new THREE.Vector3(), fy = new THREE.Vector3(), fz = new THREE.Vector3(), m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
+  const jp = (J, n) => J[n] && J[n].visible ? J[n].position : null;
+  function segment(mesh, p0, p1, r) {          // a cylinder from p0 to p1
+    d.subVectors(p1, p0); const len = d.length(); if (len < 1e-4) { mesh.visible = false; return; }
+    mesh.visible = true; mesh.position.addVectors(p0, p1).multiplyScalar(.5);
+    mesh.quaternion.setFromUnitVectors(Y, d.normalize()); mesh.scale.set(r, len, r);
+  }
+  function ball(mesh, p, r) { if (!p) { mesh.visible = false; return; } mesh.visible = true; mesh.position.copy(p); mesh.scale.setScalar(r); }
+  function updateTracked(st) {
+    const J = st.hand.joints, P = st.parts, R = n => (J[n]?.jointRadius || .009);
+    CHAINS.forEach((ch, c) => {
+      const links = P.chains[c];
+      for (let k = 0; k < ch.length - 1; k++) {
+        const p0 = jp(J, ch[k]), p1 = jp(J, ch[k + 1]), r = Math.max(.0075, R(ch[k]) * 1.18);
+        if (!p0 || !p1) { links[k].cyl.visible = links[k].knuckle.visible = false; continue; }
+        segment(links[k].cyl, p0, p1, r); ball(links[k].knuckle, p0, r * (k === 0 ? 1.18 : 1.08));
+      }
+      ball(links.tip, jp(J, ch[ch.length - 1]), Math.max(.0075, R(ch[ch.length - 2]) * 1.15));
+    });
+    // palm: a padded block spanning the wrist and the knuckles, oriented by the hand's own frame
+    const w = jp(J, "wrist"), ip = jp(J, "index-finger-phalanx-proximal"), mp = jp(J, "middle-finger-phalanx-proximal"), pp = jp(J, "pinky-finger-phalanx-proximal");
+    if (!w || !ip || !mp || !pp) { P.palm.visible = P.back.visible = P.cuff.visible = P.ring.visible = P.band.visible = false; return; }
+    fz.subVectors(w, mp); const len = fz.length(); fz.normalize();                 // +z toward the wrist
+    fx.subVectors(ip, pp); const wid = fx.length(); fx.addScaledVector(fz, -fx.dot(fz)).normalize();
+    fy.crossVectors(fz, fx).normalize();                                            // palm normal (sign depends on hand)
+    if (!st.right) fy.negate();
+    m4.makeBasis(fx, fy, fz); q.setFromRotationMatrix(m4);
+    a.addVectors(w, mp).multiplyScalar(.5).lerp(b.addVectors(ip, pp).multiplyScalar(.5), .25);
+    const th = .028;
+    P.back.visible = P.palm.visible = true;
+    P.back.position.copy(a).addScaledVector(fy, th * .2); P.back.quaternion.copy(q); P.back.scale.set(wid * 1.25, th, len * 1.02);
+    P.palm.position.copy(a).addScaledVector(fy, -th * .45); P.palm.quaternion.copy(q); P.palm.scale.set(wid * 1.12, th * .55, len * .92);
+    // gauntlet cuff behind the wrist, with the metal bearing and the blue identification band
+    const cr = wid * .62, cuffLen = .085;
+    P.cuff.visible = P.ring.visible = P.band.visible = true;
+    q.setFromUnitVectors(Y, fz);
+    P.cuff.position.copy(w).addScaledVector(fz, cuffLen * .55); P.cuff.quaternion.copy(q); P.cuff.scale.set(cr, cuffLen, cr * .82);
+    const rq = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), fz);
+    P.ring.position.copy(w).addScaledVector(fz, .006); P.ring.quaternion.copy(rq); P.ring.scale.set(cr * 1.02, cr * .84, cr);
+    P.band.position.copy(w).addScaledVector(fz, .03); P.band.quaternion.copy(rq); P.band.scale.set(cr * 1.03, cr * .86, cr * .6);
+  }
+
   const btn = (gp, k) => gp?.buttons?.[k] || { value: 0, touched: false, pressed: false };
 
   function update(visible) {
@@ -103,15 +166,8 @@ export function createHands(renderer) {
       st.holder.visible = visible && !tracked;
       st.segs.visible = !!tracked;
       if (tracked) {
-        if (!st.bones) { st.bones = BONES.map(([j0]) => { const m = new THREE.Mesh(unitCap, j0 === "wrist" ? M.palm : M.glove); st.segs.add(m); return m; }); }
-        BONES.forEach(([j0, j1], k) => {
-          const A = joints[j0], B = joints[j1], m = st.bones[k];
-          if (!A || !B || !A.visible || !B.visible) { m.visible = false; return; }
-          a.copy(A.position); b.copy(B.position); mid.addVectors(a, b).multiplyScalar(.5);
-          const len = a.distanceTo(b), r = Math.max(.007, (A.jointRadius || .009) * (j0 === "wrist" ? .9 : 1.15));
-          m.visible = true; m.position.copy(mid); q.setFromUnitVectors(Y, b.sub(a).normalize()); m.quaternion.copy(q);
-          m.scale.set(r, Math.max(.001, len / 2 - r * .5), r);
-        });
+        if (!st.parts) buildTracked(st);
+        updateTracked(st);
         continue;
       }
       // controller glove: fingers follow the buttons, eased so they move like fingers rather than snap

@@ -64,6 +64,16 @@ export function createControls({ renderer, camera, scene, dom, onSelect, onSquee
       if (keys.has("d") || keys.has("arrowright")) rig.position.addScaledVector(side, sp);
       rig.position.y = ground(rig.position.x, rig.position.z);
     } else {
+      // left stick: walk where you look (smooth, a steady walking pace)
+      for (const h of hands) {
+        if (h.hand !== "left") continue;
+        const ax = h.gamepad?.axes?.[2] ?? 0, ay = h.gamepad?.axes?.[3] ?? 0;
+        if (Math.hypot(ax, ay) < .15) continue;
+        const head = new THREE.Vector3().setFromMatrixPosition(camera.matrixWorld), dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+        const rightV = new THREE.Vector3(-dir.z, 0, dir.x), sp = 2.2 * dt;
+        rig.position.addScaledVector(dir, -ay * sp).addScaledVector(rightV, ax * sp);
+        rig.position.y = ground(head.x - ay * dir.x * sp, head.z - ay * dir.z * sp);
+      }
       // right stick: snap turn around the viewer's head
       for (const h of hands) {
         const ax = h.gamepad?.axes?.[2] ?? 0;
