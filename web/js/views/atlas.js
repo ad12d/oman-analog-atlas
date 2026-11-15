@@ -143,12 +143,13 @@ export default {
         </div>
       </div></aside>
       <aside class="drawer live" id="drawer" aria-label="Analog passport"><div class="panel ticks">
-        <div class="panel-head"><span class="panel-title">Analog passport</span><button class="btn" type="button" id="closeDrawer">Close <kbd>Esc</kbd></button></div>
+        <div class="panel-head"><span class="panel-title">Analog passport</span><span class="pp-headbtns"><button class="btn" type="button" id="ppMin" aria-pressed="false" title="Shrink the passport to a summary bar">Minimise ▾</button><button class="btn" type="button" id="closeDrawer">Close <kbd>Esc</kbd></button></span></div>
         <div class="scroll" id="pp"></div>
       </div></aside>
       <div class="dcard" id="ncard" aria-hidden="true"></div>
       <div class="explain panel live" id="explain" hidden></div>
-      <div class="live-status" id="liveStatus" aria-live="polite"></div>`;
+      <div class="live-status" id="liveStatus" aria-live="polite"></div>
+      <button type="button" class="btn panels-btn" id="panelsBtn" aria-pressed="false" title="Hide the side panels to see the whole map (H)">⤢ Map only</button>`;
     view.appendChild(root);
     const $r = s => root.querySelector(s);
 
@@ -386,6 +387,7 @@ export default {
     function openSite(id) {
       const s = data.site(id, store.mission); if (!s) { go("#oman"); return; }
       if (site3DOn() && drawerId !== id) exit3D(true);
+      if (drawerId !== id && !site3DOn()) setMini(false);
       drawerId = id; drawer.classList.add("on"); $r("#rankRail").style.visibility = "hidden"; $r("#explain").hidden = true; setTune(false);
       const pp = $r("#pp");
       renderPassport(pp, { data, mission: store.mission, id }); pp.scrollTop = 0;
@@ -394,14 +396,28 @@ export default {
     }
     function closeSite() {
       if (site3DOn()) { exit3D(true); map.jumpTo({ pitch: 0, bearing: 0 }); }
+      setMini(false);
       drawerId = null; drawer.classList.remove("on"); $r("#rankRail").style.visibility = "";
       map.fitBounds(VIEW_BOUNDS, { padding: pad(), duration: 1300 });
     }
     $r("#closeDrawer").addEventListener("click", () => go("#oman"));
 
+    /* ---------- panels out of the way: "Map only" hides the side panels; the passport can shrink to a summary bar ---------- */
+    let panelsMin = false, before3D = null;
+    function setPanels(min) {
+      panelsMin = min; root.classList.toggle("panels-min", min);
+      const b = $r("#panelsBtn"); b.setAttribute("aria-pressed", String(min)); b.textContent = min ? "Show panels" : "⤢ Map only";
+    }
+    function setMini(on) {
+      drawer.classList.toggle("mini", on); const b = $r("#ppMin"); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "Details ▴" : "Minimise ▾";
+    }
+    $r("#panelsBtn").addEventListener("click", () => setPanels(!panelsMin));
+    $r("#ppMin").addEventListener("click", () => setMini(!drawer.classList.contains("mini")));
+
     /* ---------- C: 3D site view (Esri imagery on AWS terrain, team brief 2) ---------- */
     function exit3D(quiet) {
       exitSite3D(map, quiet); markers.forEach(m => { m.getElement().style.visibility = ""; }); pickMarkers.forEach(m => { m.getElement().style.visibility = ""; });
+      if (before3D) { setPanels(before3D.panels); setMini(before3D.mini); before3D = null; } root.classList.remove("in3d");
       root.querySelector("#exag")?.remove(); const b = $r("#pp #site3dBtn"); if (b) b.textContent = "View site in 3D";
     }
     $r("#pp").addEventListener("click", e => {
@@ -409,11 +425,12 @@ export default {
       if (site3DOn()) { exit3D(false); return; }
       const s = data.site(drawerId, store.mission), wide = innerWidth > 980;
       markers.forEach(m => { m.getElement().style.visibility = "hidden"; }); pickMarkers.forEach(m => { m.getElement().style.visibility = "hidden"; });
+      before3D = { panels: panelsMin, mini: drawer.classList.contains("mini") }; setPanels(true); setMini(true); root.classList.add("in3d");
       enterSite3D(map, s, {
         mission: store.mission,
         sites: data.top(store.mission),            // nearby top-10 sites within 15 km get pins
         drone: DRONE[s.id],                        // S05 has the 15 Nov drone survey box
-        padding: { top: 60, bottom: 60, left: wide ? 320 : 0, right: wide ? Math.min(660, innerWidth * .5) : 0 },
+        padding: wide ? { top: 120, bottom: 90, left: 40, right: 40 } : { top: 230, bottom: 120, left: 10, right: 10 },   // the compact layout leaves the view open
       });
       b.textContent = "Back to the 2D map";
       const ex = h("div", { class: "exag panel live", id: "exag" }, `<label for="exagR">Height exaggeration <b id="exagV">1.5×</b></label><input type="range" id="exagR" min="1" max="2.5" step="0.1" value="1.5">`);
@@ -437,9 +454,11 @@ export default {
     getGrid().then(g => { if (!alive) return; G = g; W = defaultWeights(G, store.mission); paintTune(); recompute(); })
       .catch(err => { $r("#liveStatus").textContent = "The live map could not load: " + err.message; });
 
-    const onKey = e => { if (e.key === "Escape") { if (!$r("#explain").hidden) $r("#explain").hidden = true; else if (drawerId) go("#oman"); else if (tuneOpen) setTune(false); else go("#director"); } };
+    const onKey = e => {
+      if ((e.key === "h" || e.key === "H") && !e.target.closest("input, textarea, select") && !e.ctrlKey && !e.metaKey) { setPanels(!panelsMin); return; }
+      if (e.key === "Escape") { if (!$r("#explain").hidden) $r("#explain").hidden = true; else if (drawerId) go("#oman"); else if (tuneOpen) setTune(false); else go("#director"); } };
     addEventListener("keydown", onKey);
-    setKeys([["Click", "Explain"], ["M", "Mission"], ["Esc", "Back"]]);
+    setKeys([["Click", "Explain"], ["H", "Map only"], ["M", "Mission"], ["Esc", "Back"]]);
 
     return {
       update(r) { if (r.name === "site") openSite(r.id); else if (drawerId) closeSite(); },

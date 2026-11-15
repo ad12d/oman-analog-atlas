@@ -117,7 +117,7 @@ export default {
       focus = w; brief.hidden = true; dossier.hidden = false;
       const t = data.sites[m][0];
       dossier.innerHTML = `
-        <div class="band" style="--wc:${WORLD_INFO[w].color}"><h2>${esc(MISSIONS[m].target)}</h2><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)}</p></div>
+        <div class="band" style="--wc:${WORLD_INFO[w].color}"><button type="button" class="vr-x dmin" data-dmin aria-label="Shrink or expand this panel" title="Shrink / expand">▾</button><h2>${esc(MISSIONS[m].target)}</h2><p>${WORLD_INFO[w].title} · ${esc(MISSIONS[m].label)}</p></div>
         <div class="dtabs" role="tablist">
           <button type="button" role="tab" data-dtab="learn" aria-selected="${tab === "learn"}">Learn</button>
           <button type="button" role="tab" data-dtab="data" aria-selected="${tab === "data"}">${w === "moon" ? "On the Moon" : "On Mars"} vs Oman</button>
@@ -149,6 +149,8 @@ export default {
     function travel(w) { if (w === "earth") travelEarth(); else go("#director-" + w); }
 
     root.addEventListener("click", e => {
+      const dm = e.target.closest("[data-dmin]");
+      if (dm) { const on = dossier.classList.toggle("mini"); dm.textContent = on ? "▴" : "▾"; return; }
       const tb = e.target.closest("[data-dtab]");
       if (tb) { tab = tb.dataset.dtab; dossier.querySelectorAll("[data-dtab]").forEach(b => b.setAttribute("aria-selected", String(b === tb)));
         dossier.querySelectorAll("[data-dpane]").forEach(p => { p.hidden = p.dataset.dpane !== tab; }); dossier.querySelector(".dbody").scrollTop = 0; return; }
