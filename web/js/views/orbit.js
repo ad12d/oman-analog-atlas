@@ -32,6 +32,7 @@ export default {
           <a class="btn primary" href="#director">Choose a mission <kbd>Enter</kbd></a>
           <a class="btn" href="#oman">Go to Oman</a>
           <a class="btn" href="#method">How the score works</a>
+          <a class="btn demo-link" href="?demo#orbit">▶ Watch the 2-minute demo</a>
         </div>
       </div>
       <div class="pin" id="pin" aria-hidden="true">

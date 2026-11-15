@@ -117,5 +117,6 @@ async function start() {
   let a11yFocus = false;
   addEventListener("hashchange", () => { if (toAbout()) return; a11yFocus = true; route(); });
   route();
+  if (new URLSearchParams(location.search).has("demo") && !framed) import("./core/demo.js").then(m => m.startDemo(ctx));
 }
 start();

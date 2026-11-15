@@ -430,7 +430,7 @@ export default {
         mission: store.mission,
         sites: data.top(store.mission),            // nearby top-10 sites within 15 km get pins
         drone: DRONE[s.id],                        // S05 has the 15 Nov drone survey box
-        padding: wide ? { top: 120, bottom: 90, left: 40, right: 40 } : { top: 230, bottom: 120, left: 10, right: 10 },   // the compact layout leaves the view open
+        padding: wide ? { top: Math.round(Math.max(120, innerHeight * .34)), bottom: 90, left: 40, right: 40 } : { top: 230, bottom: 120, left: 10, right: 10 },   // the compact layout leaves the view open; labels stay under the top bar
       });
       b.textContent = "Back to the 2D map";
       const ex = h("div", { class: "exag panel live", id: "exag" }, `<label for="exagR">Height exaggeration <b id="exagV">1.5×</b></label><input type="range" id="exagR" min="1" max="2.5" step="0.1" value="1.5">`);
