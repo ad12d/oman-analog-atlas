@@ -23,6 +23,7 @@ const BASEMAP = {
   ],
 };
 const VIEW_BOUNDS = [[52.0, 16.7], [59.9, 26.3]];                 // the whole Sultanate
+const OMAN_VIEW = { center: [55.95, 21.5], zoom: 5.2 };            // fallback when the map area is too small to fit the bounds
 const HACK = { name: "Al Bidiyah", lon: 58.80, lat: 22.45, km: 80 }; // hackathon base; drone range for field checks
 const DEF_BUF = { town: 2, village: 1, hamlet: 0.5, roads_major: 0.2, farms: 0.5, oil: 2 };
 
@@ -103,7 +104,7 @@ export default {
       const fromFar = scene.mode === "director" || scene.mode.startsWith("focus-m");
       mapEl.classList.add("away"); vig.classList.add("away");
       scene.setActive(true); const landed = scene.setMode("dive");
-      const end = map.cameraForBounds(VIEW_BOUNDS, { padding: pad() });
+      const end = map.cameraForBounds(VIEW_BOUNDS, { padding: safePad() }) || OMAN_VIEW;
       map.jumpTo({ center: end.center, zoom: end.zoom - 1.1 });
       const reveal = () => {
         if (!alive) return;
@@ -112,10 +113,11 @@ export default {
         timers.push(setTimeout(() => { if (alive) scene.setActive(false); }, 1200));
       };
       // from the Moon or Mars the camera flies back first; the map fades in as it reaches Oman
-      if (fromFar) landed.then(reveal); else timers.push(setTimeout(reveal, 450));
+      if (fromFar) { let shown = false; const once = () => { if (!shown) { shown = true; reveal(); } }; landed.then(once); timers.push(setTimeout(once, 5000)); }   // never wait longer than 5 s (slow or hidden tabs)
+      else timers.push(setTimeout(reveal, 450));
     } else {
       mapEl.classList.remove("away"); vig.classList.remove("away");
-      map.fitBounds(VIEW_BOUNDS, { padding: pad(), duration: 0 });
+      fitOman({ duration: 0 });
       scene.setMode("dive", true); scene.setActive(false);
     }
 
@@ -157,6 +159,15 @@ export default {
     function pad() { const wide = innerWidth > 980, side = innerHeight <= 500 && innerWidth > innerHeight;
       if (!wide && side) return { top: 100, bottom: 50, left: 24, right: Math.min(340, innerWidth * .42) + 24 };
       return wide ? { top: 90, bottom: 80, left: 340, right: 340 } : { top: 130, bottom: Math.round(innerHeight * .34) + 70, left: 24, right: 24 }; }
+
+    // panel margins never larger than the map itself (small windows, the presentation's embedded site, a hidden tab)
+    function safePad() {
+      const p = pad(), c = map.getContainer(), w = c.clientWidth, h = c.clientHeight;
+      if (!w || !h) return 0;
+      const sx = Math.min(1, w * .6 / Math.max(1, p.left + p.right)), sy = Math.min(1, h * .6 / Math.max(1, p.top + p.bottom));
+      return { top: p.top * sy, bottom: p.bottom * sy, left: p.left * sx, right: p.right * sx };
+    }
+    function fitOman(opts) { try { map.fitBounds(VIEW_BOUNDS, { padding: safePad(), ...opts }); } catch { map.jumpTo(OMAN_VIEW); } }
 
     /* ---------- layers rail ---------- */
     function paintStrata() {
@@ -398,7 +409,7 @@ export default {
       if (site3DOn()) { exit3D(true); map.jumpTo({ pitch: 0, bearing: 0 }); }
       setMini(false);
       drawerId = null; drawer.classList.remove("on"); $r("#rankRail").style.visibility = "";
-      map.fitBounds(VIEW_BOUNDS, { padding: pad(), duration: 1300 });
+      fitOman({ duration: 1300 });
     }
     $r("#closeDrawer").addEventListener("click", () => go("#oman"));
 
