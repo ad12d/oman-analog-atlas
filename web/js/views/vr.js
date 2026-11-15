@@ -18,6 +18,7 @@ import { createControls } from "../vr/controls.js";
 import { createJourney, LEGS } from "../vr/journey.js";
 import { createBody, buildSuit, partMarkers, SUIT_PARTS } from "../vr/suit.js";
 import { createHolo } from "../vr/holo.js";
+import { createHands } from "../vr/hands.js";
 import { MISSIONS, MISSION_KEYS, CRITERIA, score100 } from "../core/data.js";
 import { LEARN, WORLD_FACTS } from "../core/learn.js";
 import { getGrid } from "../core/grid.js";
@@ -126,7 +127,7 @@ export default {
     const doneCh = new Set();
     const dest = () => MISSIONS[mission].world;
     const site = () => data.site(siteId, mission) || data.sites[mission][0];
-    let body, holo, mannequin, mannequinMarks;
+    let body, holo, mannequin, mannequinMarks, hands;
     const tmpV = new THREE.Vector3();
 
     function msg(t) { lastMsg = t; const m = $r("#vrMsg"); if (m) m.textContent = t; drawMenu(); if (ch === "landing" || ch === "base") paintGuide(); }
@@ -155,8 +156,8 @@ export default {
       if (ch === "suit") { for (const p of SUIT_PARTS) A.push({ id: "m:part:" + p.id, label: p.name.split(" and ")[0], on: part === p.id, group: "m" }); }
       if (ch === "journey") A.push({ id: "m:speed", label: journey.speed > 1 ? "Time ×4" : "Time ×1", on: journey.speed > 1, group: "m" }, { id: "m:skip", label: "Skip to orbit", group: "m" });
       if (ch === "orbit") A.push({ id: "m:descend", label: "Begin descent ▸", primary: true, group: "m" });
-      if (ch === "landing" && step === "pad") A.push({ id: "land", label: "Start landing ▸", primary: true, off: !chosen, group: "m" });
-      if (ch === "base" && !touring) A.push({ id: "tour", label: "Build the recommended base ▸", primary: true, group: "m" });
+      if (ch === "landing" && step === "descent") A.push({ id: "speed", label: speed === 1 ? "Speed ×1" : "Speed ×4", on: speed > 1, group: "m" });
+      if ((ch === "landing" || ch === "base") && (touring || exiting)) A.push({ id: "skip", label: "Skip ▸", group: "m" });
       if (ch === "debrief") A.push({ id: "m:home", label: "Fly home & rehearse in Oman", primary: true, group: "m" }, { id: "m:other", label: dest() === "moon" ? "Now try Mars" : "Now try the Moon", group: "m" },
         { id: "m:passport", label: "Open the site passport", group: "m" }, { id: "m:dest3d", label: "See the destination in 3D", group: "m" });
       if (!xr && ch !== "journey" && ch !== "orbit") A.push({ id: "m:view", label: body?.mode === "third" ? "First-person view" : "See yourself (3rd person)", on: body?.mode === "third", group: "m" });
@@ -171,12 +172,8 @@ export default {
       }
       if (touring) A.push({ id: "skip", label: "Skip tour", primary: true });
       else {
-        if (step === "pad") A.push({ id: "tool:pad", label: "Pick pad", on: tool === "pad" }, { id: "land", label: "Start landing ▸", primary: true, off: !chosen });
         if (step === "descent") A.push({ id: "speed", label: speed === 1 ? "Speed ×1" : "Speed ×4", on: speed > 1 });
-        if (step === "camp") { A.push({ id: "tour", label: "Build the recommended base ▸", primary: true });
-          for (const m of camp.modules) A.push({ id: "tool:" + m.id, label: m.name, on: tool === m.id, group: "mod" }); }
-        A.push({ id: "tool:move", label: "Move", on: tool === "move" });
-        if (step === "camp") A.push({ id: "undo", label: "Undo" });
+        A.push({ id: "tool:move", label: "Walk here", on: tool === "move" });
       }
       for (const k of Object.keys(WORLDS)) A.push({ id: "world:" + k, label: WORLDS[k].label, on: world === k, group: "world", off: touring || flying });
       A.push({ id: "overlay", label: "Slope map", on: overlay }, { id: "reset", label: "Restart", off: touring });
@@ -199,14 +196,14 @@ export default {
       else if (k === "undo") { const p = camp.undo(); msg(p ? "Removed the last module." : "Nothing to undo."); showCamp(); }
       else if (k === "reset") restart();
       else if (k === "tour") buildTour();
-      else if (k === "skip") skipTour = true;
+      else if (k === "skip") { skipTour = true; skipExit = true; }
       paint();
     }
     function paint() {
       const bar = $r("#vrBar"); if (!bar) return;
       const A = actions();
       const grp = g => A.filter(a => (a.group || "main") === g).map(a => `<button type="button" class="btn${a.primary ? " primary" : ""}" data-a="${a.id}" aria-pressed="${!!a.on}" ${a.off ? "disabled" : ""}>${esc(a.label)}</button>`).join("");
-      const ground = ch === "landing" || ch === "base" || !guideOn;
+      const ground = !guideOn;
       bar.innerHTML = `${ground ? `<div class="vr-row">${grp("main")}</div>` : ""}${step === "camp" && !touring && ground ? `<div class="vr-row">${grp("mod")}</div>` : ""}<div class="vr-row vr-skins"><span class="eyebrow">Fly to</span>${grp("world")}</div>`;
       bar.hidden = journeyOn || loading;
       root.querySelectorAll(".vr-steps li").forEach(li => li.classList.toggle("on", li.dataset.s === step));
@@ -301,7 +298,7 @@ export default {
       const r = padGrade(p);
       chosen = { x: p.x, z: p.z, r, name };
       padMarker.visible = true; padMarker.position.set(p.x, terrain.heightAt(p.x, p.z) + .16, p.z); padMarker.material.color.setHex(LEVEL_HEX[r.level]);
-      msg(`${name}: slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm, the lander would lean ${r.tilt.toFixed(1)}° → ${LEVEL[r.level]}. A lander needs flat, smooth ground so it stands level and can take off again. Press Start landing.`);
+      msg(`The computer chose ${name}: slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm, the lander will lean ${r.tilt.toFixed(1)}° → ${LEVEL[r.level]}. A lander needs flat, smooth ground so it stands level and can take off again.`);
       paint();
     }
 
@@ -315,7 +312,7 @@ export default {
       $r("#vrCard").hidden = true;
     }
     function onTouchdown(r) {
-      step = "camp"; tool = "move"; camp.setLander({ x: chosen.x, z: chosen.z });
+      step = "camp"; tool = "move"; camp.setLander({ x: chosen.x, z: chosen.z }); pads.forEach(p => p.g.visible = false); padMarker.visible = false;
       const L = rules.landing, col = LEVEL_COL[r.level];
       const row = (n, v, s, hz, g) => `<tr><td>${n}</td><td class="v">${v}</td><td class="lim">${s} / ${hz}</td><td><i class="dot" style="background:${LEVEL_COL[g]}"></i></td></tr>`;
       $r("#vrCard").innerHTML = `<div class="vr-card-head" style="--lc:${col}"><button type="button" class="vr-x" data-a="close" aria-label="Close">×</button><span class="eyebrow">Touchdown · ${esc(chosen.name)}</span><b>${LEVEL[r.level]}</b></div>
@@ -326,11 +323,11 @@ export default {
         </tbody></table>
         <p class="note">Why it matters: a lander leaning more than about 8° could tip over or be unable to take off again, and rocks under a foot can puncture it. Measured on the ${L.pad_radius_m} m pad from the real satellite height map. Limits set by our team from published Moon and Mars landing practice.</p>
         <details class="experts"><summary>For experts</summary><p class="tech">Terrain: ${esc(terrain.meta.source || "terrain tile")}. Small rocks, pebbles and the sky are illustrated.</p></details>
-        <div class="vr-card-acts"><button type="button" class="btn primary" data-a="tour">Build the recommended base ▸</button><button type="button" class="btn" data-a="tool:habitat">Place modules myself</button></div>`;
+`;
       $r("#vrCard").hidden = false;
       showBoard(`Touchdown · ${LEVEL[r.level]}`, [`Leaning ${r.tilt.toFixed(1)}°, slope ${r.slope.toFixed(1)}°, bumps ${Math.round(r.roughness * 100)} cm.`, "Next: build the base from the console."], col);
-      msg(`Touchdown ${LEVEL[r.level].toLowerCase()}. Now establish the base: place each module where the rules allow, or watch the recommended base being built.`);
-      if (ch === "landing") setTimeout(() => { if (alive && ch === "landing") enterCh("base"); }, 2500);
+      msg(`Touchdown ${LEVEL[r.level].toLowerCase()}. The engines are off; the crew checks the lander, then opens the hatch.`);
+      setTimeout(async () => { if (!alive) return; $r("#vrCard").hidden = true; await exitSequence(); if (alive && step === "camp") enterCh("base"); }, 3200);
       paint();
     }
     $r("#vrCard").addEventListener("click", e => {
@@ -375,10 +372,10 @@ export default {
 
     function restart() {
       lander.reset(); camp.clear(); camp.setTool(null); camp.setLander(null);
-      step = "pad"; tool = "pad"; chosen = null; padMarker.visible = false; speed = 1;
+      step = "pad"; tool = "move"; chosen = null; padMarker.visible = false; speed = 1; baseDone = false;
       pads.forEach(p => p.g.visible = true); $r("#vrCard").hidden = true; caption(null);
       if (pads[0]) choosePad(pads[0], pads[0].name);
-      msg("Choose a landing pad: point at the ground or pick a suggested ring.");
+      msg("The lander's computer checks candidate pads against the height map: green safe, amber marginal, red hazard. It will pick the safest one.");
       paint();
     }
 
@@ -392,11 +389,7 @@ export default {
       if (!terrain || loading || flying || touring) return;
       const p = rayGround(ray); if (!p) return;
       if (tool === "move") { if (terrain.inNear(p.x, p.z, 4) && Math.hypot(p.x - controls.rig.position.x, p.z - controls.rig.position.z) < 120) { controls.teleport(p.x, p.y, p.z); if (renderer.xr.isPresenting && menu.mesh.visible) consoleDue = .3; } else toast("Stay inside the landing area"); return; }
-      if (tool === "pad" && step === "pad") {
-        if (!terrain.inNear(p.x, p.z, rules.landing.pad_radius_m + 2)) { toast("Pick a pad inside the landing area"); return; }
-        const near = pads.find(q => Math.hypot(q.x - p.x, q.z - p.z) < rules.landing.pad_radius_m * 1.3);
-        choosePad(near || p, near ? near.name : "Custom pad"); return;
-      }
+
       if (step === "camp" && camp.tool) {
         const c = camp.place(p); if (!c) return;
         if (c.ok) { showCamp(c); msg(`${c.name} going up. ${c.role}`); if (camp.status().pct === 100) camp.addCrew(); }
@@ -421,7 +414,7 @@ export default {
       controls.setPointerLength(p ? ray.ray.origin.distanceTo(p) : 8);
       if (!p) { camp.hover(null); return; }
       if (tool === "move") { moveMarker.visible = terrain.inNear(p.x, p.z, 4); moveMarker.position.set(p.x, p.y + .06, p.z); }
-      else if (tool === "pad" && step === "pad" && terrain.inNear(p.x, p.z, 8)) { const r = padGrade(p); padHover.visible = true; padHover.position.set(p.x, p.y + .12, p.z); padHover.material.color.setHex(LEVEL_HEX[r.level]); }
+
       if (step === "camp" && camp.tool) {
         const c = camp.hover(p);
         if (c) { const t = c.ok ? `${c.name}: every rule passes here${c.warns.length ? ` (caution: ${c.warns[0].label.toLowerCase()})` : ""}. Press to build.` : `${c.name}: ${c.fails[0].label.toLowerCase()} ${c.fails[0].value}, needs ${c.fails[0].limit}.`;
@@ -458,6 +451,64 @@ export default {
       controls.teleport(gx, terrain.heightAt(gx, gz), gz);
     }
 
+    /* ---------- you climb out: hatch, porch, ladder, first steps; then the view becomes your own eyes ---------- */
+    let exiting = false, skipExit = false, walker = null;
+    const FIRST = {
+      moon: "Moon dust is fine and sharp like broken glass. With no wind or rain, a footprint here can last for millions of years.",
+      mars: "Mars dust is rich in iron oxide, which is why the ground looks red. In 38% gravity every step feels light and bouncy.",
+      oman: "In Oman, crews rehearse this same climb-down in a heavy suit, in heat and dust, before anyone does it for real.",
+    };
+    async function exitSequence() {
+      if (!lander || !terrain) return;
+      exiting = true; skipExit = false; paintGuide();
+      const xr = renderer.xr.isPresenting, m = lander.root; m.updateMatrixWorld(true);
+      const W = (x, y, z) => m.localToWorld(new THREE.Vector3(x, y, z)), gnd = v => { v.y = terrain.heightAt(v.x, v.z); return v; };
+      const P = { door: W(0, 4.04, -1.9), porch: W(0, 4.04, -2.75), top: W(0, 3.98, -3.15), bottom: W(0, .5, -3.5), foot: gnd(W(0, 0, -4.3)), out: gnd(W(0, 0, -10)) };
+      const me = buildSuit(); me.traverse(o => { if (o.isMesh) o.castShadow = true; }); scene.add(me);
+      const outDir = new THREE.Vector3().subVectors(P.out, P.foot).setY(0).normalize(), faceOut = Math.atan2(outDir.x, outDir.z), faceIn = faceOut + Math.PI;
+      const side = new THREE.Vector3(-outDir.z, 0, outDir.x);
+      const segs = [
+        { a: "door", b: "porch", t: 2.2, face: faceOut, kind: "walk", cap: ["The hatch opens", "Before stepping out, the crew checks suit pressure, oxygen and radio. The hatch keeps the cabin air in while it is closed."] },
+        { a: "porch", b: "top", t: 1.2, face: faceIn, kind: "turn" },
+        { a: "top", b: "bottom", t: 4.6, face: faceIn, kind: "ladder", cap: ["Down the ladder", "Climbing in a stiff, pressurised suit is slow work: one rung at a time, always holding on with three limbs."] },
+        { a: "bottom", b: "foot", t: 1.4, face: faceIn, kind: "step" },
+        { a: "foot", b: "out", t: 4.4, face: faceOut, kind: "walk", cap: ["First steps", FIRST[world] || FIRST.mars] },
+      ];
+      if (xr) { const v = gnd(P.foot.clone().addScaledVector(side, 7).addScaledVector(outDir, -2)); controls.teleport(v.x, v.y, v.z); controls.face(P.porch.x, P.porch.z); }
+      const cam = new THREE.Vector3(); camera.getWorldPosition(cam); const look = P.door.clone();
+      if (!xr) setCine({ interruptible: false, update(dt) {
+        if (!walker) return;
+        const w = walker.position, want = w.clone().addScaledVector(side, 3.6).addScaledVector(outDir, 1.6); want.y = Math.max(terrain.heightAt(want.x, want.z) + 1.4, w.y + 1.1);
+        cam.lerp(want, Math.min(1, dt * 2.2)); look.lerp(w.clone().setY(w.y + 1.2), Math.min(1, dt * 3)); controls.look(cam, look);
+      } });
+      walker = me;
+      for (const sg of segs) {
+        if (!alive) break;
+        if (sg.cap) { caption(`${WORLDS[world].label} · stepping out`, sg.cap[0], `<p>${esc(sg.cap[1])}</p>`); msg(sg.cap[1]); if (xr) showBoard(sg.cap[0], [sg.cap[1]], "#f2c46d", 10); }
+        const A = P[sg.a], B = P[sg.b], dur = skipExit ? .01 : sg.t; let t = 0;
+        await new Promise(res => { const step = () => {
+          if (!alive) return res();
+          t += 1 / 60; const e = Math.min(1, t / dur), k = e < .5 ? 2 * e * e : 1 - Math.pow(-2 * e + 2, 2) / 2;
+          me.position.lerpVectors(A, B, sg.kind === "ladder" ? e : k);
+          if (sg.kind === "walk" || sg.kind === "step") me.position.y = sg.kind === "walk" && sg.a === "foot" ? terrain.heightAt(me.position.x, me.position.z) : me.position.y;
+          me.rotation.y = sg.kind === "turn" ? faceOut + (faceIn - faceOut) * k : sg.face;
+          const sw = Math.sin(t * (sg.kind === "ladder" ? 7 : 6));
+          me.userData.legs.forEach((l, i) => { l.rotation.x = (sg.kind === "turn" ? 0 : (i ? -sw : sw) * (sg.kind === "ladder" ? .55 : .4)); });
+          me.userData.arms.forEach((a, i) => { a.rotation.x = sg.kind === "ladder" ? -2.4 + (i ? sw : -sw) * .35 : (i ? sw : -sw) * .3; });
+          if (e >= 1 || skipExit) { if (skipExit) me.position.copy(B); res(); } else setTimeout(step, 1000 / 60);
+        }; step(); });
+        if (sg.cap && !skipExit) await wait(400);
+      }
+      // the view becomes yours: you stand where the astronaut stopped, looking out at the site
+      walker = null; scene.remove(me); me.traverse(o => o.geometry?.dispose?.());
+      if (!xr) setCine(null);
+      const ahead = P.out.clone().addScaledVector(outDir, 10);
+      if (xr) { await fadeXR(1); controls.teleport(P.out.x, P.out.y, P.out.z); controls.face(ahead.x, ahead.z); await fadeXR(0); }
+      else { controls.teleport(P.out.x, P.out.y, P.out.z); controls.face(ahead.x, ahead.z); }
+      caption(null); exiting = false; paintGuide();
+      msg("You are on the surface. Look down: that is your suit. Next, the base goes up around you, one module at a time.");
+    }
+
     /* ---------- guided build of the recommended base ---------- */
     function whyHere(c) {
       const keys = { habitat: ["slope", "relief", "keepout"], solar: ["sun", "distance", "slope"], comms: ["home", "distance", "slope"], rover: ["distance", "slope"], drill: ["shadow", "distance", "slope"], path: ["slope"] }[c.id] || ["slope"];
@@ -466,7 +517,7 @@ export default {
       return `<p>${esc(c.role || "")}</p><ul class="vr-why">${rs.map(r => `<li>${r.ok ? (r.warn ? "⚠" : "✓") : "✗"} <b>${esc(r.label)}</b>: ${esc(r.value)} (rule ${esc(r.limit)})</li>`).join("")}</ul>${lead ? `<p class="why-lead">${esc(lead.why)}</p>` : ""}`;
     }
     async function buildTour() {
-      if (step !== "camp" || touring) return;
+      if (step !== "camp" || touring || baseDone) return;
       touring = true; skipTour = false; camp.setTool(null); camp.clearHint(); tool = "move"; $r("#vrCard").hidden = true; paint();
       const plan = camp.plan();
       if (!plan.length) { msg("No part of the landing area passes the rules for a habitat. Try a different pad or world."); touring = false; paint(); return; }
@@ -502,6 +553,7 @@ export default {
       if (cine) cine.interruptible = true;        // the overview keeps turning until you drag or press a key
       msg("The base is established. Drag or press a key to take back the camera; place more modules or switch worlds to compare.");
       baseDone = true; paintGuide();
+      setTimeout(() => { if (alive && ch === "base" && !touring) enterCh("debrief"); }, 9000);
     }
     const linkFor = id => id === "comms" && world !== "moon" ? (world === "mars" ? "Road access: the link runs through orbiting relay satellites, so the mast stays close to the habitat" : "Road access: a short cable run to the habitat") : CRITERION_LINK[id] || "";
     function baseReport() {
@@ -519,8 +571,8 @@ export default {
 
     /* ================= MISSION TRACK ================= */
     const chIndex = () => CH.findIndex(c => c.id === ch);
-    const canNext = () => ch === "landing" ? step === "camp" : ch === "journey" || ch === "orbit" || ch !== "debrief";
-    const nextLabel = () => ({ brief: "Suit up ▸", suit: "Launch ▸", journey: "Skip to orbit ▸", orbit: "Begin descent ▸", landing: step === "camp" ? "Build the base ▸" : "Land first", base: "Debrief ▸", debrief: "—" })[ch] || "Next ▸";
+    const canNext = () => ch === "landing" ? step === "camp" && !exiting : ch === "base" ? baseDone : ch !== "debrief";
+    const nextLabel = () => ({ brief: "Suit up ▸", suit: "Launch ▸", journey: "Skip to orbit ▸", orbit: "Begin descent ▸", landing: step === "camp" ? "Build the base ▸" : "Landing…", base: baseDone ? "Debrief ▸" : "Building…", debrief: "—" })[ch] || "Next ▸";
     function holoCard() {
       const M = MISSIONS[mission], s = site(), w = dest(), L = LEARN[mission], leg = LEGS[w], W = data.weights[mission];
       const matches = CRITERIA.map(c => ({ c, pts: W[c.k] * s["s_" + c.k], sv: +s["s_" + c.k] })).filter(x => x.sv >= .5).sort((a, b) => b.pts - a.pts).slice(0, 3)
@@ -557,10 +609,10 @@ export default {
               <p class="note">The gold dashes are the ship's path. Distances are squeezed so the whole trip fits on screen; times and facts are real.</p>` }; }
         case "orbit": return { k: "4 · In orbit", t: LEGS[w].orbit[0], plain: LEGS[w].orbit[1],
           html: `<p class="lead">${esc(LEGS[w].orbit[1])}</p><div class="g-facts">${WORLD_FACTS[w].slice(0, 4).map(f => `<div><span>${esc(f.k)}</span><b>${esc(f.v)}</b></div>`).join("")}</div>` };
-        case "landing": return { k: `5 · Landing${rehearsal ? " · Oman rehearsal" : ""}`, t: "Pick a safe landing pad", plain: lastMsg,
-          html: `<p class="lead">${rehearsal ? "The same check on real Omani ground: this is how crews rehearse it. " : ""}A lander needs flat, firm ground: leaning more than about 8° it could tip over or fail to take off again. The rings are pads checked against the real height map: green safe, amber marginal, red hazard.</p><p class="g-msg">${esc(lastMsg)}</p><p class="note">The ground's shape is real satellite elevation data; small rocks, pebbles and the sky are illustrated.</p>` };
-        case "base": return { k: `6 · Build the base${rehearsal ? " · Oman rehearsal" : ""}`, t: "Where can each module stand?", plain: lastMsg,
-          html: `<p class="lead">Each module has rules: level ground for the habitat, sunlight for the solar array${groundWorld === "moon" ? ", a clear view of Earth for the antenna" : ""}, and a safe distance from the pad's rocket blast. These are the same terrain properties our atlas measures across Oman.</p><p class="g-msg">${esc(lastMsg)}</p>` };
+        case "landing": return { k: `5 · Landing${rehearsal ? " · Oman rehearsal" : ""}`, t: exiting ? "Stepping out" : step === "pad" ? "Choosing a safe pad" : step === "descent" ? "Powered descent" : "Touchdown", plain: lastMsg,
+          html: `<p class="lead">${rehearsal ? "The same check on real Omani ground: this is how crews rehearse it. " : ""}A lander needs flat, firm ground: leaning more than about 8° it could tip over or fail to take off again. Its computer checks the pads against the real height map (green safe, amber marginal, red hazard), picks the safest and lands. Then you climb out.</p><p class="g-msg">${esc(lastMsg)}</p><p class="note">The ground's shape is real satellite elevation data; small rocks, pebbles and the sky are illustrated.</p>` };
+        case "base": return { k: `6 · Build the base${rehearsal ? " · Oman rehearsal" : ""}`, t: baseDone ? "The base is established" : "The base goes up, step by step", plain: lastMsg,
+          html: `<p class="lead">Robots and crew build the base in order, and each step explains why that spot was chosen. Each module has rules: level ground for the habitat, sunlight for the solar array${groundWorld === "moon" ? ", a clear view of Earth for the antenna" : ""}, and a safe distance from the pad's rocket blast. These are the same terrain properties our atlas measures across Oman.</p><p class="g-msg">${esc(lastMsg)}</p>` };
         case "debrief": return { k: "7 · Debrief", t: baseDone ? "Mission complete" : "What we learned",
           plain: `${L.oman} Earth can't copy: ${L.cant.join(", ")}.`,
           html: `<p class="lead">You flew about ${leg.total} ${leg.unit}s to ${esc(M.target)}, landed on real terrain${baseDone ? " and built a base where the rules allow" : ""}.</p>
@@ -689,9 +741,13 @@ export default {
         if (id === "landing" && (step !== "pad" || !pads.some(p => p.g.visible))) restart();
         if (id === "base" && step !== "camp") {               // reaching the base chapter directly: land on the best pad first, fast
           if (step === "pad") { restart(); if (pads[0]) choosePad(pads[0], pads[0].name); speed = 4; startLanding(); }
-          ch = "landing"; msg("Landing first on the safest pad, then the base.");
+          ch = "landing"; msg("Landing first on the safest pad, then you step out and the base goes up.");
         }
-        if (id === "landing" && pads[0] && !chosen) choosePad(pads[0], pads[0].name);
+        if (id === "landing" && step === "pad") {                // the lander picks the safest pad and lands by itself
+          if (pads[0]) choosePad(pads[0], pads[0].name);
+          setTimeout(() => { if (alive && ch === "landing" && step === "pad" && chosen) startLanding(); }, 4000);
+        }
+        if (id === "base" && step === "camp" && !touring && !baseDone && !exiting) setTimeout(() => { if (alive && ch === "base") buildTour(); }, 800);
       }
       if (id === "debrief") { hideGroundExtras(); $r("#vrCard").hidden = true; showBoard("Mission debrief", [narration().plain], "#46c37a", 24); }
       paintGuide(); drawMenu();
@@ -729,7 +785,7 @@ export default {
       load.hidden = true; $r("#vrBar").hidden = false;
       loading = false; if (renderer.xr.isPresenting && menu?.mesh.visible) consoleDue = .5;
       restart();
-      msg(`${WORLDS[w].label}: ${WORLDS[w].place}. ${rules.worlds[w].gravity} m/s² gravity. Choose a landing pad.`);
+      msg(`${WORLDS[w].label}: ${WORLDS[w].place}. ${rules.worlds[w].gravity} m/s² gravity. The lander is checking the pads.`);
       if (ch === "brief" || ch === "suit") { pads.forEach(p => p.g.visible = false); padMarker.visible = false; tool = "move"; }
     }
 
@@ -775,6 +831,8 @@ export default {
       menu = panel(.58, .59, 1024, 1040); menu.mesh.visible = false; menu.mesh.renderOrder = 5; scene.add(menu.mesh);
       board = panel(.8, .36, 880, 400); board.mesh.visible = false; scene.add(board.mesh);
       body = createBody(scene, renderer, camera); body.setMode("first");
+      hands = createHands(renderer);
+      for (let i = 0; i < 2; i++) { const hd = renderer.xr.getHand(i); hd.userData.xrPart = true; controls.rig.add(hd); }   // tracked hands ride with you
       holo = createHolo(scene);
       mannequin = buildSuit(); mannequin.visible = false; mannequinMarks = partMarkers(mannequin); scene.add(mannequin);
       getGrid().then(g => { if (!alive) return; G = g; drawHolo(); }).catch(() => {});
@@ -792,7 +850,7 @@ export default {
         journey.update(dt);
         const c = journey.clock(); if (c) { $r("#hudClock").textContent = c.text; $r("#hudBar").style.width = Math.round(c.f * 100) + "%"; $r("#hudDist").textContent = c.dist;
           const gc = $r("#gB .g-clock"); if (gc) { gc.querySelector("b").textContent = c.text; gc.querySelector("i").style.width = Math.round(c.f * 100) + "%"; } }
-        if (renderer.xr.isPresenting) { journey.placeForXR(controls.rig); renderer.render(journey.scene, camera); }
+        if (renderer.xr.isPresenting) { hands?.update(true); journey.placeForXR(controls.rig); renderer.render(journey.scene, camera); }
         else {
           // keep the planet clear of the panels: move the picture right of the guide (wide screens) or above it (phones)
           const gOn = guideOn && !$r("#vrGuide").hidden, wide = innerWidth > 760;
@@ -815,7 +873,7 @@ export default {
         }
         if (third) camera.rotation.x -= .24;
         if (body) { body.suit.userData.speed = rp0.distanceTo(controls.rig.position) / Math.max(dt, 1e-3) / 3; body.update(controls.rig, xrOn); body.suit.visible = !cine || body.mode === "third"; }
-        holo?.update(dt);
+        holo?.update(dt); hands?.update(xrOn);
         if (mannequin?.visible) { mannequin.rotation.y += dt * .15; mannequinMarks.markers.forEach((m, i) => m.children[0].lookAt(camera.getWorldPosition(tmpV))); }
         terrain.updatePebbles(controls.rig.position.x, controls.rig.position.z);
         { const rp = controls.rig.position, snap = 140 / sky.sun.shadow.mapSize.x, cx = Math.round(rp.x / snap) * snap, cz = Math.round(rp.z / snap) * snap;   // snapped: no shimmering

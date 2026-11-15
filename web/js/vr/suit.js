@@ -131,15 +131,7 @@ export function partMarkers(suit) {
 export function createBody(scene, renderer, camera) {
   const suit = buildSuit(); suit.visible = false; scene.add(suit);
   const gloves = [], _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler(0, 0, 0, "YXZ");
-  for (let i = 0; i < 2; i++) {
-    const grip = renderer.xr.getControllerGrip(i), gl = new THREE.Group(), inner = buildGlove(1);
-    // the glove model points its fingers down -Y with the palm on +Z. Tip it so the fingers run forward along the
-    // controller (-Z) with the palm down, then roll it so the palm faces the other hand (set per hand once connected).
-    inner.rotation.x = Math.PI / 2; inner.position.set(0, 0, .1);           // palm centre sits on the grip point
-    gl.add(inner); gl.visible = false; grip.add(gl); gloves.push(gl);
-    const ctrl = renderer.xr.getController(i);
-    ctrl.addEventListener("connected", e => { const right = e.data.handedness !== "left"; gl.rotation.z = right ? -Math.PI / 2 : Math.PI / 2; inner.scale.x = right ? 1 : -1; });
-  }
+  // gloves in the headset come from hands.js (jointed, buttons move the fingers, or tracked hands)
   let mode = "off", yaw = 0;
   function setMode(m) {
     mode = m; suit.visible = m !== "off";
