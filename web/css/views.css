@@ -641,3 +641,17 @@ i.onote,.onote{font-style:normal;color:var(--moho);font-size:11.5px}
   .exag{top:auto;bottom:calc(64px + env(safe-area-inset-bottom,0px));left:10px;right:10px;transform:none;min-width:0}
   .drawer.mini{left:6px;right:6px;width:auto}
 }
+
+/* ================= home: hero copy always fits between the top bar and the menu ================= */
+@media (min-width:761px){
+  .orbit-copy{top:calc(70px + env(safe-area-inset-top,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:none;
+    align-content:center;gap:clamp(8px, 1.9vh, 20px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding-right:8px}
+  .orbit-copy::-webkit-scrollbar{display:none}
+  .orbit-copy h1{font-size:clamp(34px, min(6.4vw, 8.2vh), 92px)}
+  .orbit-tag{font-size:clamp(15px, min(1.6vw, 2.3vh), 21px)}
+  .orbit-lede{font-size:clamp(13px, 1.75vh, 15px)}
+  .stats dt{font-size:clamp(19px, 2.9vh, 26px)}
+}
+@media (min-width:761px) and (max-height:760px){
+  .orbit-copy .how3{display:none}            /* short screens: the three steps live in the buttons below */
+}
