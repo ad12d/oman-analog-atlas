@@ -67,7 +67,11 @@ async function start() {
 
   // mission switch in the top bar
   const sw = $("#mission");
-  const paintSwitch = () => $$("button", sw).forEach(b => b.setAttribute("aria-checked", String(b.dataset.m === store.mission)));
+  const paintSwitch = () => {
+    $$("button", sw).forEach(b => b.setAttribute("aria-checked", String(b.dataset.m === store.mission)));
+    const on = sw.querySelector('[aria-checked="true"]');            // narrow screens: keep the chosen mission in view
+    if (on && sw.scrollWidth > sw.clientWidth) sw.scrollLeft = on.offsetLeft - (sw.clientWidth - on.offsetWidth) / 2;
+  };
   sw.addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (b) store.setMission(b.dataset.m); });
   sw.addEventListener("keydown", e => {
     if (!["ArrowRight", "ArrowLeft"].includes(e.key)) return;

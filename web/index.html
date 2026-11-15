@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Oman Analog Atlas</title>
+<title>UBAR · Oman Analog Atlas</title>
 <meta name="description" content="Earth analogs in Oman for the Moon base and Mars, scored with an Analog Similarity Index. NASA Space Apps 2026.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,9 +28,16 @@
 
   <!-- Layer 2: HUD chrome -->
   <header class="hud-top">
-    <a class="brand" href="#orbit" aria-label="Oman Analog Atlas, back to orbit">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Oman Analog Atlas</span>
+    <a class="brand" href="#orbit" aria-label="UBAR, Oman Analog Atlas, back to orbit" title="UBAR · Oman Analog Atlas">
+      <svg class="brand-logo" viewBox="0 0 32 32" aria-hidden="true">
+        <defs><linearGradient id="ubarGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F7D68E"/><stop offset="1" stop-color="#C98A2B"/></linearGradient>
+          <clipPath id="ubarPlanet"><circle cx="16" cy="16" r="8.2"/></clipPath></defs>
+        <path d="M2.6 19.6 A14 5.2 -18 0 1 29.4 12.4" fill="none" stroke="url(#ubarGold)" stroke-width="1.5" opacity=".55"/>
+        <g clip-path="url(#ubarPlanet)"><rect x="6" y="6" width="20" height="20" fill="#D9A441"/><path d="M8 18.5 Q12 15.6 16 17.2 T25 16.4 V26 H8Z" fill="#B9772F"/><path d="M19.5 6 A8.2 8.2 0 0 1 19.5 26 A10 10 0 0 0 19.5 6Z" fill="#7A4A1E" opacity=".55"/></g>
+        <path d="M29.4 12.4 A14 5.2 -18 0 1 2.6 19.6" fill="none" stroke="url(#ubarGold)" stroke-width="1.6"/>
+        <circle cx="28.3" cy="13.1" r="1.6" fill="#F7D68E"/>
+      </svg>
+      <span class="brand-name">UBAR</span>
     </a>
     <nav class="crumbs" id="crumbs" aria-label="Location"></nav>
     <div class="hud-right">
