@@ -34,7 +34,8 @@ const ROWS = [
   ["HiRISE DTM DTEEC_045994_1985_046060_1985", "NASA/JPL/UArizona · USGS", "https://stac.astrogeology.usgs.gov/browser-dev/", "1 m terrain + orthoimage of Jezero crater floor, the VR Mars terrain", "VR terrain", false],
   ["Oman Drilling Project (ICDP)", "ICDP / IODP", "https://publications.iodp.org/other/Oman/OmanDP.html", "Benchmark outcrops (BT1B, BA1, IGSN surface sample) for validation; hole CM1 centres the VR Oman terrain", "Validation · VR terrain", false],
   ["Team drone LiDAR survey", "Sultan Qaboos Air Academy team", "#vr", "Bare-earth terrain of the civilian survey site; replaces the satellite terrain in VR once processed", "VR terrain", false],
-  ["three.js", "Open source (MIT licence)", "https://threejs.org/", "3D engine and bloom effect; globe cloud texture from its example files", "Visuals", false],
+  ["Piper text-to-speech · voice en_GB-cori-high", "Open source (MIT) · public-domain voice (LibriVox)", "https://github.com/rhasspy/piper", "The VR narrator: every line pre-recorded with a neural voice", "VR narration", false],
+    ["three.js", "Open source (MIT licence)", "https://threejs.org/", "3D engine and bloom effect; globe cloud texture from its example files", "Visuals", false],
   ["Rajendran & Nasir (2015), Tectonophysics 657", "Sultan Qaboos University", "https://doi.org/10.1016/j.tecto.2015.06.023", "Background geology and alteration mapping of the Samail ophiolite", "Context", false],
 ];
 

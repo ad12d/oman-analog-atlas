@@ -15,11 +15,12 @@ import { createSky, applySkin } from "../vr/skins.js";
 import { createLander } from "../vr/lander.js";
 import { createCamp } from "../vr/camp.js";
 import { createControls } from "../vr/controls.js";
-import { createJourney, LEGS } from "../vr/journey.js";
+import { createJourney, LEGS, HOME } from "../vr/journey.js";
+const HOME_LINES = [HOME.launch, HOME.burn, ...HOME.cruise, HOME.capture];
 import { createBody, buildSuit, partMarkers, SUIT_PARTS } from "../vr/suit.js";
 import { createHolo } from "../vr/holo.js";
 import { createHands } from "../vr/hands.js";
-import { createAudio } from "../vr/audio.js";
+import { createAudio, voiceKey, spoken } from "../vr/audio.js";
 import { MISSIONS, MISSION_KEYS, CRITERIA, score100 } from "../core/data.js";
 import { LEARN, WORLD_FACTS } from "../core/learn.js";
 import { getGrid } from "../core/grid.js";
@@ -113,7 +114,8 @@ export default {
     // sound needs a first click, key or Enter VR (browsers block audio until the visitor does something)
     const wakeAudio = () => audio.start();
     root.addEventListener("pointerdown", wakeAudio, { capture: true }); addEventListener("keydown", wakeAudio);
-    function narrate(title, text, opts = {}) { audio.say(title ? `${title}. ${text || ""}` : text, opts); }
+    const lineOf = (title, text) => title ? `${title}. ${text || ""}` : text;
+    function narrate(title, text, opts = {}) { audio.say(lineOf(title, text), opts); }
     function setAudioScene() {
       if (journeyOn) { audio.ambience("cabin"); audio.suit(false); }
       else { audio.ambience(world === "moon" ? "moon" : world === "mars" ? "mars" : "oman"); audio.suit(true); }
@@ -353,7 +355,7 @@ export default {
     function onTouchdown(r) {
       step = "camp"; tool = "move"; camp.setLander({ x: chosen.x, z: chosen.z }); pads.forEach(p => p.g.visible = false); padMarker.visible = false;
       landerSnd?.stop(); landerSnd = null; audio.thump();
-      narrate(`Touchdown, ${LEVEL[r.level].toLowerCase()}`, `The lander leans ${r.tilt.toFixed(1)} degrees on ground sloping ${r.slope.toFixed(1)} degrees. Engines off.`, { tone: true });
+      narrate(...TOUCHDOWN[r.level], { tone: true });
       const L = rules.landing, col = LEVEL_COL[r.level];
       const row = (n, v, s, hz, g) => `<tr><td>${n}</td><td class="v">${v}</td><td class="lim">${s} / ${hz}</td><td><i class="dot" style="background:${LEVEL_COL[g]}"></i></td></tr>`;
       $r("#vrCard").innerHTML = `<div class="vr-card-head" style="--lc:${col}"><button type="button" class="vr-x" data-a="close" aria-label="Close">×</button><span class="eyebrow">Touchdown · ${esc(chosen.name)}</span><b>${LEVEL[r.level]}</b></div>
@@ -494,6 +496,9 @@ export default {
 
     /* ---------- you climb out: hatch, porch, ladder, first steps; then the view becomes your own eyes ---------- */
     let exiting = false, skipExit = false, walker = null;
+    const TOUCHDOWN = [["Touchdown, safe", "The lander stands level on firm ground. Engines off."],
+      ["Touchdown, marginal", "The lander is down but leaning. The crew checks the legs before anyone goes out."],
+      ["Touchdown, hazard", "The lander is down on rough or sloping ground. In a real mission the crew would be ready to lift off again."]];
     const FIRST = {
       moon: "Moon dust is fine and sharp like broken glass. With no wind or rain, a footprint here can last for millions of years.",
       mars: "Mars dust is rich in iron oxide, which is why the ground looks red. In 38% gravity every step feels light and bouncy.",
@@ -578,7 +583,7 @@ export default {
         if (xr) showBoard(`${k}. ${m.name}`, [m.role, ...c.rules.filter(r => ["slope", "sun", "home", "shadow", "distance", "keepout"].includes(r.key)).slice(0, 2).map(r => `${r.label}: ${r.value} (rule ${r.limit})`)], "#f2c46d", 9);
         else if (!skipTour) orbitCam(p.x, p.z, p.id === "rover" ? 16 : 20, p.id === "solar" || p.id === "comms" ? 9 : 7, .18);
         msg(`${m.name}: ${m.role}`);
-        if (!skipTour) { audio.build(p.id); narrate(`Step ${k}, ${m.name}`, `${m.role} Why here: ${linkFor(p.id)}.`); }
+        if (!skipTour) { audio.build(p.id); narrate(m.name, `${m.role} Why here: ${linkFor(p.id)}.`); }
         const r = camp.placeAt(p.id, p.x, p.z, { animate: !skipTour, force: true });
         await r.done; if (!skipTour) await wait(2600);
       }
@@ -640,7 +645,7 @@ export default {
       const M = MISSIONS[mission], w = dest(), L = LEARN[mission], s = site(), leg = LEGS[w], xr = renderer.xr.isPresenting;
       const rehearsal = groundWorld === "oman" && (ch === "landing" || ch === "base");
       switch (ch) {
-        case "brief": return { k: "1 · Where are we going?", t: M.target, plain: `${M.target}. ${L.place} About ${leg.total} ${leg.unit}s in space. Rehearse first in Oman at ${s.name} (score ${score100(s.asi)}/100).`,
+        case "brief": return { k: "1 · Where are we going?", t: M.target, plain: `${M.target}. ${L.place} About ${leg.total} ${leg.unit}s in space. On the holo-table, choose where in Oman the crew rehearses it.`,
           html: `<p class="lead">${esc(L.place)}</p><p>${esc(L.why[0])}</p>
             <div class="g-facts"><div><span>Time in space</span><b>about ${leg.total} ${leg.unit}s</b></div><div><span>Distance</span><b>${esc(leg.dist)}</b></div>
             <div class="wide"><span>Where crews rehearse it in Oman</span><b>${esc(s.name)} · ${score100(s.asi)}/100</b></div></div>
@@ -808,6 +813,33 @@ export default {
       if (prev !== id && id === "landing" && step === "pad") narrate("Landing", "The lander's computer checks the pads against the real height map, picks the safest one, and lands.");
       if (prev !== id && id !== "journey" && id !== "orbit") paint();
     }
+    /** every narration line, for pre-recording the voice (QA / build step only) */
+    function voiceLines() {
+      const out = new Set(), keep = { mission, ch, part, baseDone, groundWorld, world };
+      const add = (t, x) => { const l = lineOf(t, x); if (l) out.add(l); };
+      for (const m of MISSION_KEYS) {
+        mission = m;
+        for (const c of ["brief", "suit", "debrief"]) { ch = c; for (const bd of [false, true]) { baseDone = bd; part = null; const n = narration(); add(n.plain.startsWith(n.t) ? "" : n.t, n.plain); } }
+      }
+      for (const P of SUIT_PARTS) add(P.name, P.text);
+      for (const d of ["moon", "mars"]) { const L = LEGS[d]; for (const k of ["launch", "burn", "capture", "orbit"]) add(...L[k]); L.cruise.forEach(c => add(...c)); }
+      for (const [t, x] of HOME_LINES) add(t, x);
+      add("Descent", "Engines firing. Leaving orbit for the landing zone.");
+      add("Landing", "The lander's computer checks the pads against the real height map, picks the safest one, and lands.");
+      TOUCHDOWN.forEach(t => add(...t));
+      add("The hatch opens", "Before stepping out, the crew checks suit pressure, oxygen and radio. The hatch keeps the cabin air in while it is closed.");
+      add("Down the ladder", "Climbing in a stiff, pressurised suit is slow work: one rung at a time, always holding on with three limbs.");
+      for (const w of ["oman", "moon", "mars"]) {
+        add("First steps", FIRST[w]);
+        world = w; for (const id of Object.keys(camp?.MODS || {})) add(camp.MODS[id].name, `${camp.MODS[id].role} Why here: ${linkFor(id)}.`);
+      }
+      add("Establishing the base", "The planner tests every spot in the landing area against the rules: ground slope, bumps, distance from the landing pad and sunlight. Then the robots build in order.");
+      add("Path markers", "Beacons mark a gentle walking route from the habitat toward the pad, stopping at the edge of the blast zone.");
+      add("Base established", "Every module stands where the rules allow. The same terrain checks decide where crews rehearse in Oman.");
+      ({ mission, ch, part, baseDone, groundWorld, world } = keep);
+      return [...out].map(t => ({ key: voiceKey(t), text: spoken(t) }));
+    }
+
     async function loadWorld(w, { quiet = false } = {}) {
       loading = true; world = w; drawMenu(); paint();
       const load = $r("#vrLoad"); if (!quiet) { load.hidden = false; $r("#vrLoadW").textContent = `VR · ${WORLDS[w].label} · ${WORLDS[w].place}`; }
@@ -896,7 +928,7 @@ export default {
       await loadWorld("oman");
       if (!alive) return;
       enterCh("brief");
-      if (new URLSearchParams(location.search).has("debug")) window.__vr = { get terrain() { return terrain; }, get lander() { return lander; }, get camp() { return camp; }, controls, run, get step() { return step; }, choosePad, get pads() { return pads; }, rules, get world() { return world; }, get loading() { return loading; }, get flying() { return flying; }, get touring() { return touring; }, scene, renderer, camera, get holo() { return holo; }, get ch() { return ch; }, enterCh, get journeyOn() { return journeyOn; }, journey, get body() { return body; }, get site() { return site(); }, placeConsole, menuHit, get menuBtns() { return menuBtns; }, get menu() { return menu; }, onSelect, switchWorld, buildTour, skip() { skipTour = true; }, endCine };   // QA only
+      if (new URLSearchParams(location.search).has("debug")) window.__vr = { get terrain() { return terrain; }, get lander() { return lander; }, get camp() { return camp; }, controls, run, get step() { return step; }, choosePad, get pads() { return pads; }, rules, get world() { return world; }, get loading() { return loading; }, get flying() { return flying; }, get touring() { return touring; }, scene, renderer, camera, get holo() { return holo; }, get ch() { return ch; }, enterCh, voiceLines, get journeyOn() { return journeyOn; }, journey, get body() { return body; }, get site() { return site(); }, placeConsole, menuHit, get menuBtns() { return menuBtns; }, get menu() { return menu; }, onSelect, switchWorld, buildTour, skip() { skipTour = true; }, endCine };   // QA only
     })();
 
     /* ---------- frame loop ---------- */

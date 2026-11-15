@@ -41,7 +41,7 @@ export const LEGS = {
 };
 
 // the way home (any world): lift-off, the long coast, and re-entry over Oman where the next crew rehearses
-const HOME = {
+export const HOME = {
   launch: ["Lift-off", "The ascent stage rises from the surface and meets the ship waiting in orbit."],
   burn: ["Heading home", "The engine fires to leave orbit and fall back toward Earth."],
   cruise: [["Coasting home", "Samples from the destination ride in sealed containers, so nothing from outside is mixed with Earth's own."],

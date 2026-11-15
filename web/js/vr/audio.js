@@ -11,6 +11,14 @@ import * as THREE from "three";
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v === "1"; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, v ? "1" : "0"); } catch { /* storage blocked */ } } };
 
+/** stable key of a narration line (FNV-1a), shared by the site and the recording script */
+export function voiceKey(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(16).padStart(8, "0"); }
+/** how a line should be read aloud: symbols spelled out */
+export function spoken(t) {
+  return String(t).replace(/·/g, ",").replace(/×/g, " times ").replace(/m\/s²/g, " metres per second squared").replace(/−/g, "minus ")
+    .replace(/°C/g, " degrees Celsius").replace(/°/g, " degrees").replace(/km\/h/g, " kilometres per hour").replace(/(\d),(\d{3})/g, "$1$2");
+}
+
 export function createAudio() {
   let ctx = null, master, amb, sfx, voiceGain, noiseW, noiseB, echo;
   let soundOn = store.get("oaa.vr.sound", true), voiceOn = store.get("oaa.vr.voice", true);
@@ -147,8 +155,10 @@ export function createAudio() {
     o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + sec * .5); o.frequency.linearRampToValueAtTime(f0, t + sec);
     o.connect(lp); lp.connect(g); g.connect(sfx); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.04, t + .2); g.gain.setValueAtTime(.04, t + sec - .2); g.gain.linearRampToValueAtTime(0, t + sec); o.start(t); o.stop(t + sec + .05); }
 
-  /* ---------- narrator (browser speech) ---------- */
-  const synth = window.speechSynthesis; let voice = null, queue = 0;
+  /* ---------- narrator: recorded human-sounding lines (Piper, open source) with the browser's voice as a fallback ---------- */
+  const synth = window.speechSynthesis; let voice = null, voiceIndex = null, cur = null, chain = Promise.resolve();
+  fetch("data/voice/index.json").then(r => r.ok ? r.json() : null).then(j => { voiceIndex = j?.lines || null; }).catch(() => {});
+  function stopVoice() { synth?.cancel(); if (cur) { cur.pause(); cur = null; } }
   function pickVoice() {
     if (!synth) return; const vs = synth.getVoices().filter(v => /^en/i.test(v.lang)); if (!vs.length) return;
     const pref = [/Google UK English Male/i, /Microsoft (Guy|Ryan|Davis|Andrew)/i, /Daniel/i, /Google US English/i, /Natural/i, /en-GB/i];
@@ -157,9 +167,21 @@ export function createAudio() {
   if (synth) { pickVoice(); synth.addEventListener?.("voiceschanged", pickVoice); }
   /** speak a line; { tone: true } frames it like a mission-control radio call; { queue: true } waits for the previous line */
   function say(text, { tone: radio = false, queue: q = false } = {}) {
-    if (!synth || !voiceOn || !text) return;
-    if (!q) { synth.cancel(); }
-    const u = new SpeechSynthesisUtterance(String(text).replace(/·/g, ",").replace(/×/g, " times ").replace(/m\/s²/g, " metres per second squared").replace(/−/g, "minus ").replace(/°C/g, " degrees Celsius").replace(/°/g, " degrees"));
+    if (!voiceOn || !text) return;
+    const file = voiceIndex?.[voiceKey(text)];
+    if (file) {                                                     // a recorded line: play it, framed by Quindar tones on radio calls
+      const play = () => new Promise(res => {
+        const a = new Audio("data/voice/" + file); a.volume = soundOn ? 1 : 0; cur = a;
+        a.onended = () => { if (radio && soundOn) quindar(false); res(); }; a.onerror = () => res();
+        const begin = () => a.play().catch(() => res());
+        if (radio && soundOn) { quindar(true); setTimeout(begin, 280); } else begin();
+      });
+      if (!q) { stopVoice(); chain = play(); } else chain = chain.then(play);
+      return;
+    }
+    if (!synth) return;
+    if (!q) stopVoice();
+    const u = new SpeechSynthesisUtterance(spoken(text));
     if (voice) u.voice = voice; u.rate = 1.02; u.pitch = .95; u.volume = soundOn ? 1 : 0;
     if (radio && soundOn) { quindar(true); u.onend = () => quindar(false); }
     const go = () => synth.speak(u); if (radio && soundOn) setTimeout(go, 280); else go();
@@ -177,7 +199,7 @@ export function createAudio() {
     start, ambience, suit, engine, positional, thump, hatch, clank, step, build: build1, ping, chirp, quindar, click, say, update,
     get soundOn() { return soundOn; }, get voiceOn() { return voiceOn; },
     setSound(v) { soundOn = v; store.set("oaa.vr.sound", v); if (master) master.gain.setTargetAtTime(v ? .9 : 0, now(), .1); if (!v) synth?.cancel(); },
-    setVoice(v) { voiceOn = v; store.set("oaa.vr.voice", v); if (!v) synth?.cancel(); },
-    dispose() { synth?.cancel(); timers.forEach(clearInterval); timers.clear(); ctx?.close(); ctx = null; },
+    setVoice(v) { voiceOn = v; store.set("oaa.vr.voice", v); if (!v) stopVoice(); },
+    dispose() { stopVoice(); timers.forEach(clearInterval); timers.clear(); ctx?.close(); ctx = null; },
   };
 }
